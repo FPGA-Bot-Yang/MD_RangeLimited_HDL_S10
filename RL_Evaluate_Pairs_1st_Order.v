@@ -229,8 +229,8 @@ module RL_Evaluate_Pairs_1st_Order
 
 	lut0_14
 	#(
-//		LOOKUP_NUM,
-//		LOOKUP_ADDR_WIDTH
+		.DEPTH(LOOKUP_NUM),
+		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
 	lut0_14 (
 		.data(32'd0),
@@ -243,8 +243,8 @@ module RL_Evaluate_Pairs_1st_Order
 
 	lut1_14
 	#(
-//		LOOKUP_NUM,
-//		LOOKUP_ADDR_WIDTH
+		.DEPTH(LOOKUP_NUM),
+		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
 	lut1_14 (
 		.data(32'd0),
@@ -257,8 +257,8 @@ module RL_Evaluate_Pairs_1st_Order
 
 	lut0_8
 	#(
-//		LOOKUP_NUM,
-//		LOOKUP_ADDR_WIDTH
+		.DEPTH(LOOKUP_NUM),
+		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
 	lut0_8 (
 		.data(32'd0),
@@ -271,8 +271,8 @@ module RL_Evaluate_Pairs_1st_Order
 
 	lut1_8
 	#(
-//		LOOKUP_NUM,
-//		LOOKUP_ADDR_WIDTH
+		.DEPTH(LOOKUP_NUM),
+		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
 	lut1_8 (
 		.data(32'd0),
@@ -285,8 +285,8 @@ module RL_Evaluate_Pairs_1st_Order
 
 	lut0_3
 	#(
-//		LOOKUP_NUM,
-//		LOOKUP_ADDR_WIDTH
+		.DEPTH(LOOKUP_NUM),
+		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
 	lut0_3 (
 		.data(32'd0),
@@ -299,8 +299,8 @@ module RL_Evaluate_Pairs_1st_Order
 
 	lut1_3
 	#(
-//		LOOKUP_NUM,
-//		LOOKUP_ADDR_WIDTH
+		.DEPTH(LOOKUP_NUM),
+		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
 	lut1_3 (
 		.data(32'd0),

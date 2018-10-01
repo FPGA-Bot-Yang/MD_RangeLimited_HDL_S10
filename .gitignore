@@ -306,3 +306,6 @@ __pycache__/
 *.aoco
 *.aocx
 *.bak
+
+# Quartus Simulation generated file
+*.ver

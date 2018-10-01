@@ -1,17 +1,17 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: Board_Test_Top_RL_Pipeline_1st_Order.v
+// Module: Board_Test_Top_RL_LJ_Pipeline_1st_Order.v
 //
 //	Function: Serve as the top module for on-board test
 //				The rst and start signal is given by memory modules controlled by in memory content editor
 //
 // Dependency:
-// 			RL_Pipeline_1st_Order.v
+// 			RL_LJ_Pipeline_1st_Order.v
 //
-// Created by: Chen Yang 09/28/18
+// Created by: Chen Yang 10/01/18
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module Board_Test_Top_RL_Pipeline_1st_Order
+module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 #(
 	parameter DATA_WIDTH 				= 32,
 	parameter REF_PARTICLE_NUM			= 100,
@@ -23,12 +23,15 @@ module Board_Test_Top_RL_Pipeline_1st_Order
 	parameter SEGMENT_WIDTH				= 4,
 	parameter BIN_WIDTH					= 8,
 	parameter BIN_NUM						= 256,
+	parameter CUTOFF_2					= 32'h43100000,						// (12^2=144 in IEEE floating point)
 	parameter LOOKUP_NUM					= SEGMENT_NUM * BIN_NUM,			// SEGMENT_NUM * BIN_NUM
 	parameter LOOKUP_ADDR_WIDTH		= SEGMENT_WIDTH + BIN_WIDTH		// log LOOKUP_NUM / log 2
 )
 (
 	input  clk,
-	output [DATA_WIDTH-1:0] forceoutput,
+	output [DATA_WIDTH-1:0] LJ_Force_X,
+	output [DATA_WIDTH-1:0] LJ_Force_Y,
+	output [DATA_WIDTH-1:0] LJ_Force_Z,
 	output forceoutput_valid,
 	output done
 );
@@ -54,7 +57,7 @@ module Board_Test_Top_RL_Pipeline_1st_Order
 	
 
 
-	RL_Pipeline_1st_Order
+	RL_LJ_Pipeline_1st_Order
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		.REF_PARTICLE_NUM(REF_PARTICLE_NUM),
@@ -66,6 +69,7 @@ module Board_Test_Top_RL_Pipeline_1st_Order
 		.SEGMENT_WIDTH(SEGMENT_WIDTH),
 		.BIN_WIDTH(BIN_WIDTH),
 		.BIN_NUM(BIN_NUM),
+		.CUTOFF_2(CUTOFF_2),
 		.LOOKUP_NUM(LOOKUP_NUM),
 		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
@@ -74,7 +78,9 @@ module Board_Test_Top_RL_Pipeline_1st_Order
 		.clk(clk),
 		.rst(rst),
 		.start(start),
-		.forceoutput(forceoutput),
+		.LJ_Force_X(LJ_Force_X),
+		.LJ_Force_Y(LJ_Force_Y),
+		.LJ_Force_Z(LJ_Force_Z),
 		.forceoutput_valid(forceoutput_valid),
 		.done(done)
 	);
