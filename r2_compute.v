@@ -35,9 +35,9 @@ module r2_compute
 	input [DATA_WIDTH-1:0] refx,
 	input [DATA_WIDTH-1:0] refy,
 	input [DATA_WIDTH-1:0] refz,
-	input [DATA_WIDTH-1:0] posx,
-	input [DATA_WIDTH-1:0] posy,
-	input [DATA_WIDTH-1:0] posz,
+	input [DATA_WIDTH-1:0] neighborx,
+	input [DATA_WIDTH-1:0] neighbory,
+	input [DATA_WIDTH-1:0] neighborz,
 	output [DATA_WIDTH-1:0] r2,
 	output reg [DATA_WIDTH-1:0] dx_out,
 	output reg [DATA_WIDTH-1:0] dy_out,
@@ -263,10 +263,10 @@ module r2_compute
 			end
 		end
 
-	// dx = refx - posx
+	// dx = refx - neighborx
 	// 2 cycle delay
 	FP_SUB FP_SUB_diff_x (
-		.ax     (posx),     		//   input,  width = 32,     ax.ax
+		.ax     (neighborx),     		//   input,  width = 32,     ax.ax
 		.ay     (refx),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr
@@ -274,10 +274,10 @@ module r2_compute
 		.result (dx)  				//  output,  width = 32, result.result
 	);
 	
-	// dy = refy - posy
+	// dy = refy - neighbory
 	// 2 cycle delay
 	FP_SUB FP_SUB_diff_y (
-		.ax     (posy),     		//   input,  width = 32,     ax.ax
+		.ax     (neighbory),     		//   input,  width = 32,     ax.ax
 		.ay     (refy),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr
@@ -285,10 +285,10 @@ module r2_compute
 		.result (dy)  				//  output,  width = 32, result.result
 	);
 	
-	// dz = refz - posz
+	// dz = refz - neighborz
 	// 2 cycle delay
 	FP_SUB FP_SUB_diff_z (
-		.ax     (posz),     		//   input,  width = 32,     ax.ax
+		.ax     (neighborz),     		//   input,  width = 32,     ax.ax
 		.ay     (refz),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr

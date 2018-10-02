@@ -108,7 +108,6 @@ end
 % Prepare the output file
 fresult = fopen('REFERENCE_OUTPUT.txt', 'wt');
 fprintf(fresult,'ParticlePairs:\t\t\t\t\t\tTotal LJ\tX_Comp\t\tY_Comp\t\tZ_Comp\n');
-fprintf(fresult,'\t\tDistance info: r2\tdx\tdy\tdz\t\n');
 
 
 %% Start Evaluation using interpolation
@@ -191,7 +190,7 @@ for ref_ptr = 1:EVALUATION_NUM
             F_LJ_z = 0;
         end
         fprintf(fresult,'(%tX,%tX,%tX),(%tX,%tX,%tX): %tX\t%tX\t%tX\t%tX\n',pos(ref_ptr,:),pos(neighbor_ptr,:),F_LJ,F_LJ_x,F_LJ_y,F_LJ_z);
-        fprintf(fresult,'\t\tDistance info: %tX, %tX, %tX, %tX\n', r2, dx, dy, dz);
+        fprintf(fresult,'\t\tDistance info: %tX')
     end
 end
 fclose(fresult);

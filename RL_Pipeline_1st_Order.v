@@ -50,11 +50,11 @@ module RL_Pipeline_1st_Order
 	assign p_qq = 32'h41000000;				// p_qq = 8, in IEEE floating point format
 	
 	wire [DATA_WIDTH-1:0] refx;
-	wire [DATA_WIDTH-1:0] posx;
+	wire [DATA_WIDTH-1:0] neighborx;
 	wire [DATA_WIDTH-1:0] refy;
-	wire [DATA_WIDTH-1:0] posy;
+	wire [DATA_WIDTH-1:0] neighbory;
 	wire [DATA_WIDTH-1:0] refz;
-	wire [DATA_WIDTH-1:0] posz;
+	wire [DATA_WIDTH-1:0] neighborz;
 
 	reg rden;
 	reg wren;
@@ -148,9 +148,9 @@ module RL_Pipeline_1st_Order
 		.refx(refx),
 		.refy(refy),
 		.refz(refz),
-		.posx(posx),
-		.posy(posy),
-		.posz(posz),
+		.neighborx(neighborx),
+		.neighbory(neighbory),
+		.neighborz(neighborz),
 		.r2(r2),
 		.r2_valid(r2_valid)
 		);
@@ -239,7 +239,7 @@ module RL_Pipeline_1st_Order
 		.data(),
 		.rden(rden),
 		.wren(wren),
-		.q(posx)
+		.q(neighborx)
 	);
 	
 	ram_neighbor_y
@@ -255,7 +255,7 @@ module RL_Pipeline_1st_Order
 		.data(),
 		.rden(rden),
 		.wren(wren),
-		.q(posy)
+		.q(neighbory)
 	);
 	
 	ram_neighbor_z
@@ -271,7 +271,7 @@ module RL_Pipeline_1st_Order
 		.data(),
 		.rden(rden),
 		.wren(wren),
-		.q(posz)
+		.q(neighborz)
 	);
 
 endmodule

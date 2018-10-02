@@ -51,9 +51,9 @@ module RL_LJ_Pipeline_1st_Order
 	assign p_b  = 32'h40800000;				// p_b = 4, in IEEE floating point format
 	assign p_qq = 32'h41000000;				// p_qq = 8, in IEEE floating point format
 	
-	wire [DATA_WIDTH-1:0] posx;
-	wire [DATA_WIDTH-1:0] posy;
-	wire [DATA_WIDTH-1:0] posz;
+	wire [DATA_WIDTH-1:0] neighborx;
+	wire [DATA_WIDTH-1:0] neighbory;
+	wire [DATA_WIDTH-1:0] neighborz;
 	wire [DATA_WIDTH-1:0] refx;
 	wire [DATA_WIDTH-1:0] refy;
 	wire [DATA_WIDTH-1:0] refz;
@@ -124,12 +124,19 @@ module RL_LJ_Pipeline_1st_Order
 				EVALUATION:						// Evaluating all the particle pairs
 					begin
 					done <= 1'b0;
-					
-					neighbor_rdaddr <= neighbor_rdaddr + 1'b1;
 					rden <= 1'b1;
-					if(neighbor_rdaddr == NEIGHBOR_PARTICLE_NUM)
+					// Generate home cell and neighbor cell address
+					if(neighbor_rdaddr == NEIGHBOR_PARTICLE_NUM - 1)
+						begin
 						home_rdaddr <= home_rdaddr + 1'b1;
-
+						neighbor_rdaddr <= 0;
+						end
+					else
+						begin
+						home_rdaddr <= home_rdaddr;
+						neighbor_rdaddr <= neighbor_rdaddr + 1'b1;
+						end
+						
 					if(home_rdaddr < REF_PARTICLE_NUM)
 						state <= EVALUATION;
 					else
@@ -160,9 +167,9 @@ module RL_LJ_Pipeline_1st_Order
 		.refx(refx),
 		.refy(refy),
 		.refz(refz),
-		.posx(posx),
-		.posy(posy),
-		.posz(posz),
+		.neighborx(neighborx),
+		.neighbory(neighbory),
+		.neighborz(neighborz),
 		.r2(r2),
 		.dx_out(dx),
 		.dy_out(dy),
@@ -260,7 +267,7 @@ module RL_LJ_Pipeline_1st_Order
 		.data(),
 		.rden(rden),
 		.wren(wren),
-		.q(posx)
+		.q(neighborx)
 	);
 	
 	ram_neighbor_y
@@ -276,7 +283,7 @@ module RL_LJ_Pipeline_1st_Order
 		.data(),
 		.rden(rden),
 		.wren(wren),
-		.q(posy)
+		.q(neighbory)
 	);
 	
 	ram_neighbor_z
@@ -292,7 +299,7 @@ module RL_LJ_Pipeline_1st_Order
 		.data(),
 		.rden(rden),
 		.wren(wren),
-		.q(posz)
+		.q(neighborz)
 	);
 
 endmodule
