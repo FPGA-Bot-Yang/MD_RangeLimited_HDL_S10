@@ -31,7 +31,7 @@ module r2_compute_tb;
 	reg clk;
 	reg rst;
 	reg r2_enable;
-	reg refx, refy, refz, posx, posy, posz;
+	reg [DATA_WIDTH-1:0] refx, refy, refz, posx, posy, posz;
 	
 	wire [DATA_WIDTH-1:0] r2;
 	wire [DATA_WIDTH-1:0] dx;
@@ -57,7 +57,7 @@ module r2_compute_tb;
 		#2
 		r2_enable <= 1;
 		
-		#2
+		#2									// r2 = 32'h426C0000 (32'd59)
 		posx <= 32'h3F800000;				// 1.0
 		posy <= 32'h3F800000;				// 1.0
 		posz <= 32'h3F800000;				// 1.0
@@ -65,7 +65,7 @@ module r2_compute_tb;
 		refy <= 32'h40800000;				// 4.0
 		refz <= 32'h41000000;				// 8.0
 		
-		#2
+		#2									// r2 = 32'h40400000 (32'd3)
 		posx <= 32'h3F800000;				// 1.0
 		posy <= 32'h3F800000;				// 1.0
 		posz <= 32'h3F800000;				// 1.0
@@ -73,7 +73,7 @@ module r2_compute_tb;
 		refy <= 32'h40000000;				// 2.0
 		refz <= 32'h40000000;				// 2.0
 		
-		#2
+		#2									// r2 = 32'd426C0000(32'd59)
 		posx <= 32'h40000000;				// 2.0
 		posy <= 32'h40800000;				// 4.0
 		posz <= 32'h41000000;				// 8.0

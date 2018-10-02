@@ -132,9 +132,9 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	
 	// Simple filter based on the r2_value, but the force is still evaluated whether within cutoff or not
 	// assign output force (if exceed cutoff, then set as 0)
-	assign LJ_Force_X = (r2_delay > CUTOFF_2) ? 0 : LJ_Force_X_wire;
-	assign LJ_Force_Y = (r2_delay > CUTOFF_2) ? 0 : LJ_Force_Y_wire;
-	assign LJ_Force_Z = (r2_delay > CUTOFF_2) ? 0 : LJ_Force_Z_wire;
+	assign LJ_Force_X = (r2_delay > CUTOFF_2 || r2_delay == 0) ? 0 : LJ_Force_X_wire;
+	assign LJ_Force_Y = (r2_delay > CUTOFF_2 || r2_delay == 0) ? 0 : LJ_Force_Y_wire;
+	assign LJ_Force_Z = (r2_delay > CUTOFF_2 || r2_delay == 0) ? 0 : LJ_Force_Z_wire;
 	
 	// Generate table lookup address
 	assign rdaddr = {segment_id, bin_id};							// asssign the table lookup address
