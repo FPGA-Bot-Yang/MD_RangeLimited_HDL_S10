@@ -27,7 +27,7 @@ module Board_Test_Top_RL_Pipeline_1st_Order
 	parameter LOOKUP_ADDR_WIDTH		= SEGMENT_WIDTH + BIN_WIDTH		// log LOOKUP_NUM / log 2
 )
 (
-	input  clk,
+	input  ref_clk,
 	output [DATA_WIDTH-1:0] forceoutput,
 	output forceoutput_valid,
 	output done
@@ -35,7 +35,17 @@ module Board_Test_Top_RL_Pipeline_1st_Order
 
 	wire rst;
 	wire start;
+	wire clk;
 	
+	// Input pll
+	INPUT_PLL INPUT_PLL(
+		.locked(),   //  locked.export
+		.outclk_0(clk), // outclk0.clk
+		.refclk(ref_clk),   //  refclk.clk
+		.rst(rst)       //   reset.reset
+	);
+	
+	// rst signal from Memory content editor
 	On_Board_Test_Control_RAM_rst CTRL_rst (
 		.data    (),    //   input,  width = 1,  ram_input.datain
 		.address (1'b0), //   input,  width = 1,           .address
@@ -44,6 +54,7 @@ module Board_Test_Top_RL_Pipeline_1st_Order
 		.q       (rst)        //  output,  width = 1, ram_output.dataout
 	);
 	
+	// Start signal from Memory content editor
 	On_Board_Test_Control_RAM_start CTRL_start (
 		.data    (),    //   input,  width = 1,  ram_input.datain
 		.address (1'b0), //   input,  width = 1,           .address
@@ -52,8 +63,7 @@ module Board_Test_Top_RL_Pipeline_1st_Order
 		.q       (start)        //  output,  width = 1, ram_output.dataout
 	);
 	
-
-
+	// RL LJ pipeline
 	RL_Pipeline_1st_Order
 	#(
 		.DATA_WIDTH(DATA_WIDTH),

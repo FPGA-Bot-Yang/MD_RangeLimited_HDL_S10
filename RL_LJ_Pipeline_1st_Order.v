@@ -8,6 +8,10 @@
 // Dependency:
 // 			RL_LJ_Evaluate_Pairs_1st_Order.v
 //
+// Latency: total: 											31 cycles
+//				r2_compute: 									17 cycles
+//				RL_LJ_Pipeline_1st_Order: 					14 cycles
+//
 // Created by: Chen Yang 10/01/18
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,8 +96,9 @@ module RL_LJ_Pipeline_1st_Order
 			
 			state <= WAIT_FOR_START;
 			end
-		else if(start)
+		else
 			begin
+			// The r2_enable should kept high until the FP operation is finished!!!!!!!!
 			r2_enable <= rden;				// Assign the r2_enable signal, one cycle delay from the rden signal
 			
 			wren <= 1'b0;						// temporarily disable write back to position ram
@@ -136,11 +141,17 @@ module RL_LJ_Pipeline_1st_Order
 						home_rdaddr <= home_rdaddr;
 						neighbor_rdaddr <= neighbor_rdaddr + 1'b1;
 						end
-						
+					
+					if((home_rdaddr == REF_PARTICLE_NUM - 1) && (neighbor_rdaddr == NEIGHBOR_PARTICLE_NUM - 1))
+						state <= DONE;
+					else
+						state <= EVALUATION;
+/*
 					if(home_rdaddr < REF_PARTICLE_NUM)
 						state <= EVALUATION;
 					else
 						state <= DONE;
+*/
 					end
 					
 				DONE:								// Output a done signal

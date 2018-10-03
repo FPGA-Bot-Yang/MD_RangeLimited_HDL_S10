@@ -98,7 +98,11 @@ module r2_compute
 	reg [DATA_WIDTH-1:0] dz_reg13;
 	reg [DATA_WIDTH-1:0] dz_delay;
 	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// !!!!!!!!Attention!!!!!!!!
+	// The enable singal for FP IPs should kept high until the operation is finished!!!!!!!!
+	// When connect the stage enable signal to the IP enable signal, always do logical OR with the next stage enable signal to make sure the calculation is finished
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	wire level1_en;			// Calculate dx, dy, dz
 	reg level2_en;				// Calculate dx2
 	reg level3_en;				// Calculate dx2 + dy2
@@ -194,7 +198,7 @@ module r2_compute
 			level1_en_reg1 <= level1_en;
 			level1_en_reg2 <= level1_en_reg1;
 			
-			level2_en <= level1_en_reg1;
+			level2_en <= level1_en_reg2;
 			level2_en_reg1 <= level2_en;
 			level2_en_reg2 <= level2_en_reg1;
 			level2_en_reg3 <= level2_en_reg2;
@@ -264,70 +268,70 @@ module r2_compute
 		end
 
 	// dx = refx - neighborx
-	// 2 cycle delay
+	// 3 cycle delay
 	FP_SUB FP_SUB_diff_x (
 		.ax     (neighborx),     		//   input,  width = 32,     ax.ax
 		.ay     (refx),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr
-		.ena    (level1_en),    //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en),    //   input,   width = 1,    ena.ena
 		.result (dx)  				//  output,  width = 32, result.result
 	);
 	
 	// dy = refy - neighbory
-	// 2 cycle delay
+	// 3 cycle delay
 	FP_SUB FP_SUB_diff_y (
 		.ax     (neighbory),     		//   input,  width = 32,     ax.ax
 		.ay     (refy),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr
-		.ena    (level1_en),    //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en),    //   input,   width = 1,    ena.ena
 		.result (dy)  				//  output,  width = 32, result.result
 	);
 	
 	// dz = refz - neighborz
-	// 2 cycle delay
+	// 3 cycle delay
 	FP_SUB FP_SUB_diff_z (
 		.ax     (neighborz),     		//   input,  width = 32,     ax.ax
 		.ay     (refz),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr
-		.ena    (level1_en),    //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en),    //   input,   width = 1,    ena.ena
 		.result (dz)  				//  output,  width = 32, result.result
 	);
 	
 	// dx2 = dx * dx
-	// 3 cycle delay
+	// 4 cycle delay
 	FP_MUL FP_MUL_x2 (
 		.ay(dx),     				//     ay.ay
 		.az(dx),     				//     az.az
 		.clk(clk),    				//    clk.clk
 		.clr(rst),    				//    clr.clr
-		.ena(level2_en),    		//    ena.ena
+		.ena(level2_en || level3_en),    		//    ena.ena
 		.result(dx2)  				// result.result
 	);
 	
 	// partial = dx2 + dy2
-	// 4 cycle delay
+	// 5 cycle delay
 	FP_MUL_ADD FP_MUL_ADD_Partial_r2 (
 		.ax     (dx2), 			//   input,  width = 32,     ax.ax
 		.ay     (dy_delay),     	//   input,  width = 32,     ay.ay
 		.az     (dy_delay),     	//   input,  width = 32,     az.az
 		.clk    (clk),          //   input,   width = 1,    clk.clk
 		.clr    (rst),          //   input,   width = 2,    clr.clr
-		.ena    (level3_en),    //   input,   width = 1,    ena.ena
+		.ena    (level3_en || level4_en),    //   input,   width = 1,    ena.ena
 		.result (r2_partial)  	//   output,  width = 32, result.result
 	);
 	
 	// r2 = dx2 + dy2 + dz2
-	// 4 cycle delay
+	// 5 cycle delay
 	FP_MUL_ADD FP_MUL_ADD_final_r2 (
 		.ax     (r2_partial), 	//   input,  width = 32,     ax.ax
 		.ay     (dz_delay),     	//   input,  width = 32,     ay.ay
 		.az     (dz_delay),     	//   input,  width = 32,     az.az
 		.clk    (clk),          //   input,   width = 1,    clk.clk
 		.clr    (rst),          //   input,   width = 2,    clr.clr
-		.ena    (level4_en),    //   input,   width = 1,    ena.ena
+		.ena    (level4_en || r2_valid),    //   input,   width = 1,    ena.ena
 		.result (r2)  				//   output,  width = 32, result.result
 	);
  

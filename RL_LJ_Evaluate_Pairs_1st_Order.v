@@ -65,8 +65,26 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	
 	// Create a 2 cycles delay of the input R2 value, thus allow the table lookup entry to be readout from RAM
 	reg [DATA_WIDTH-1:0] r2_reg1;
+	reg [DATA_WIDTH-1:0] r2_reg2;
+	reg [DATA_WIDTH-1:0] r2_reg3;
+	reg [DATA_WIDTH-1:0] r2_reg4;
+	reg [DATA_WIDTH-1:0] r2_reg5;
+	reg [DATA_WIDTH-1:0] r2_reg6;
+	reg [DATA_WIDTH-1:0] r2_reg7;
+	reg [DATA_WIDTH-1:0] r2_reg8;
+	reg [DATA_WIDTH-1:0] r2_reg9;
+	reg [DATA_WIDTH-1:0] r2_reg10;
+	reg [DATA_WIDTH-1:0] r2_reg11;
+	reg [DATA_WIDTH-1:0] r2_reg12;
+	reg [DATA_WIDTH-1:0] r2_reg13;
 	reg [DATA_WIDTH-1:0] r2_delay;
+	reg [DATA_WIDTH-1:0] r2_final;									// The r2 value related to the current output force
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// !!!!!!!!Attention!!!!!!!!
+	// The enable singal for FP IPs should kept high until the operation is finished!!!!!!!!
+	// When connect the stage enable signal to the IP enable signal, always do logical OR with the next stage enable signal to make sure the calculation is finished
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	reg level1_en;															// Mul-Add enable: Calculate r8, r14 using interpolation
 	reg level2_en;															// Sub enable: Calculate LJ Force
 	reg level3_en;															// Mul enable: Calculate LJ Force component in each direction
@@ -132,9 +150,9 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	
 	// Simple filter based on the r2_value, but the force is still evaluated whether within cutoff or not
 	// assign output force (if exceed cutoff, then set as 0)
-	assign LJ_Force_X = (r2_delay > CUTOFF_2 || r2_delay == 0) ? 0 : LJ_Force_X_wire;
-	assign LJ_Force_Y = (r2_delay > CUTOFF_2 || r2_delay == 0) ? 0 : LJ_Force_Y_wire;
-	assign LJ_Force_Z = (r2_delay > CUTOFF_2 || r2_delay == 0) ? 0 : LJ_Force_Z_wire;
+	assign LJ_Force_X = (r2_final > CUTOFF_2 || r2_final == 0) ? 0 : LJ_Force_X_wire;
+	assign LJ_Force_Y = (r2_final > CUTOFF_2 || r2_final == 0) ? 0 : LJ_Force_Y_wire;
+	assign LJ_Force_Z = (r2_final > CUTOFF_2 || r2_final == 0) ? 0 : LJ_Force_Z_wire;
 	
 	// Generate table lookup address
 	assign rdaddr = {segment_id, bin_id};							// asssign the table lookup address
@@ -163,7 +181,20 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			begin
 			// delay the input r2 value by 2 cycle to wait for table lookup to finish
 			r2_reg1 <= 0;
+			r2_reg2 <= 0;
+			r2_reg3 <= 0;
+			r2_reg4 <= 0;
+			r2_reg5 <= 0;
+			r2_reg6 <= 0;
+			r2_reg7 <= 0;
+			r2_reg8 <= 0;
+			r2_reg9 <= 0;
+			r2_reg10 <= 0;
+			r2_reg11 <= 0;
+			r2_reg12 <= 0;
+			r2_reg13 <= 0;
 			r2_delay <= 0;
+			r2_final <= 0;
 			// delay registers to propagate the enable signal of FP IP units
 			table_rden_reg <= 1'b0;
 			level1_en <= 1'b0;
@@ -217,7 +248,20 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			begin
 			// delay the input r2 value by 1 cycle to wait for table lookup to finish
 			r2_reg1 <= r2;
+			r2_reg2 <= r2_reg1;
+			r2_reg3 <= r2_reg2;
+			r2_reg4 <= r2_reg3;
+			r2_reg5 <= r2_reg4;
+			r2_reg6 <= r2_reg5;
+			r2_reg7 <= r2_reg6;
+			r2_reg8 <= r2_reg7;
+			r2_reg9 <= r2_reg8;
+			r2_reg10 <= r2_reg9;
+			r2_reg11 <= r2_reg10;
+			r2_reg12 <= r2_reg11;
+			r2_reg13 <= r2_reg12;
 			r2_delay <= r2_reg1;
+			r2_final <= r2_reg13;
 			// 2 cycle delay between table lookup enable and polynomial calculation
 			table_rden_reg <= table_rden;
 			level1_en <= table_rden_reg;
@@ -330,64 +374,70 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		);
 	
 	// Get r8 term = c1 * r2 + c0 (The coefficient of 24 is already included when generating the table
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_r8_term (
 		.ax     (terms0_r8),     //   input,  width = 32,     ax.ax
 		.ay     (terms1_r8),     //   input,  width = 32,     ay.ay
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
 		.result (r8_result)      //   output,  width = 32, result.result
 	);
 	
 	// Get r14 term = c1 * r2 + c0 (The coefficient of 48 is already included when generating the table)
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_r14_term (
 		.ax     (terms0_r14),    //   input,  width = 32,     ax.ax
 		.ay     (terms1_r14),    //   input,  width = 32,     ay.ay
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
 		.result (r14_result)     //   output,  width = 32, result.result
 	);
 	
 	// Get Force/J = R14_term - R8_term
+	// 3 cycles delay
 	FP_SUB FP_SUB_Total_Force (
 		.ax     (r8_result),     //   input,  width = 32,     ax.ax
 		.ay     (r14_result),    //   input,  width = 32,     ay.ay
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level2_en),     //   input,   width = 1,    ena.ena
+		.ena    (level2_en || level3_en),     //   input,   width = 1,    ena.ena
 		.result (LJ_Force)       //   output,  width = 32, result.result
 	);
 	
 	// Get Force component on X direction: Fx = (Force/J) * dx
+	// 4 cycles delay
 	FP_MUL FP_MUL_FX (
 		.ay(LJ_Force),     			//     ay.ay
 		.az(dx_reg10),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
-		.ena(level3_en),    			//    ena.ena
+		.ena(level3_en || LJ_force_valid),    			//    ena.ena
 		.result(LJ_Force_X_wire)  	// result.result
 	);
 	
 	// Get Force component on Y direction: Fy = (Force/J) * dy
+	// 4 cycles delay
 	FP_MUL FP_MUL_FY (
 		.ay(LJ_Force),     			//     ay.ay
 		.az(dy_reg10),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
-		.ena(level3_en),    			//    ena.ena
+		.ena(level3_en || LJ_force_valid),    			//    ena.ena
 		.result(LJ_Force_Y_wire)  	// result.result
 	);
 	
 	// Get Force component on Z direction: Fz = (Force/J) * dz
+	// 4 cycles delay
 	FP_MUL FP_MUL_FZ (
 		.ay(LJ_Force),     			//     ay.ay
 		.az(dz_reg10),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
-		.ena(level3_en),    			//    ena.ena
+		.ena(level3_en || LJ_force_valid),    			//    ena.ena
 		.result(LJ_Force_Z_wire)  	// result.result
 	);
 	

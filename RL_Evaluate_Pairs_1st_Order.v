@@ -28,6 +28,10 @@
 //					For IEEE Floating Point, the it follows the format: MSB: sign, 8-bit exponent, 23 mantissa.
 //					The 8-bit exponent will be used to locate the bin, the high order bit on the mantissa used for locating bins
 //
+// Need to be done (10/03/18):
+//		Calculate the output for force components on each direction
+//		When select output force, need to propgate the r2 value along with the force evaluation datapath, to select the output force value
+//
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_Evaluate_Pairs_1st_Order
@@ -60,6 +64,11 @@ module RL_Evaluate_Pairs_1st_Order
 	reg [DATA_WIDTH-1:0] r2_reg1;
 	reg [DATA_WIDTH-1:0] r2_delay;
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// !!!!!!!!Attention!!!!!!!!
+	// The enable singal for FP IPs should kept high until the operation is finished!!!!!!!!
+	// When connect the stage enable signal to the IP enable signal, always do logical OR with the next stage enable signal to make sure the calculation is finished
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	reg level1_en;															// Mul-Add enable: Calculate r3, r8, r14 using interpolation
 	reg level2_en;															// Mul enable: Calculate Coulomb force
 	reg level3_en;															// Mul-Add enable: Calculate Coulomb_Force + r8 * B
@@ -312,67 +321,73 @@ module RL_Evaluate_Pairs_1st_Order
 		);
 	
 	// Get r3 term = c1 * r2 + c0
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_r3_term (
 		.ax     (terms0_r3),     //   input,  width = 32,     ax.ax
 		.ay     (terms1_r3),     //   input,  width = 32,     ay.ay
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
 		.result (r3_result)      //   output,  width = 32, result.result
 	);
 	
 	// Get r8 term = c1 * r2 + c0
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_r8_term (
 		.ax     (terms0_r8),     //   input,  width = 32,     ax.ax
 		.ay     (terms1_r8),     //   input,  width = 32,     ay.ay
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
 		.result (r8_result)      //   output,  width = 32, result.result
 	);
 	
 	// Get r14 term = c1 * r2 + c0
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_r14_term (
 		.ax     (terms0_r14),    //   input,  width = 32,     ax.ax
 		.ay     (terms1_r14),    //   input,  width = 32,     ay.ay
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
 		.result (r14_result)     //   output,  width = 32, result.result
 	);
 	
 	// Calculate: Coulomb_Force = QQ * r3
+	// 4 cycles delay
 	FP_MUL FP_MUL_Coulomb_Force (
 		.ay(r3_result),     		//     ay.ay
 		.az(p_qq),     			//     az.az
 		.clk(clk),    				//    clk.clk
 		.clr(rst),    				//    clr.clr
-		.ena(level2_en),    		//    ena.ena
+		.ena(level2_en || level3_en),    		//    ena.ena
 		.result(coulomb_force)  // result.result
 	);
 	
 	// Get intermediate force Coulomb_Force + r8 * B
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_ADD_Partial_Force (
 		.ax     (coulomb_force), //   input,  width = 32,     ax.ax
 		.ay     (r8_result_delay),     //   input,  width = 32,     ay.ay
 		.az     (p_b),     		 //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level3_en),     //   input,   width = 1,    ena.ena
+		.ena    (level3_en || level4_en),     //   input,   width = 1,    ena.ena
 		.result (partial_force)  //   output,  width = 32, result.result
 	);
 	
 	// Get total force Coulomb_Force + r8 * B + r14 * A
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_ADD_Total_Force (
 		.ax     (partial_force), //   input,  width = 32,     ax.ax
 		.ay     (r14_result_delay),    //   input,  width = 32,     ay.ay
 		.az     (p_a),     		 //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level4_en),     //   input,   width = 1,    ena.ena
+		.ena    (level4_en || RL_force_valid),     //   input,   width = 1,    ena.ena
 		.result (RL_force)       //   output,  width = 32, result.result
 	);
 	
