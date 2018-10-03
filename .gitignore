@@ -309,3 +309,6 @@ __pycache__/
 
 # Quartus Simulation generated file
 *.ver
+
+# Matlab Middle File
+*.asv
