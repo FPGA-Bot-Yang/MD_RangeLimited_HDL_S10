@@ -66,15 +66,18 @@ module RL_LJ_Pipeline_1st_Order
 	reg wren;
 
 	// Controller variables
-	parameter WAIT_FOR_START = 2'b00;
-	parameter START 			 = 2'b01;
-	parameter EVALUATION 	 = 2'b10;
-	parameter DONE 			 = 2'b11;
-	reg [1:0] state;
+	parameter WAIT_FOR_START  = 3'b000;
+	parameter START 			  = 3'b001;
+	parameter EVALUATION 	  = 3'b010;
+	parameter WAIT_FOR_FINISH = 3'b011;
+	parameter DONE 			  = 3'b100;
+	
+	reg [2:0] state;
 	reg [REF_RAM_ADDR_WIDTH-1:0] wraddr;
 	reg [NEIGHBOR_RAM_ADDR_WIDTH-1:0] neighbor_rdaddr;
 	reg [REF_RAM_ADDR_WIDTH-1:0] home_rdaddr;
 	reg r2_enable;									// control signal that enables R2 calculation, this signal should have 1 cycle delay of the rden signal, thus wait for the data read out from BRAM
+	reg [4:0] wait_counter;						// Counter that wait for the last pair to finish evaluation (17+14=31 cycles)
 	
 	// Wires connect r2_compute and RL_LJ_Evaluate_Pairs_1st_Order
 	wire [DATA_WIDTH-1:0] r2;
@@ -93,6 +96,7 @@ module RL_LJ_Pipeline_1st_Order
 			wren <= 1'b0;
 			rden <= 1'b0;
 			r2_enable <= 1'b0;
+			wait_counter <= 5'd0;
 			
 			state <= WAIT_FOR_START;
 			end
@@ -110,6 +114,7 @@ module RL_LJ_Pipeline_1st_Order
 					home_rdaddr <= 0;
 					rden <= 1'b0;
 					done <= 1'b0;
+					wait_counter <= 5'd0;
 					if(start)
 						state <= START;
 					else
@@ -120,9 +125,9 @@ module RL_LJ_Pipeline_1st_Order
 					begin
 					neighbor_rdaddr <= 0;
 					home_rdaddr <= 0;
-					
 					done <= 1'b0;
 					rden <= 1'b1;
+					wait_counter <= 5'd0;
 					state <= EVALUATION;
 					end
 					
@@ -130,6 +135,7 @@ module RL_LJ_Pipeline_1st_Order
 					begin
 					done <= 1'b0;
 					rden <= 1'b1;
+					wait_counter <= 5'd0;
 					// Generate home cell and neighbor cell address
 					if(neighbor_rdaddr == NEIGHBOR_PARTICLE_NUM - 1)
 						begin
@@ -143,7 +149,7 @@ module RL_LJ_Pipeline_1st_Order
 						end
 					
 					if((home_rdaddr == REF_PARTICLE_NUM - 1) && (neighbor_rdaddr == NEIGHBOR_PARTICLE_NUM - 1))
-						state <= DONE;
+						state <= WAIT_FOR_FINISH;
 					else
 						state <= EVALUATION;
 /*
@@ -153,13 +159,27 @@ module RL_LJ_Pipeline_1st_Order
 						state <= DONE;
 */
 					end
-					
+				
+				WAIT_FOR_FINISH:				// Wait for the last pair to finish force evaluation, for a total of 17+14=31 cycles
+					begin
+					done <= 1'b0;
+					neighbor_rdaddr <= 0;
+					home_rdaddr <= 0;
+					rden <= 1'b0;
+					wait_counter <= wait_counter + 1'b1;
+					if (wait_counter < 31)
+						state <= WAIT_FOR_FINISH;
+					else
+						state <= DONE;
+					end
+				
 				DONE:								// Output a done signal
 					begin
 					done <= 1'b1;
 					neighbor_rdaddr <= 0;
 					home_rdaddr <= 0;
 					rden <= 1'b0;
+					wait_counter <= 5'd0;
 					
 					state <= WAIT_FOR_START;
 					end

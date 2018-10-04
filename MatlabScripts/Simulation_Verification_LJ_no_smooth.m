@@ -22,8 +22,8 @@ BIN_NUM = 256;                          % # of bins per segment
 MIN_RANGE = 0.015625;                  % minimal range for the evaluation
 % ApoA1 cutoff is 12~13 Ang, thus set the bin as 14 to cover the range
 MAX_RANGE = MIN_RANGE * 2^SEGMENT_NUM;  % maximum range for the evaluation (currently this is the cutoff radius)
-EVALUATION_REF_NUM = 10;                % Reference Particle numbers
-EVALUATION_NEIGHBOR_NUM = 10;           % Neighbor Particle numbers
+EVALUATION_REF_NUM = 100;                % Reference Particle numbers
+EVALUATION_NEIGHBOR_NUM = 100;           % Neighbor Particle numbers
 
 filepath = '';
 filename = 'input_positions_ApoA1.txt';

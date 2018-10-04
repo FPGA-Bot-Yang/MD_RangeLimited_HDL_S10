@@ -18,10 +18,10 @@
 module RL_LJ_Pipeline_1st_Order_tb;
 
 	parameter DATA_WIDTH 				= 32;
-	parameter REF_PARTICLE_NUM			= 10;
-	parameter REF_RAM_ADDR_WIDTH		= 4;										// log(REF_PARTICLE_NUM)
-	parameter NEIGHBOR_PARTICLE_NUM	= 10;
-	parameter NEIGHBOR_RAM_ADDR_WIDTH= 4;										// log(NEIGHBOR_RAM_ADDR_WIDTH)
+	parameter REF_PARTICLE_NUM			= 100;
+	parameter REF_RAM_ADDR_WIDTH		= 7;										// log(REF_PARTICLE_NUM)
+	parameter NEIGHBOR_PARTICLE_NUM	= 100;
+	parameter NEIGHBOR_RAM_ADDR_WIDTH= 7;										// log(NEIGHBOR_RAM_ADDR_WIDTH)
 	parameter INTERPOLATION_ORDER		= 1;
 	parameter SEGMENT_NUM				= 14;
 	parameter SEGMENT_WIDTH				= 4;
