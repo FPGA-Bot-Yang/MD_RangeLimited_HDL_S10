@@ -25,7 +25,11 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 	parameter BIN_NUM						= 256,
 	parameter CUTOFF_2					= 32'h43100000,						// (12^2=144 in IEEE floating point)
 	parameter LOOKUP_NUM					= SEGMENT_NUM * BIN_NUM,			// SEGMENT_NUM * BIN_NUM
-	parameter LOOKUP_ADDR_WIDTH		= SEGMENT_WIDTH + BIN_WIDTH		// log LOOKUP_NUM / log 2
+	parameter LOOKUP_ADDR_WIDTH		= SEGMENT_WIDTH + BIN_WIDTH,		// log LOOKUP_NUM / log 2
+	
+	parameter RESULTS_DATA_WIDTH		= 32*3,
+	parameter RESULTS_DATA_NUM			= REF_PARTICLE_NUM * NEIGHBOR_PARTICLE_NUM,
+	parameter RESULTS_ADDR_WIDTH		= 14										// log(RESULTS_DATA_NUM) / log(2)
 )
 (
 	input  ref_clk,
@@ -39,6 +43,16 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 	wire rst;
 	wire start;
 	wire clk;
+	
+	// Signals for results storage
+	reg [RESULTS_ADDR_WIDTH-1:0] result_storage_wr_addr;
+	always@(posedge clk)
+		begin
+		if(rst)
+			result_storage_wr_addr <= 0;
+		else if(forceoutput_valid)
+			result_storage_wr_addr <= result_storage_wr_addr + 1'b1;
+		end
 	
 	// Input pll
 	INPUT_PLL INPUT_PLL(
@@ -66,7 +80,23 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 		.q       (start)        //  output,  width = 1, ram_output.dataout
 	);
 	
-
+	// Results on-chip storage
+	Force_Value_Mem
+	#(
+		.DATA_WIDTH(RESULTS_DATA_WIDTH),
+		.DEPTH(RESULTS_DATA_NUM),
+		.ADDR_WIDTH(RESULTS_ADDR_WIDTH)
+	)
+	Force_Value_Mem
+	(
+		.address(result_storage_wr_addr),
+		.clock(clk),
+		.data({LJ_Force_Z, LJ_Force_Y, LJ_Force_X}),
+		.rden(1'b0),
+		.wren(forceoutput_valid),
+		.q()
+	);
+	
 	// RL LJ pipeline
 	RL_LJ_Pipeline_1st_Order
 	#(
