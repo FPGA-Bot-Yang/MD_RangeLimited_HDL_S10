@@ -19,7 +19,7 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 	parameter NEIGHBOR_PARTICLE_NUM	= 100,
 	parameter NEIGHBOR_RAM_ADDR_WIDTH= 7,										// log(NEIGHBOR_RAM_ADDR_WIDTH)
 	parameter INTERPOLATION_ORDER		= 1,
-	parameter SEGMENT_NUM				= 12,
+	parameter SEGMENT_NUM				= 14,
 	parameter SEGMENT_WIDTH				= 4,
 	parameter BIN_WIDTH					= 8,
 	parameter BIN_NUM						= 256,
@@ -32,7 +32,7 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 	parameter RESULTS_ADDR_WIDTH		= 14										// log(RESULTS_DATA_NUM) / log(2)
 )
 (
-	input  ref_clk,
+	input  ref_clk_125mhz,
 	output [DATA_WIDTH-1:0] LJ_Force_X,
 	output [DATA_WIDTH-1:0] LJ_Force_Y,
 	output [DATA_WIDTH-1:0] LJ_Force_Z,
@@ -58,7 +58,7 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 	INPUT_PLL INPUT_PLL(
 		.locked(),   //  locked.export
 		.outclk_0(clk), // outclk0.clk
-		.refclk(ref_clk),   //  refclk.clk
+		.refclk(ref_clk_125mhz),   //  refclk.clk
 		.rst(rst)       //   reset.reset
 	);
 	
