@@ -54,7 +54,28 @@ module r2_compute_tb;
 		
 		#10
 		rst <= 0;
+		
 		#2
+		r2_enable <= 1'b1;
+		// r2 = 32'h426C0000 (32'd59)
+		neighborx <= 32'h3F800000;				// 1.0
+		neighbory <= 32'h3F800000;				// 1.0
+		neighborz <= 32'h3F800000;				// 1.0
+		refx <= 32'h40000000;				// 2.0
+		refy <= 32'h40800000;				// 4.0
+		refz <= 32'h41000000;				// 8.0
+		
+		#2
+		r2_enable <= 1'b0;
+		refx <= 0;
+		refy <= 0;
+		refz <= 0;
+		neighborx <= 0;
+		neighbory <= 0;
+		neighborz <= 0;
+		
+		
+		#100
 		r2_enable <= 1;
 		
 		#2									// r2 = 32'h426C0000 (32'd59)

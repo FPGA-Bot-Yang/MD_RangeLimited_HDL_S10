@@ -328,7 +328,7 @@ module RL_Evaluate_Pairs_1st_Order
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en || level1_en_reg1 || level1_en_reg2 || level1_en_reg3 || level1_en_reg4),     //   input,   width = 1,    ena.ena
 		.result (r3_result)      //   output,  width = 32, result.result
 	);
 	
@@ -340,7 +340,7 @@ module RL_Evaluate_Pairs_1st_Order
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en || level1_en_reg1 || level1_en_reg2 || level1_en_reg3 || level1_en_reg4),     //   input,   width = 1,    ena.ena
 		.result (r8_result)      //   output,  width = 32, result.result
 	);
 	
@@ -352,7 +352,7 @@ module RL_Evaluate_Pairs_1st_Order
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en || level1_en_reg1 || level1_en_reg2 || level1_en_reg3 || level1_en_reg4),     //   input,   width = 1,    ena.ena
 		.result (r14_result)     //   output,  width = 32, result.result
 	);
 	
@@ -363,7 +363,7 @@ module RL_Evaluate_Pairs_1st_Order
 		.az(p_qq),     			//     az.az
 		.clk(clk),    				//    clk.clk
 		.clr(rst),    				//    clr.clr
-		.ena(level2_en || level3_en),    		//    ena.ena
+		.ena(level2_en || level3_en || level2_en_reg1 || level2_en_reg2 || level2_en_reg3),    		//    ena.ena
 		.result(coulomb_force)  // result.result
 	);
 	
@@ -375,7 +375,7 @@ module RL_Evaluate_Pairs_1st_Order
 		.az     (p_b),     		 //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level3_en || level4_en),     //   input,   width = 1,    ena.ena
+		.ena    (level3_en || level4_en || level3_en_reg1 || level3_en_reg2 || level3_en_reg3 || level3_en_reg4),     //   input,   width = 1,    ena.ena
 		.result (partial_force)  //   output,  width = 32, result.result
 	);
 	
@@ -387,7 +387,7 @@ module RL_Evaluate_Pairs_1st_Order
 		.az     (p_a),     		 //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level4_en || RL_force_valid),     //   input,   width = 1,    ena.ena
+		.ena    (level4_en || RL_force_valid || level4_en_reg1 || level4_en_reg2 || level4_en_reg3 || level4_en_reg4),     //   input,   width = 1,    ena.ena
 		.result (RL_force)       //   output,  width = 32, result.result
 	);
 	

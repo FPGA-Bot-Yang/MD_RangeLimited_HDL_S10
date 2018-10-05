@@ -274,7 +274,7 @@ module r2_compute
 		.ay     (refx),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr
-		.ena    (level1_en || level2_en),    //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en || level1_en_reg1 || level1_en_reg2),    //   input,   width = 1,    ena.ena
 		.result (dx)  				//  output,  width = 32, result.result
 	);
 	
@@ -307,7 +307,7 @@ module r2_compute
 		.az(dx),     				//     az.az
 		.clk(clk),    				//    clk.clk
 		.clr(rst),    				//    clr.clr
-		.ena(level2_en || level3_en),    		//    ena.ena
+		.ena(level2_en || level3_en || level2_en_reg1 || level2_en_reg2 || level2_en_reg3),    		//    ena.ena
 		.result(dx2)  				// result.result
 	);
 	
@@ -319,7 +319,7 @@ module r2_compute
 		.az     (dy_delay),     	//   input,  width = 32,     az.az
 		.clk    (clk),          //   input,   width = 1,    clk.clk
 		.clr    (rst),          //   input,   width = 2,    clr.clr
-		.ena    (level3_en || level4_en),    //   input,   width = 1,    ena.ena
+		.ena    (level3_en || level4_en || level3_en_reg1 || level3_en_reg2 || level3_en_reg3 || level3_en_reg4),    //   input,   width = 1,    ena.ena
 		.result (r2_partial)  	//   output,  width = 32, result.result
 	);
 	
@@ -331,7 +331,7 @@ module r2_compute
 		.az     (dz_delay),     	//   input,  width = 32,     az.az
 		.clk    (clk),          //   input,   width = 1,    clk.clk
 		.clr    (rst),          //   input,   width = 2,    clr.clr
-		.ena    (level4_en || r2_valid),    //   input,   width = 1,    ena.ena
+		.ena    (level4_en || r2_valid || level4_en_reg1 || level4_en_reg2 || level4_en_reg3 || level4_en_reg4),    //   input,   width = 1,    ena.ena
 		.result (r2)  				//   output,  width = 32, result.result
 	);
  

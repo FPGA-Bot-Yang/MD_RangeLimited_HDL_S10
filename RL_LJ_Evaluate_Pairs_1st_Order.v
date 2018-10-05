@@ -381,7 +381,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en || level1_en_reg1 || level1_en_reg2 || level1_en_reg3 || level1_en_reg4),     //   input,   width = 1,    ena.ena
 		.result (r8_result)      //   output,  width = 32, result.result
 	);
 	
@@ -393,7 +393,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.az     (r2_delay),      //   input,  width = 32,     az.az
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level1_en || level2_en),     //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en || level1_en_reg1 || level1_en_reg2 || level1_en_reg3 || level1_en_reg4),     //   input,   width = 1,    ena.ena
 		.result (r14_result)     //   output,  width = 32, result.result
 	);
 	
@@ -404,7 +404,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.ay     (r14_result),    //   input,  width = 32,     ay.ay
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
-		.ena    (level2_en || level3_en),     //   input,   width = 1,    ena.ena
+		.ena    (level2_en || level3_en || level2_en_reg1 || level2_en_reg2),     //   input,   width = 1,    ena.ena
 		.result (LJ_Force)       //   output,  width = 32, result.result
 	);
 	
@@ -415,7 +415,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.az(dx_reg10),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
-		.ena(level3_en || LJ_force_valid),    			//    ena.ena
+		.ena(level3_en || LJ_force_valid || level3_en_reg1 || level3_en_reg2 || level3_en_reg3),    			//    ena.ena
 		.result(LJ_Force_X_wire)  	// result.result
 	);
 	
@@ -426,7 +426,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.az(dy_reg10),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
-		.ena(level3_en || LJ_force_valid),    			//    ena.ena
+		.ena(level3_en || LJ_force_valid || level3_en_reg1 || level3_en_reg2 || level3_en_reg3),    			//    ena.ena
 		.result(LJ_Force_Y_wire)  	// result.result
 	);
 	
@@ -437,7 +437,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.az(dz_reg10),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
-		.ena(level3_en || LJ_force_valid),    			//    ena.ena
+		.ena(level3_en || LJ_force_valid || level3_en_reg1 || level3_en_reg2 || level3_en_reg3),    			//    ena.ena
 		.result(LJ_Force_Z_wire)  	// result.result
 	);
 	
