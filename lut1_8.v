@@ -10,7 +10,7 @@
 // Intel or its authorized distributors.  Please refer to the applicable 
 // agreement for further details.
 
-
+`include "define.v"
 
 // synopsys translate_off
 `timescale 1 ps / 1 ps
@@ -81,11 +81,11 @@ module  lut1_8
         altera_syncram_component.width_byteena_a  = 1,
         altera_syncram_component.clock_enable_input_a  = "BYPASS",
         altera_syncram_component.clock_enable_output_a  = "BYPASS",
-//`ifdef NO_PLI
-//        altera_syncram_component.init_file = "/home/jiayi/Dropbox/CAAD_Server/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/file_c0_vdw8_f.rif"
-//`else
+`ifdef OFF_CAMPUS_PATH
+        altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/c1_8.hex"
+`else
         altera_syncram_component.init_file = "/home/jiayi/Desktop/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/c1_8.hex"
-//`endif
+`endif
 ,
         altera_syncram_component.intended_device_family  = "Stratix 10",
         altera_syncram_component.lpm_hint  = "ENABLE_RUNTIME_MOD=NO",

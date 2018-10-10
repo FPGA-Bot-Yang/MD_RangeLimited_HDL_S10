@@ -21,8 +21,9 @@
 //
 //
 // Created by: Chen Yang 07/15/18
-// Update by: Chen Yang 10/01/18
-//					add dx, dy, dz to output
+// Update log: 
+//			Chen Yang 10/01/18: add dx, dy, dz to output
+//			Chen Yang 10/03/18: remove the bug when only few sets of input are valid, the FP IP enable signal is not holding long enough
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

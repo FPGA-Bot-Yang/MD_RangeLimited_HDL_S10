@@ -63,7 +63,7 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 	);
 	
 	// rst signal from Memory content editor
-	On_Board_Test_Control_RAM_rst CTRL_rst (
+	CTRL_RST CTRL_RST (
 		.data    (),    //   input,  width = 1,  ram_input.datain
 		.address (1'b0), //   input,  width = 1,           .address
 		.wren    (1'b0),    //   input,  width = 1,           .wren
@@ -71,14 +71,32 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 		.q       (rst)        //  output,  width = 1, ram_output.dataout
 	);
 	
+//	On_Board_Test_Control_RAM_rst CTRL_rst (
+//		.data    (),    //   input,  width = 1,  ram_input.datain
+//		.address (1'b0), //   input,  width = 1,           .address
+//		.wren    (1'b0),    //   input,  width = 1,           .wren
+//		.clock   (clk),   //   input,  width = 1,           .clk
+//		.q       (rst)        //  output,  width = 1, ram_output.dataout
+//	);
+	
 	// start signal from Memory content editor
-	On_Board_Test_Control_RAM_start CTRL_start (
+	CTRL_START CTRL_START (
 		.data    (),    //   input,  width = 1,  ram_input.datain
 		.address (1'b0), //   input,  width = 1,           .address
 		.wren    (1'b0),    //   input,  width = 1,           .wren
 		.clock   (clk),   //   input,  width = 1,           .clk
 		.q       (start)        //  output,  width = 1, ram_output.dataout
 	);
+	
+//	On_Board_Test_Control_RAM_start CTRL_start (
+//		.data    (),    //   input,  width = 1,  ram_input.datain
+//		.address (1'b0), //   input,  width = 1,           .address
+//		.wren    (1'b0),    //   input,  width = 1,           .wren
+//		.clock   (clk),   //   input,  width = 1,           .clk
+//		.q       (start)        //  output,  width = 1, ram_output.dataout
+//	);
+	
+
 	
 	// Results on-chip storage
 	Force_Value_Mem
