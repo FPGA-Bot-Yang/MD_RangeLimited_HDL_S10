@@ -73,7 +73,7 @@ module  On_Board_Test_Control_RAM_rst(
         altera_syncram_component.clock_enable_input_a  = "BYPASS",
         altera_syncram_component.clock_enable_output_a  = "BYPASS",
         altera_syncram_component.intended_device_family  = "Stratix 10",
-        altera_syncram_component.lpm_hint  = "ENABLE_RUNTIME_MOD=YES,INSTANCE_NAME=CTRL_rst",
+        altera_syncram_component.lpm_hint  = "ENABLE_RUNTIME_MOD=YES,INSTANCE_NAME=RST",
         altera_syncram_component.lpm_type  = "altera_syncram",
         altera_syncram_component.numwords_a  = 1,
         altera_syncram_component.operation_mode  = "SINGLE_PORT",
