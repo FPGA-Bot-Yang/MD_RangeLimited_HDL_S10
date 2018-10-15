@@ -28,11 +28,12 @@
 # # than the files compiled by the Quartus-generated IP simulation script)
 # #
  vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/define.v
-# vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Pipeline_1st_Order.v
-# vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Pipeline_1st_Order_tb.v
+# vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Pipeline_1st_Order_no_filter.v
+# vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Pipeline_1st_Order_no_filter_tb.v
 # vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Evaluate_Pairs_1st_Order.v
- vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Arbitor.v
- vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Arbitor_tb.v
+ vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Force_Evaluation_Unit.v
+ vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Arbiter.v
+ vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Arbiter_tb.v
  vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Logic.v
  vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Bank.v
  vlog -vlog01compat -work work /home/jiayi/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Pipeline_1st_Order.v
@@ -63,7 +64,7 @@
 # # Set the top-level simulation or testbench module/entity name, which is
 # # used by the elab command to elaborate the top level.
 # #
- set TOP_LEVEL_NAME Filter_Arbitor_tb
+ set TOP_LEVEL_NAME Filter_Arbiter_tb
 # #
 # # Set any elaboration options you require.
 # set USER_DEFINED_ELAB_OPTIONS <elaboration options>

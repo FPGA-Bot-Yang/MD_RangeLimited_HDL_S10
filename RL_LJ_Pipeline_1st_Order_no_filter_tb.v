@@ -1,21 +1,21 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: RL_LJ_Pipeline_1st_Order_tb.v
+// Module: RL_LJ_Pipeline_1st_Order_no_filter.v
 //
 //	Function:
-//				Testbench for RL_LJ_Pipeline_1st_Order
+//				Testbench for RL_LJ_Pipeline_1st_Order_no_filter
 //				Evaluate the LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
 // 			1 tile of force pipeline, without filter
 //				for each force pipeline, there are 2 banks of brams to feed position data of particle pairs which are already filtered.
 //
 // Dependency:
-// 			RL_LJ_Pipeline_1st_Order.v
+// 			RL_LJ_Pipeline_1st_Order_no_filter.v
 //
 // Created by: Chen Yang 10/02/18
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/1ns
 
-module RL_LJ_Pipeline_1st_Order_tb;
+module RL_LJ_Pipeline_1st_Order_no_filter_tb;
 
 	parameter DATA_WIDTH 				= 32;
 	parameter REF_PARTICLE_NUM			= 100;
@@ -54,7 +54,7 @@ module RL_LJ_Pipeline_1st_Order_tb;
 	
 	end
 	
-	RL_LJ_Pipeline_1st_Order
+	RL_LJ_Pipeline_1st_Order_no_filter
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		.REF_PARTICLE_NUM(REF_PARTICLE_NUM),
@@ -70,7 +70,7 @@ module RL_LJ_Pipeline_1st_Order_tb;
 		.LOOKUP_NUM(LOOKUP_NUM),
 		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	RL_Pipeline_1st_Order
+	RL_LJ_Pipeline_1st_Order_no_filter
 	(
 		.clk(clk),
 		.rst(rst),
