@@ -32,8 +32,7 @@
 module Filter_Arbiter
 #(
 	parameter NUM_FILTER = 8,
-	parameter MASK_MAX = 255,					// 2^NUM_FILTER - 1
-	parameter MAX_RESULT = 128					// 2^(NUM_FILTER-1)
+	parameter ARBITER_MSB = 128					// 2^(NUM_FILTER-1)
 )
 (
 	input clk,
@@ -53,14 +52,12 @@ module Filter_Arbiter
 	wire [NUM_FILTER-1:0] arbitration_step4;
 	wire [NUM_FILTER-1:0] arbitration_result_tmp;
 	assign arbitration_step1 = (prev_arbitration_result << 1) - 1'b1;
-	// If previously select the MSB, then next time select from the least significant 1 bit
-	//assign arbitration_step2 = (prev_arbitration_result == MAX_RESULT)? MASK_MAX : ~arbitration_step1;
 	assign arbitration_step2 = ~arbitration_step1;
 	// If the prev_arbitration_result is 0, then keep the original input flag
 	// If the prev_arbitration_result is MSB, then keep the origianl input flag
-	// If the available flag is only on the lower bit than the previous selected channl, then start over from the LSB 
+	// If the available flag is only on the lower bit than the previous selected channel, then start over from the LSB 
 	// If not, then remove the previous selected channels to achieve round-robin
-	assign arbitration_step3 = (prev_arbitration_result == 0 || prev_arbitration_result > Filter_Available_Flag || prev_arbitration_result == MAX_RESULT) ? Filter_Available_Flag : (arbitration_step2 & Filter_Available_Flag);
+	assign arbitration_step3 = (prev_arbitration_result == 0 || ((prev_arbitration_result << 1) > Filter_Available_Flag) || prev_arbitration_result == ARBITER_MSB) ? Filter_Available_Flag : (arbitration_step2 & Filter_Available_Flag);
 	// 2's complement
 	assign arbitration_step4 = ~arbitration_step3 + 1'b1;
 	assign arbitration_result_tmp = arbitration_step3 & arbitration_step4;

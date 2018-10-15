@@ -14,8 +14,7 @@
 module Filter_Arbiter_tb;
 	
 	parameter NUM_FILTER = 4;
-	parameter MASK_MAX = 15;					// 2^NUM_FILTER - 1
-	parameter MAX_RESULT = 8;					// 2^(NUM_FILTER-1)
+	parameter ARBITER_MSB = 8;					// 2^(NUM_FILTER-1)
 
 	reg clk, rst;
 	reg [NUM_FILTER-1:0] Filter_Available_Flag;
@@ -59,8 +58,7 @@ module Filter_Arbiter_tb;
 	Filter_Arbiter
 	#(
 		.NUM_FILTER(NUM_FILTER),
-		.MASK_MAX(MASK_MAX),
-		.MAX_RESULT(MAX_RESULT)
+		.ARBITER_MSB(ARBITER_MSB)
 	)
 	Filter_Arbiter
 	(
