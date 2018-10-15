@@ -1,17 +1,17 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: Filter_Arbitor_tb.v
+// Module: Filter_Arbiter_tb.v
 //
-//	Function: Testbench for Filter_Arbitor.v
+//	Function: Testbench for Filter_Arbiter.v
 //
 // Dependency:
-// 			Filter_Arbitor.v
+// 			Filter_Arbiter.v
 //
 // Created by: Chen Yang 10/12/18
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/1ns
 
-module Filter_Arbitor_tb;
+module Filter_Arbiter_tb;
 	
 	parameter NUM_FILTER = 4;
 	parameter MASK_MAX = 15;					// 2^NUM_FILTER - 1
@@ -56,13 +56,13 @@ module Filter_Arbitor_tb;
 	end
 	
 	// UUT
-	Filter_Arbitor
+	Filter_Arbiter
 	#(
 		.NUM_FILTER(NUM_FILTER),
 		.MASK_MAX(MASK_MAX),
 		.MAX_RESULT(MAX_RESULT)
 	)
-	Filter_Arbitor
+	Filter_Arbiter
 	(
 		.clk(clk),
 		.rst(rst),
