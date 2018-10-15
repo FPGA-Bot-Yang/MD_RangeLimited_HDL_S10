@@ -7,6 +7,9 @@
 //					An arbitration will be needed when implement multiple filters (Filter_Bank) to select from one of the available ones
 //					The data valid signal should be assigned in the Filter_Bank module
 //
+// Data Organization:
+//				Data organization in buffer: MSB-LSB: {r2, dz, dy, dx}
+//
 // Dependency:
 // 			r2_compute.v
 //				Filter_Buffer.v
@@ -105,6 +108,7 @@ module Filter_Logic
 	);
 	
 	// Buffer for pairs passed the filter logic
+	// Data organization in buffer: MSB-LSB: {r2, dz, dy, dx}
 	Filter_Buffer
 	#(
 		.DATA_WIDTH(DATA_WIDTH*4),														// hold r2, dx, dy, dz
