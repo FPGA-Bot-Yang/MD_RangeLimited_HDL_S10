@@ -6,6 +6,7 @@
 //
 // Dependency:
 // 			Filter_Logic.v
+//				Filter_Arbiter.v
 //
 //
 // Created by: Chen Yang 10/10/18
@@ -15,7 +16,8 @@
 module Filter_Bank
 #(
 	parameter DATA_WIDTH 					= 32,
-	parameter NUM_FILTER						= 4,
+	parameter NUM_FILTER						= 4,	// 8
+	parameter ARBITER_MSB 					= 8,	//128				// 2^(NUM_FILTER-1)
 	parameter FILTER_BUFFER_DEPTH 		= 32,
 	parameter FILTER_BUFFER_ADDR_WIDTH	= 5,
 	parameter CUTOFF_2 						= 32'h43100000						// (12^2=144 in IEEE floating point)
@@ -83,11 +85,12 @@ module Filter_Bank
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Arbitration logic
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	Filter_Arbitor
+	Filter_Arbiter
 	#(
-		.NUM_FILTER(NUM_FILTER)
+		.NUM_FILTER(NUM_FILTER),
+		.ARBITER_MSB(ARBITER_MSB)
 	)
-	Filter_Arbitor
+	Filter_Arbiter
 	(
 		.clk(clk),
 		.rst(rst),

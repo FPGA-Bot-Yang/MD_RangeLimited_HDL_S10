@@ -5,7 +5,7 @@
 //				The rst and start signal is given by memory modules controlled by in memory content editor
 //
 // Dependency:
-// 			RL_LJ_Pipeline_1st_Order.v
+// 			RL_LJ_Pipeline_1st_Order_no_filter.v
 //
 // Created by: Chen Yang 10/01/18
 //
@@ -116,7 +116,7 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 	);
 	
 	// RL LJ pipeline
-	RL_LJ_Pipeline_1st_Order
+	RL_LJ_Pipeline_1st_Order_no_filter
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		.REF_PARTICLE_NUM(REF_PARTICLE_NUM),

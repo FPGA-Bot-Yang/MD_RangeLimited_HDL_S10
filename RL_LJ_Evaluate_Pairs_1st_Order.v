@@ -34,10 +34,10 @@
 module RL_LJ_Evaluate_Pairs_1st_Order
 #(
 	parameter DATA_WIDTH 				= 32,
-	parameter SEGMENT_NUM				= 12,
+	parameter SEGMENT_NUM				= 14,
 	parameter SEGMENT_WIDTH				= 4,
-	parameter BIN_WIDTH					= 8,
 	parameter BIN_NUM						= 256,
+	parameter BIN_WIDTH					= 8,
 	parameter CUTOFF_2					= 32'h43100000,						// (12^2=144 in IEEE floating point)
 
 	parameter LOOKUP_NUM					= SEGMENT_NUM * BIN_NUM,			// SEGMENT_NUM * BIN_NUM
