@@ -54,14 +54,8 @@ module Filter_Bank
 	wire [NUM_FILTER-1:0] arbitration_result;								// Arbitor -> Filter
 	wire [NUM_FILTER-1:0] filter_data_available;							// Filter -> Arbitor
 	
-	// Assign out_valid
-	always@(posedge clk)
-		begin
-		if(arbitration_result == 0)
-			out_valid <= 1'b0;
-		else
-			out_valid <= 1'b1;
-		end
+	// Assign the output
+	// Need to change this if # of filters changed
 	always@(posedge clk)
 		begin
 		case(arbitration_result)
@@ -73,6 +67,7 @@ module Filter_Bank
 				dx <= dx_wire[DATA_WIDTH-1:0];
 				dy <= dy_wire[DATA_WIDTH-1:0];
 				dz <= dz_wire[DATA_WIDTH-1:0];
+				out_valid <= 1'b1;
 				end
 			8'b00000010:
 				begin
@@ -82,6 +77,7 @@ module Filter_Bank
 				dx <= dx_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
 				dy <= dy_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
 				dz <= dz_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+				out_valid <= 1'b1;
 				end
 			8'b00000100:
 				begin
@@ -91,6 +87,7 @@ module Filter_Bank
 				dx <= dx_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
 				dy <= dy_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
 				dz <= dz_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+				out_valid <= 1'b1;
 				end
 			8'b00001000:
 				begin
@@ -100,53 +97,63 @@ module Filter_Bank
 				dx <= dx_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
 				dy <= dy_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
 				dz <= dz_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+				out_valid <= 1'b1;
+				end
+			8'b00010000:
+				begin
+				ref_particle_id_out <= ref_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+				neighbor_particle_id_out <= neighbor_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+				r2 <= r2_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+				dx <= dx_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+				dy <= dy_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+				dz <= dz_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+				out_valid <= 1'b1;
+				end
+			8'b00100000:
+				begin
+				ref_particle_id_out <= ref_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+				neighbor_particle_id_out <= neighbor_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+				r2 <= r2_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+				dx <= dx_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+				dy <= dy_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+				dz <= dz_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+				out_valid <= 1'b1;
+				end
+			8'b01000000:
+				begin
+				ref_particle_id_out <= ref_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+				neighbor_particle_id_out <= neighbor_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+				r2 <= r2_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+				dx <= dx_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+				dy <= dy_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+				dz <= dz_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+				out_valid <= 1'b1;
+				end
+			8'b10000000:
+				begin
+				ref_particle_id_out <= ref_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+				neighbor_particle_id_out <= neighbor_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+				r2 <= r2_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+				dx <= dx_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+				dy <= dy_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+				dz <= dz_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+				out_valid <= 1'b1;
+				end
+			default:
+				begin
+				ref_particle_id_out <= 0;
+				neighbor_particle_id_out <= 0;
+				r2 <= 0;
+				dx <= 0;
+				dy <= 0;
+				dz <= 0;
+				out_valid <= 1'b0;
 				end
 		endcase
 		end
 	
-	// Assign output data
-	genvar i;
-	always@(posedge clk)
-		begin
-		for(i = 0; i < NUM_FILTER; i = i + 1) begin: Output_selection
-			if(arbitration_result == (1 << i))
-				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH];
-				dx <= dx_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH];
-				dy <= dy_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH];
-				dz <= dz_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH];
-				end
-			end
-		end
-	/*
-	always@(posedge clk)
-		begin
-		tmp_1 <= 1;
-		for(i = 0; i < NUM_FILTER; i = i + 1)
-			begin
-			tmp <= tmp_1 << i;
-			// Assign output data
-			if(arbitration_result == tmp)
-				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH];
-				dx <= dx_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH];
-				dy <= dy_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH];
-				dz <= dz_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH];
-				end
-			// Assign out_valid
-			if(arbitration_result == 0)
-				out_valid <= 1'b0;
-			else
-				out_valid <= 1'b1;
-			end
-
-		end
-*/
 	// Instantiate the Filter_Logic modules
+	genvar i;
 	generate 
 		for(i = 0; i < NUM_FILTER; i = i + 1) begin: Filter_Unit
 		Filter_Logic
@@ -171,7 +178,7 @@ module Filter_Bank
 			.neighbory(neighbory[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH]),
 			.neighborz(neighborz[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH]),
 			.ref_particle_id_out(ref_particle_id_out_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH]),
-			.neighbor_particle_id_out(ref_particle_id_out_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH]),
+			.neighbor_particle_id_out(neighbor_particle_id_out_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH]),
 			.r2(r2_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH]),
 			.dx(dx_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH]),
 			.dy(dy_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH]),
