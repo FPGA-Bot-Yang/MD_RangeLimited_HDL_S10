@@ -8,7 +8,11 @@
 //	Purpose:
 //				No filter version, used for performance estimation against MiniMD code
 //
+// Used by:
+//				Board_Test_Top_RL_LJ_Pipeline_1st_Order.v
+//
 // Dependency:
+//				r2_compute.v
 // 			RL_LJ_Evaluate_Pairs_1st_Order.v
 //
 // Latency: total: 											31 cycles

@@ -12,8 +12,8 @@
 //				Force_LJ_z = Force_LJ * dz;
 //
 // Dependency:
-// 			Table memory module
-//				multiply and summation
+// 			Table lookup memory module
+//				multiply and summation IPs
 //
 //
 // FP IP timing:

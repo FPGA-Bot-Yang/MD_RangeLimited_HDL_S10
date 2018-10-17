@@ -4,6 +4,9 @@
 //	Function: Serve as the top module for on-board test
 //				The rst and start signal is given by memory modules controlled by in memory content editor
 //
+// Purpose:
+//				Performance estimation against MiniMD
+//
 // Dependency:
 // 			RL_LJ_Pipeline_1st_Order_no_filter.v
 //
@@ -132,7 +135,7 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 		.LOOKUP_NUM(LOOKUP_NUM),
 		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	RL_Pipeline_1st_Order
+	RL_LJ_Pipeline_1st_Order_no_filter
 	(
 		.clk(clk),
 		.rst(rst),

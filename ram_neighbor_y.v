@@ -80,7 +80,7 @@ module  ram_neighbor_y
 `ifdef OFF_CAMPUS_PATH
         altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/particle_neighbor_y.hex"
 `else
-        altera_syncram_component.init_file = "/home/jiayi/Desktop/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/particle_neighbor_y.hex"
+        altera_syncram_component.init_file = "/home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/particle_neighbor_y.hex"
 `endif
 ,
         altera_syncram_component.intended_device_family  = "Stratix 10",

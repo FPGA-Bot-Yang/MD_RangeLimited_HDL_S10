@@ -22,8 +22,13 @@
 //			Step 7: When there's only one input source has valid data, then keeps selecting that only one
 //			Step 8: When previous arbitration result is 0, then skip Step 1-3
 //
+// Used by:
+//				Filter_Bank.v
+//
 // Dependency:
 // 			None
+//
+//	Latency:	0 cycle
 //
 // Created by: Chen Yang 10/12/18
 //
