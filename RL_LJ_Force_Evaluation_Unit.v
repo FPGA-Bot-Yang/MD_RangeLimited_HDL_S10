@@ -7,7 +7,7 @@
 //				The module also contains the delay register chain to pass the particle ID from r2_compute output along with the force output
 //
 //	Used by:
-//				TBD
+//				RL_LJ_Evaluation_Unit.v
 //
 // Dependency:
 // 			RL_LJ_Evaluate_Pairs_1st_Order.v
@@ -29,6 +29,7 @@
 module RL_LJ_Force_Evaluation_Unit
 #(
 	parameter DATA_WIDTH 					= 32,
+	// Dataset defined parameters
 	parameter PARTICLE_ID_WIDTH			= 20,									// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
 	// Filter parameters
 	parameter NUM_FILTER						= 4,	// 8

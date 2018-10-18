@@ -64,6 +64,7 @@ module Filter_Logic
 	
 	// Assign Output: backpressure
 	// 17 is the latency in r2_compute
+	// *** if r2_compute latency changed, need to change the threshold value to the new latency
 	wire [FILTER_BUFFER_ADDR_WIDTH-1:0] buffer_usedw;
 	assign filter_back_pressure = (FILTER_BUFFER_DEPTH - buffer_usedw <= 17) ? 1'b1 : 1'b0;
 	

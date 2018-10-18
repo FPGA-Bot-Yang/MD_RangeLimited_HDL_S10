@@ -57,6 +57,7 @@ module Filter_Bank
 	// Assign the output
 	// Need to change this if # of filters changed
 	generate
+		// Filter_num = 4
 		if(NUM_FILTER == 4)
 			begin
 			always@(posedge clk)
@@ -115,7 +116,8 @@ module Filter_Bank
 				endcase
 				end
 			end
-			
+		
+		// Filter_num = 7
 		else if(NUM_FILTER == 7)
 			begin
 			always@(posedge clk)
@@ -205,6 +207,7 @@ module Filter_Bank
 				end
 			end
 		
+		// Filter_num = 8
 		else if(NUM_FILTER == 8)
 			begin
 			always@(posedge clk)
@@ -303,6 +306,8 @@ module Filter_Bank
 				endcase
 				end
 			end
+		
+		// Filter_num = 9
 		else if(NUM_FILTER == 9)
 			begin
 			always@(posedge clk)
@@ -411,6 +416,105 @@ module Filter_Bank
 				endcase
 				end
 			end
+		// By default, choose FILTER_NUM = 8
+		else
+			begin
+			always@(posedge clk)
+				begin
+				case(arbitration_result)
+					8'b00000001:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						r2 <= r2_wire[DATA_WIDTH-1:0];
+						dx <= dx_wire[DATA_WIDTH-1:0];
+						dy <= dy_wire[DATA_WIDTH-1:0];
+						dz <= dz_wire[DATA_WIDTH-1:0];
+						out_valid <= 1'b1;
+						end
+					8'b00000010:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dx <= dx_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dy <= dy_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dz <= dz_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b00000100:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dx <= dx_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dy <= dy_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dz <= dz_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b00001000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dx <= dx_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dy <= dy_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dz <= dz_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b00010000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dx <= dx_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dy <= dy_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dz <= dz_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b00100000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dx <= dx_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dy <= dy_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dz <= dz_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b01000000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dx <= dx_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dy <= dy_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dz <= dz_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b10000000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dx <= dx_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dy <= dy_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dz <= dz_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					default:
+						begin
+						ref_particle_id_out <= 0;
+						neighbor_particle_id_out <= 0;
+						r2 <= 0;
+						dx <= 0;
+						dy <= 0;
+						dz <= 0;
+						out_valid <= 1'b0;
+						end
+				endcase
+				end
+			end
 	endgenerate
 	
 	// Instantiate the Filter_Logic modules
@@ -448,7 +552,7 @@ module Filter_Bank
 			.sel(arbitration_result[i]),									// Input
 			.particle_pair_available(filter_data_available[i]),	// Output
 			// Connect to input generator
-			.filter_back_pressure()											// Output: Buffer should have enough space to store 17 pairs after the input stop coming
+			.filter_back_pressure(back_pressure_to_input[i])		// Output: Buffer should have enough space to store 17 pairs after the input stop coming
 	);
 	end
 	endgenerate

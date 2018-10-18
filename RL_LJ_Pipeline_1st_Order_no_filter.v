@@ -104,6 +104,7 @@ module RL_LJ_Pipeline_1st_Order_no_filter
 			rden <= 1'b0;
 			r2_enable <= 1'b0;
 			wait_counter <= 5'd0;
+			done <= 1'b0;
 			
 			state <= WAIT_FOR_START;
 			end

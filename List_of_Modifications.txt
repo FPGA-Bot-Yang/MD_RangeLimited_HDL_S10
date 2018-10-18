@@ -8,7 +8,11 @@ Change the # of filters:
 		Assignment of output ports: need to change the case list to select the appropriate filter output to final output
 
 Change the pipeline stages of r2 and force evaluation:
+	RL_LJ_Pipeline_1st_Order.v:
+	RL_LJ_Pipeline_1st_Order_no_filter.v:
+		In FSM, WAIT_FOR_FINISH state, change the threshold value from 31 to related value
 	RL_LJ_Force_Evaluation_Unit.v:
 		Delay register chain from Filter_Bank output to final output
 	Filter_Logic.v:
 		Delay register chain from r2_compute output to Filter_Buffer
+		Assignment on filter_back_pressure: depending on r2_compute latency
