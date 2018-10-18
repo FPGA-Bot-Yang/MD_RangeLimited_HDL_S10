@@ -37,8 +37,8 @@ module Filter_Bank
 	input [NUM_FILTER*DATA_WIDTH-1:0] neighborx,
 	input [NUM_FILTER*DATA_WIDTH-1:0] neighbory,
 	input [NUM_FILTER*DATA_WIDTH-1:0] neighborz,
-	output reg [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] ref_particle_id_out,
-	output reg [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_out,
+	output reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_out,
+	output reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_out,
 	output reg [DATA_WIDTH-1:0] r2,
 	output reg [DATA_WIDTH-1:0] dx,
 	output reg [DATA_WIDTH-1:0] dy,
@@ -56,101 +56,362 @@ module Filter_Bank
 	
 	// Assign the output
 	// Need to change this if # of filters changed
-	always@(posedge clk)
-		begin
-		case(arbitration_result)
-			8'b00000001:
+	generate
+		if(NUM_FILTER == 4)
+			begin
+			always@(posedge clk)
 				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
-				r2 <= r2_wire[DATA_WIDTH-1:0];
-				dx <= dx_wire[DATA_WIDTH-1:0];
-				dy <= dy_wire[DATA_WIDTH-1:0];
-				dz <= dz_wire[DATA_WIDTH-1:0];
-				out_valid <= 1'b1;
+				case(arbitration_result)
+					4'b0001:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						r2 <= r2_wire[DATA_WIDTH-1:0];
+						dx <= dx_wire[DATA_WIDTH-1:0];
+						dy <= dy_wire[DATA_WIDTH-1:0];
+						dz <= dz_wire[DATA_WIDTH-1:0];
+						out_valid <= 1'b1;
+						end
+					4'b0010:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dx <= dx_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dy <= dy_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dz <= dz_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					4'b0100:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dx <= dx_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dy <= dy_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dz <= dz_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					4'b1000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dx <= dx_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dy <= dy_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dz <= dz_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					default:
+						begin
+						ref_particle_id_out <= 0;
+						neighbor_particle_id_out <= 0;
+						r2 <= 0;
+						dx <= 0;
+						dy <= 0;
+						dz <= 0;
+						out_valid <= 1'b0;
+						end
+				endcase
 				end
-			8'b00000010:
+			end
+			
+		else if(NUM_FILTER == 7)
+			begin
+			always@(posedge clk)
 				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
-				dx <= dx_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
-				dy <= dy_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
-				dz <= dz_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
-				out_valid <= 1'b1;
+				case(arbitration_result)
+					7'b0000001:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						r2 <= r2_wire[DATA_WIDTH-1:0];
+						dx <= dx_wire[DATA_WIDTH-1:0];
+						dy <= dy_wire[DATA_WIDTH-1:0];
+						dz <= dz_wire[DATA_WIDTH-1:0];
+						out_valid <= 1'b1;
+						end
+					7'b0000010:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dx <= dx_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dy <= dy_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dz <= dz_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					7'b0000100:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dx <= dx_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dy <= dy_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dz <= dz_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					7'b0001000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dx <= dx_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dy <= dy_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dz <= dz_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					7'b0010000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dx <= dx_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dy <= dy_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dz <= dz_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					7'b0100000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dx <= dx_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dy <= dy_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dz <= dz_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					7'b1000000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dx <= dx_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dy <= dy_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dz <= dz_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					default:
+						begin
+						ref_particle_id_out <= 0;
+						neighbor_particle_id_out <= 0;
+						r2 <= 0;
+						dx <= 0;
+						dy <= 0;
+						dz <= 0;
+						out_valid <= 1'b0;
+						end
+				endcase
 				end
-			8'b00000100:
+			end
+		
+		else if(NUM_FILTER == 8)
+			begin
+			always@(posedge clk)
 				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
-				dx <= dx_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
-				dy <= dy_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
-				dz <= dz_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
-				out_valid <= 1'b1;
+				case(arbitration_result)
+					8'b00000001:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						r2 <= r2_wire[DATA_WIDTH-1:0];
+						dx <= dx_wire[DATA_WIDTH-1:0];
+						dy <= dy_wire[DATA_WIDTH-1:0];
+						dz <= dz_wire[DATA_WIDTH-1:0];
+						out_valid <= 1'b1;
+						end
+					8'b00000010:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dx <= dx_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dy <= dy_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dz <= dz_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b00000100:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dx <= dx_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dy <= dy_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dz <= dz_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b00001000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dx <= dx_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dy <= dy_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dz <= dz_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b00010000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dx <= dx_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dy <= dy_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dz <= dz_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b00100000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dx <= dx_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dy <= dy_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dz <= dz_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b01000000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dx <= dx_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dy <= dy_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dz <= dz_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					8'b10000000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dx <= dx_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dy <= dy_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dz <= dz_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					default:
+						begin
+						ref_particle_id_out <= 0;
+						neighbor_particle_id_out <= 0;
+						r2 <= 0;
+						dx <= 0;
+						dy <= 0;
+						dz <= 0;
+						out_valid <= 1'b0;
+						end
+				endcase
 				end
-			8'b00001000:
+			end
+		else if(NUM_FILTER == 9)
+			begin
+			always@(posedge clk)
 				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
-				dx <= dx_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
-				dy <= dy_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
-				dz <= dz_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
-				out_valid <= 1'b1;
+				case(arbitration_result)
+					9'b000000001:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
+						r2 <= r2_wire[DATA_WIDTH-1:0];
+						dx <= dx_wire[DATA_WIDTH-1:0];
+						dy <= dy_wire[DATA_WIDTH-1:0];
+						dz <= dz_wire[DATA_WIDTH-1:0];
+						out_valid <= 1'b1;
+						end
+					9'b000000010:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dx <= dx_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dy <= dy_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						dz <= dz_wire[2*DATA_WIDTH-1:1*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					9'b000000100:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dx <= dx_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dy <= dy_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						dz <= dz_wire[3*DATA_WIDTH-1:2*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					9'b000001000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dx <= dx_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dy <= dy_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						dz <= dz_wire[4*DATA_WIDTH-1:3*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					9'b000010000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dx <= dx_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dy <= dy_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						dz <= dz_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					9'b000100000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dx <= dx_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dy <= dy_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						dz <= dz_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					9'b001000000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dx <= dx_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dy <= dy_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						dz <= dz_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					9'b010000000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dx <= dx_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dy <= dy_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						dz <= dz_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					9'b100000000:
+						begin
+						ref_particle_id_out <= ref_particle_id_out_wire[9*PARTICLE_ID_WIDTH-1:8*PARTICLE_ID_WIDTH];
+						neighbor_particle_id_out <= neighbor_particle_id_out_wire[9*PARTICLE_ID_WIDTH-1:8*PARTICLE_ID_WIDTH];
+						r2 <= r2_wire[9*DATA_WIDTH-1:8*DATA_WIDTH];
+						dx <= dx_wire[9*DATA_WIDTH-1:8*DATA_WIDTH];
+						dy <= dy_wire[9*DATA_WIDTH-1:8*DATA_WIDTH];
+						dz <= dz_wire[9*DATA_WIDTH-1:8*DATA_WIDTH];
+						out_valid <= 1'b1;
+						end
+					default:
+						begin
+						ref_particle_id_out <= 0;
+						neighbor_particle_id_out <= 0;
+						r2 <= 0;
+						dx <= 0;
+						dy <= 0;
+						dz <= 0;
+						out_valid <= 1'b0;
+						end
+				endcase
 				end
-			8'b00010000:
-				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
-				dx <= dx_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
-				dy <= dy_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
-				dz <= dz_wire[5*DATA_WIDTH-1:4*DATA_WIDTH];
-				out_valid <= 1'b1;
-				end
-			8'b00100000:
-				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
-				dx <= dx_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
-				dy <= dy_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
-				dz <= dz_wire[6*DATA_WIDTH-1:5*DATA_WIDTH];
-				out_valid <= 1'b1;
-				end
-			8'b01000000:
-				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
-				dx <= dx_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
-				dy <= dy_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
-				dz <= dz_wire[7*DATA_WIDTH-1:6*DATA_WIDTH];
-				out_valid <= 1'b1;
-				end
-			8'b10000000:
-				begin
-				ref_particle_id_out <= ref_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
-				neighbor_particle_id_out <= neighbor_particle_id_out_wire[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
-				r2 <= r2_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
-				dx <= dx_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
-				dy <= dy_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
-				dz <= dz_wire[8*DATA_WIDTH-1:7*DATA_WIDTH];
-				out_valid <= 1'b1;
-				end
-			default:
-				begin
-				ref_particle_id_out <= 0;
-				neighbor_particle_id_out <= 0;
-				r2 <= 0;
-				dx <= 0;
-				dy <= 0;
-				dz <= 0;
-				out_valid <= 1'b0;
-				end
-		endcase
-		end
+			end
+	endgenerate
 	
 	// Instantiate the Filter_Logic modules
 	genvar i;

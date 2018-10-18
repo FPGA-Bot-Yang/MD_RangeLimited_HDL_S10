@@ -190,7 +190,7 @@ module Filter_Logic
 	// Filter Logic
 	/////////////////////////////////////////////////////////////////////////////
 	reg buffer_wr;
-	reg [DATA_WIDTH*4-1:0] buffer_wr_data;
+	reg [PARTICLE_ID_WIDTH*2+DATA_WIDTH*4-1:0] buffer_wr_data;
 	always@(posedge clk)
 		begin
 		if(rst)
