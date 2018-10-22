@@ -1,20 +1,18 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: RL_LJ_Evaluation_Unit.v
+// Module: RL_LJ_top.v
 //
-//	Function: Evaluate the accumulated LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
-// 			Difference with RL_LJ_Force_Evaluation_Unit: accumulation unit and send out neighbor particle force
-//				Single set of force evaluation unit (including single force evaluation pipeline and multiple filters)
-//				A single home cell for this unit, and multiple neighbor cells
-//				Each unit handles a single home cell
+//	Function: Evaluate the dataset using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
+// 				Mapping cells onto each RL_LJ_Evaluation_Unit
+//					Including force accumulation & Motion Update
 //
 //	Purpose:
 //				Filter version, used for final system
 //
 // Used by:
-//				RL_LJ_Top.v
+//				TBD
 //
 // Dependency:
-//				RL_LJ_Force_Evaluation_Unit.v
+//				RL_LJ_Evaluation_Unit.v
 //
 // Latency: TBD
 //
@@ -27,7 +25,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module RL_LJ_Evaluation_Unit
+module RL_LJ_Top
 #(
 	parameter DATA_WIDTH 					= 32,
 	// High level parameters

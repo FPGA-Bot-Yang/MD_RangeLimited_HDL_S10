@@ -1,15 +1,15 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: RL_LJ_Evaluation_Unit_tb.v
+// Module: RL_LJ_Top_tb.v
 //
 //	Function:
-//				Testbench for RL_LJ_Evaluation_Unit
-//				Evaluate the accumulated LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
+//				Testbench for RL_LJ_Top
+//				Evaluate the dataset using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
 // 			Single set of force evaluation unit (including single force evaluation pipeline and multiple filters)
 //				A single home cell for this unit, and multiple neighbor cells
 //				Each unit handles a single home cell
 //
 // Dependency:
-// 			RL_LJ_Evaluation_Unit.v
+// 			RL_LJ_Top.v
 //
 // Created by: Chen Yang 10/18/18
 //
@@ -17,7 +17,7 @@
 
 `timescale 1ns/1ns
 
-module RL_LJ_Evaluation_Unit_tb;
+module RL_LJ_Top_tb;
 
 	parameter DATA_WIDTH 					= 32;
 	// High level parameters
@@ -67,7 +67,7 @@ module RL_LJ_Evaluation_Unit_tb;
 	end
 
 	// UUT
-	RL_LJ_Evaluation_Unit
+	RL_LJ_Top
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		// High level parameters
@@ -92,7 +92,7 @@ module RL_LJ_Evaluation_Unit_tb;
 		.LOOKUP_NUM(LOOKUP_NUM),								// SEGMENT_NUM * BIN_NUM
 		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)				// log LOOKUP_NUM / log 2
 	)
-	RL_LJ_Evaluation_Unit
+	RL_LJ_Top
 	(
 		.clk(clk),
 		.rst(rst),
