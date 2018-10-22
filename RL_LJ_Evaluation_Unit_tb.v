@@ -3,9 +3,10 @@
 //
 //	Function:
 //				Testbench for RL_LJ_Evaluation_Unit
-//				Evaluate the LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
-//				Multiple sets of force evaluation units (including single force evaluation pipeline and multiple filters)
-//				For each force pipeline, there are 2 banks of brams to feed position data of particle pairs which are already filtered.
+//				Evaluate the accumulated LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
+// 			Single set of force evaluation unit (including single force evaluation pipeline and multiple filters)
+//				A single home cell for this unit, and multiple neighbor cells
+//				Each unit handles a single home cell
 //
 // Dependency:
 // 			RL_LJ_Evaluation_Unit.v

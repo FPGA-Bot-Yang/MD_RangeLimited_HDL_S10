@@ -1,10 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module: RL_LJ_Evaluation_Unit.v
 //
-//	Function: Evaluate the LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
-// 			Single set of force evaluation unit (including single force evaluation pipeline and multiple filters)
+//	Function: Evaluate the accumulated LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
+// 			Difference with RL_LJ_Force_Evaluation_Unit: add memory management controller for the home cell and neighbor cells
+//				Single set of force evaluation unit (including single force evaluation pipeline and multiple filters)
 //				A single home cell for this unit, and multiple neighbor cells
-//				
+//				Each unit handles a single home cell
 //
 //	Purpose:
 //				Filter version, used for final system
@@ -90,22 +91,26 @@ module RL_LJ_Evaluation_Unit
 	wire [DATA_WIDTH-1:0] refz;
 	wire [NUM_FILTER-1:0] input_valid_wire;
 	wire [NUM_FILTER-1:0] back_pressure_to_input_wire;
-	wire [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] ref_particle_id_in_wire, neighbor_particle_id_in_wire;
 	wire [NUM_FILTER*DATA_WIDTH-1:0] refx_in_wire, refy_in_wire, refz_in_wire;
 	wire [NUM_FILTER*DATA_WIDTH-1:0] neighborx_in_wire, neighbory_in_wire, neighborz_in_wire;
+	reg [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] ref_particle_id_in_reg, neighbor_particle_id_in_reg;			// One cycle delay needed between read address and assignment of particle id
 	genvar i;
 	generate 
 		for(i = 0; i < NUM_FILTER; i = i + 1)
 			begin: input_wire_assignment
 			assign input_valid_wire[i] = input_valid;
-			assign ref_particle_id_in_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH] = ref_particle_id;
-			assign neighbor_particle_id_in_wire[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH] = neighbor_particle_id;
 			assign refx_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = refx;
 			assign refy_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = refy;
 			assign refz_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = refz;
 			assign neighborx_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = neighborx;
 			assign neighbory_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = neighbory;
 			assign neighborz_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = neighborz;
+			// One cycle delay needed between read address and assignment of particle id
+			always@(posedge clk)
+				begin
+				ref_particle_id_in_reg[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH] <= home_rdaddr;
+				neighbor_particle_id_in_reg[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH] <= neighbor_rdaddr;
+				end
 			end
 	endgenerate
 	
@@ -255,8 +260,8 @@ module RL_LJ_Evaluation_Unit
 		.clk(clk),
 		.rst(rst),
 		.input_valid(input_valid_wire),												// INPUT [NUM_FILTER-1:0]
-		.ref_particle_id(ref_particle_id_in_wire),								// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.neighbor_particle_id(neighbor_particle_id_in_wire),					// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.ref_particle_id(ref_particle_id_in_reg),									// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id(neighbor_particle_id_in_reg),					// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
 		.refx(refx_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
 		.refy(refy_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
 		.refz(refz_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
