@@ -2,13 +2,22 @@
 // Module: RL_LJ_Evaluation_Unit.v
 //
 //	Function: Evaluate the accumulated LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
-// 			Difference with RL_LJ_Force_Evaluation_Unit: accumulation unit and send out neighbor particle force
-//				Single set of force evaluation unit (including single force evaluation pipeline and multiple filters)
-//				A single home cell for this unit, and multiple neighbor cells
-//				Each unit handles a single home cell
+// 			Force_Evaluation_Unit with Accumulation_Unit and send out neighbor particle force (with negation)
+//				Single set of force evaluation unit, including:
+//							* Single force evaluation pipeline
+//							* Multiple filters
+//							* Accumulation unit for reference particles
+//				Output:
+//							* Each iteration, output neighbor particle's partial force
+//							* when the reference particle is done, output the accumulated force on this reference particle
+//
+// Mapping Model:
+//				Half-shell mapping
+//				Each force pipeline working on a single reference particle until all the neighboring particles are evaluated, then move to the next reference particle
+//				Depending the # of cells, each unit will be responsible for part of a home cell, or a single home cell, or multiple home cells
 //
 //	Purpose:
-//				Filter version, used for final system
+//				Filter version, used for final system (half-shell mapping scheme)
 //
 // Used by:
 //				RL_LJ_Top.v
@@ -18,26 +27,15 @@
 //
 // Latency: TBD
 //
-// Todo:
-//				This is a temperoal module that used for verification
-//				1, need to implement force accumulation in it
-//				2, parameterize # of force evaluation units in it
-//
-// Created by: Chen Yang 10/18/18
+// Created by: Chen Yang 10/23/18
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_LJ_Evaluation_Unit
 #(
 	parameter DATA_WIDTH 					= 32,
-	// High level parameters
-	parameter NUM_FORCE_EVAL_UNIT			= 1,
 	// Dataset defined parameters
 	parameter PARTICLE_ID_WIDTH			= 20,										// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
-	parameter REF_PARTICLE_NUM				= 100,
-	parameter REF_RAM_ADDR_WIDTH			= 7,										// log(REF_PARTICLE_NUM)
-	parameter NEIGHBOR_PARTICLE_NUM		= 100,
-	parameter NEIGHBOR_RAM_ADDR_WIDTH	= 7,										// log(NEIGHBOR_RAM_ADDR_WIDTH)
 	// Filter parameters
 	parameter NUM_FILTER						= 4,	// 8
 	parameter ARBITER_MSB 					= 8,	//128								// 2^(NUM_FILTER-1)
@@ -56,183 +54,52 @@ module RL_LJ_Evaluation_Unit
 	input  clk,
 	input  rst,
 	input  start,
-	output [NUM_FORCE_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] ref_particle_id,
-	output [NUM_FORCE_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] neighbor_particle_id,
-	output [NUM_FORCE_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_X,
-	output [NUM_FORCE_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_Y,
-	output [NUM_FORCE_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_Z,
-	output [NUM_FORCE_EVAL_UNIT-1:0] forceoutput_valid,
-	output reg done
+	input  [NUM_FILTER-1:0] in_input_pair_valid,
+	input  [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] in_ref_particle_id,
+	input  [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] in_neighbor_particle_id,
+	input  [NUM_FILTER*3*DATA_WIDTH-1:0] in_ref_particle_position,			// {refz, refy, refx}
+	input  [NUM_FILTER*3*DATA_WIDTH-1:0] in_neighbor_particle_position,	// {neighborz, neighbory, neighborx}
+	output [NUM_FILTER-1:0] out_back_pressure_to_input,						// backpressure signal to stop new data arrival from particle memory
+	// Output partial force for neighbor particles
+	// The output value should be the minus value of the calculated force data 
+	output [PARTICLE_ID_WIDTH-1:0] out_ref_particle_id,
+	output [PARTICLE_ID_WIDTH-1:0] out_neighbor_particle_id,
+	output [DATA_WIDTH-1:0] out_LJ_Force_X,
+	output [DATA_WIDTH-1:0] out_LJ_Force_Y,
+	output [DATA_WIDTH-1:0] out_LJ_Force_Z,
+	output out_forceoutput_valid
 );
 
-	// Controller variables
-	parameter WAIT_FOR_START  = 3'b000;
-	parameter START 			  = 3'b001;
-	parameter EVALUATION 	  = 3'b010;
-	parameter WAIT_FOR_FINISH = 3'b011;
-	parameter DONE 			  = 3'b100;
+	// Wires for assigning the output reference particle value
+	wire [DATA_WIDTH-1:0] LJ_Force_X_wire;
+	wire [DATA_WIDTH-1:0] LJ_Force_Y_wire;
+	wire [DATA_WIDTH-1:0] LJ_Force_Z_wire;
+	generate
+		begin: neighbor_particle_partial_force_assignment
+		assign out_LJ_Force_X[DATA_WIDTH-2:0] = LJ_Force_X_wire[DATA_WIDTH-2:0];	
+		assign out_LJ_Force_X[DATA_WIDTH-1] = ~LJ_Force_X_wire[DATA_WIDTH-1];		// Negate the sign bit
+		assign out_LJ_Force_Y[DATA_WIDTH-2:0] = LJ_Force_Y_wire[DATA_WIDTH-2:0];
+		assign out_LJ_Force_Y[DATA_WIDTH-1] = ~LJ_Force_Y_wire[DATA_WIDTH-1];		// Negate the sign bit
+		assign out_LJ_Force_Z[DATA_WIDTH-2:0] = LJ_Force_Z_wire[DATA_WIDTH-2:0];
+		assign out_LJ_Force_Z[DATA_WIDTH-1] = ~LJ_Force_Z_wire[DATA_WIDTH-1];		// Negate the sign bit
+		end
+	endgenerate
 	
-	// FSM controller variables
-	reg rden;
-	reg wren;
-	reg [2:0] state;
-	reg [REF_RAM_ADDR_WIDTH-1:0] wraddr;
-	reg [NEIGHBOR_RAM_ADDR_WIDTH-1:0] neighbor_rdaddr;
-	reg [REF_RAM_ADDR_WIDTH-1:0] home_rdaddr;
-	reg input_valid;												// signify the valid of input particle data, this signal should have 1 cycle delay of the rden signal, thus wait for the data read out from BRAM
-	reg [4:0] wait_counter;										// Counter that wait for the last pair to finish evaluation (17+14=31 cycles)
-		
-	// Wires between particle memeories and Evaluation units
-	wire [DATA_WIDTH-1:0] neighborx;
-	wire [DATA_WIDTH-1:0] neighbory;
-	wire [DATA_WIDTH-1:0] neighborz;
-	wire [DATA_WIDTH-1:0] refx;
-	wire [DATA_WIDTH-1:0] refy;
-	wire [DATA_WIDTH-1:0] refz;
-	wire [NUM_FILTER-1:0] input_valid_wire;
-	wire [NUM_FILTER-1:0] back_pressure_to_input_wire;
+	// Wires for assigning input particle data to Force Evaluation Unit
 	wire [NUM_FILTER*DATA_WIDTH-1:0] refx_in_wire, refy_in_wire, refz_in_wire;
 	wire [NUM_FILTER*DATA_WIDTH-1:0] neighborx_in_wire, neighbory_in_wire, neighborz_in_wire;
-	reg [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] ref_particle_id_in_reg, neighbor_particle_id_in_reg;			// One cycle delay needed between read address and assignment of particle id
 	genvar i;
 	generate 
 		for(i = 0; i < NUM_FILTER; i = i + 1)
 			begin: input_wire_assignment
-			assign input_valid_wire[i] = input_valid;
-			assign refx_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = refx;
-			assign refy_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = refy;
-			assign refz_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = refz;
-			assign neighborx_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = neighborx;
-			assign neighbory_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = neighbory;
-			assign neighborz_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = neighborz;
-			// One cycle delay needed between read address and assignment of particle id
-			always@(posedge clk)
-				begin
-				ref_particle_id_in_reg[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH] <= home_rdaddr;
-				neighbor_particle_id_in_reg[(i+1)*PARTICLE_ID_WIDTH-1:i*PARTICLE_ID_WIDTH] <= neighbor_rdaddr;
-				end
+			assign refx_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = in_ref_particle_position[i*3*DATA_WIDTH+DATA_WIDTH-1:i*3*DATA_WIDTH];
+			assign refy_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = in_ref_particle_position[i*3*DATA_WIDTH+2*DATA_WIDTH-1:i*3*DATA_WIDTH+DATA_WIDTH];
+			assign refz_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = in_ref_particle_position[i*3*DATA_WIDTH+3*DATA_WIDTH-1:i*3*DATA_WIDTH+2*DATA_WIDTH];
+			assign neighborx_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = in_neighbor_particle_position[i*3*DATA_WIDTH+DATA_WIDTH-1:i*3*DATA_WIDTH];
+			assign neighbory_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = in_neighbor_particle_position[i*3*DATA_WIDTH+2*DATA_WIDTH-1:i*3*DATA_WIDTH+DATA_WIDTH];
+			assign neighborz_in_wire[(i+1)*DATA_WIDTH-1:i*DATA_WIDTH] = in_neighbor_particle_position[i*3*DATA_WIDTH+3*DATA_WIDTH-1:i*3*DATA_WIDTH+2*DATA_WIDTH];
 			end
 	endgenerate
-	
-	// Data RAM rd&wr Controller
-	always@(posedge clk)
-		if(rst)
-			begin
-			neighbor_rdaddr <= 0;
-			home_rdaddr <= 0;
-			wraddr <= 0;
-			wren <= 1'b0;
-			rden <= 1'b0;
-			input_valid <= 1'b0;
-			wait_counter <= 5'd0;
-			done <= 1'b0;
-			
-			state <= WAIT_FOR_START;
-			end
-		else
-			begin
-			// The input_valid should kept high until the FP operation is finished!!!!!!!!
-			input_valid <= rden;				// Assign the input_valid signal, one cycle delay from the rden signal
-			
-			wren <= 1'b0;						// temporarily disable write back to position ram
-			wraddr <= 0;
-			case(state)
-				WAIT_FOR_START:				// Wait for the input start signal from outside
-					begin
-					neighbor_rdaddr <= 0;
-					home_rdaddr <= 0;
-					rden <= 1'b0;
-					done <= 1'b0;
-					wait_counter <= 5'd0;
-					if(start)
-						state <= START;
-					else
-						state <= WAIT_FOR_START;
-					end
-					
-				START:							// Evaluate the first pair (start from addr = 0)
-					begin
-					neighbor_rdaddr <= 0;
-					home_rdaddr <= 0;
-					done <= 1'b0;
-					wait_counter <= 5'd0;
-					if(back_pressure_to_input_wire == 0)
-						begin
-						state <= EVALUATION;
-						rden <= 1'b1;
-						end
-					else
-						begin
-						state <= START;
-						rden <= 1'b0;
-						end
-					end
-					
-				EVALUATION:						// Evaluating all the particle pairs
-					begin
-					done <= 1'b0;
-					wait_counter <= 5'd0;
-					// Only readout the next particle data if there no backpressure from filters
-					if(back_pressure_to_input_wire == 0)
-						begin
-						rden <= 1'b1;
-						// Generate home cell and neighbor cell address
-						if(neighbor_rdaddr == NEIGHBOR_PARTICLE_NUM - 1)
-							begin
-							home_rdaddr <= home_rdaddr + 1'b1;
-							neighbor_rdaddr <= 0;
-							end
-						else
-							begin
-							home_rdaddr <= home_rdaddr;
-							neighbor_rdaddr <= neighbor_rdaddr + 1'b1;
-							end
-						end
-					else
-						begin
-						rden <= 1'b0;
-						home_rdaddr <= home_rdaddr;
-						neighbor_rdaddr <= neighbor_rdaddr;
-						end
-					
-					if((home_rdaddr == REF_PARTICLE_NUM - 1) && (neighbor_rdaddr == NEIGHBOR_PARTICLE_NUM - 1))
-						state <= WAIT_FOR_FINISH;
-					else
-						state <= EVALUATION;
-/*
-					if(home_rdaddr < REF_PARTICLE_NUM)
-						state <= EVALUATION;
-					else
-						state <= DONE;
-*/
-					end
-				
-				WAIT_FOR_FINISH:				// Wait for the last pair to finish force evaluation, for a total of 17+14=31 cycles
-					begin
-					done <= 1'b0;
-					neighbor_rdaddr <= 0;
-					home_rdaddr <= 0;
-					rden <= 1'b0;
-					wait_counter <= wait_counter + 1'b1;
-					if (wait_counter < 31)
-						state <= WAIT_FOR_FINISH;
-					else
-						state <= DONE;
-					end
-				
-				DONE:								// Output a done signal
-					begin
-					done <= 1'b1;
-					neighbor_rdaddr <= 0;
-					home_rdaddr <= 0;
-					rden <= 1'b0;
-					wait_counter <= 5'd0;
-					
-					state <= WAIT_FOR_START;
-					end
-			endcase
-			end
-	
 	
 	// Force evaluation unit
 	// Including filters and force evaluation pipeline
@@ -259,119 +126,22 @@ module RL_LJ_Evaluation_Unit
 	(
 		.clk(clk),
 		.rst(rst),
-		.input_valid(input_valid_wire),												// INPUT [NUM_FILTER-1:0]
-		.ref_particle_id(ref_particle_id_in_reg),									// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.neighbor_particle_id(neighbor_particle_id_in_reg),					// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.refx(refx_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.refy(refy_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.refz(refz_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighborx(neighborx_in_wire),												// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighbory(neighbory_in_wire),												// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighborz(neighborz_in_wire),												// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.ref_particle_id_out(ref_particle_id[PARTICLE_ID_WIDTH-1:0]),		// OUTPUT [PARTICLE_ID_WIDTH-1:0]
-		.neighbor_particle_id_out(neighbor_particle_id[PARTICLE_ID_WIDTH-1:0]),		// OUTPUT [PARTICLE_ID_WIDTH-1:0]
-		.LJ_Force_X(LJ_Force_X[DATA_WIDTH-1:0]),									// OUTPUT [DATA_WIDTH-1:0]
-		.LJ_Force_Y(LJ_Force_Y[DATA_WIDTH-1:0]),									// OUTPUT [DATA_WIDTH-1:0]
-		.LJ_Force_Z(LJ_Force_Z[DATA_WIDTH-1:0]),									// OUTPUT [DATA_WIDTH-1:0]
-		.forceoutput_valid(forceoutput_valid[0]),									// OUTPUT
-		.back_pressure_to_input(back_pressure_to_input_wire)					// OUTPUT [NUM_FILTER-1:0]
-	);
-
-	// Reference particle position ram
-	ram_ref_x
-	#(
-		.DATA_WIDTH(DATA_WIDTH),
-		.PARTICLE_NUM(REF_PARTICLE_NUM),
-		.ADDR_WIDTH(REF_RAM_ADDR_WIDTH)
-	)
-	ram_ref_x
-	(
-		.address(home_rdaddr),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(wren),
-		.q(refx)
-	);
-
-	ram_ref_y
-	#(
-		.DATA_WIDTH(DATA_WIDTH),
-		.PARTICLE_NUM(REF_PARTICLE_NUM),
-		.ADDR_WIDTH(REF_RAM_ADDR_WIDTH)
-	)
-	ram_ref_y
-	(
-		.address(home_rdaddr),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(wren),
-		.q(refy)
-	);
-
-	ram_ref_z
-	#(
-		.DATA_WIDTH(DATA_WIDTH),
-		.PARTICLE_NUM(REF_PARTICLE_NUM),
-		.ADDR_WIDTH(REF_RAM_ADDR_WIDTH)
-	)
-	ram_ref_z
-	(
-		.address(home_rdaddr),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(wren),
-		.q(refz)
-	);
-
-	ram_neighbor_x
-	#(
-		.DATA_WIDTH(DATA_WIDTH),
-		.PARTICLE_NUM(NEIGHBOR_PARTICLE_NUM),
-		.ADDR_WIDTH(NEIGHBOR_RAM_ADDR_WIDTH)
-	)
-	ram_neighbor_x
-	(
-		.address(neighbor_rdaddr),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(wren),
-		.q(neighborx)
-	);
-	
-	ram_neighbor_y
-	#(
-		.DATA_WIDTH(DATA_WIDTH),
-		.PARTICLE_NUM(NEIGHBOR_PARTICLE_NUM),
-		.ADDR_WIDTH(NEIGHBOR_RAM_ADDR_WIDTH)
-	)
-	ram_neighbor_y
-	(
-		.address(neighbor_rdaddr),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(wren),
-		.q(neighbory)
-	);
-	
-	ram_neighbor_z
-	#(
-		.DATA_WIDTH(DATA_WIDTH),
-		.PARTICLE_NUM(NEIGHBOR_PARTICLE_NUM),
-		.ADDR_WIDTH(NEIGHBOR_RAM_ADDR_WIDTH)
-	)
-	ram_neighbor_z
-	(
-		.address(neighbor_rdaddr),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(wren),
-		.q(neighborz)
+		.input_valid(in_input_pair_valid),								// INPUT [NUM_FILTER-1:0]
+		.ref_particle_id(in_ref_particle_id),							// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id(in_neighbor_particle_id),				// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.refx(refx_in_wire),													// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.refy(refy_in_wire),													// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.refz(refz_in_wire),													// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighborx(neighborx_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighbory(neighbory_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighborz(neighborz_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.ref_particle_id_out(out_ref_particle_id),					// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id_out(out_neighbor_particle_id),		// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.LJ_Force_X(LJ_Force_X_wire),										// OUTPUT [DATA_WIDTH-1:0]
+		.LJ_Force_Y(LJ_Force_Y_wire),										// OUTPUT [DATA_WIDTH-1:0]
+		.LJ_Force_Z(LJ_Force_Z_wire),										// OUTPUT [DATA_WIDTH-1:0]
+		.forceoutput_valid(out_forceoutput_valid),					// OUTPUT
+		.back_pressure_to_input(out_back_pressure_to_input)		// OUTPUT [NUM_FILTER-1:0]
 	);
 
 endmodule

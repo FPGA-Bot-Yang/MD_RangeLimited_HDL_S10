@@ -28,6 +28,10 @@
 # # than the files compiled by the Quartus-generated IP simulation script)
 # #
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/define.v
+
+ vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/fp_accumulation_test.v
+ vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/fp_accumulation_test_tb.v
+ 
  #vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Pipeline_1st_Order_.v
  #vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Pipeline_1st_Order_tb.v
  #vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Evaluate_Pairs_1st_Order.v
@@ -35,6 +39,8 @@
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Top_tb.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Evaluation_Unit.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Force_Evaluation_Unit.v
+ vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Partial_Force_Acc.v
+ vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Partial_Force_Acc_tb.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Arbiter.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Arbiter_tb.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Bank.v
@@ -47,6 +53,7 @@
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/r2_compute.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/r2_compute_tb.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/FP_ADD.v
+ vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/FP_ACC.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/FP_MUL.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/FP_MUL_ADD.v
  vlog -vlog01compat -work work /home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/FP_SUB.v
@@ -68,7 +75,7 @@
 # # Set the top-level simulation or testbench module/entity name, which is
 # # used by the elab command to elaborate the top level.
 # #
- set TOP_LEVEL_NAME RL_LJ_Top_tb
+ set TOP_LEVEL_NAME Partial_Force_Acc_tb
 # #
 # # Set any elaboration options you require.
 # set USER_DEFINED_ELAB_OPTIONS <elaboration options>
