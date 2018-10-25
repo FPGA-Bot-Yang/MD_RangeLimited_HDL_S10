@@ -5,6 +5,7 @@
 //				Take the partial force from force evaluation module every cycle and perform accumulation
 //				When the input particle id changed, which means the accumulation for the current particle has done, then output the accumulated force, and set as valid
 //				When particle id change, reset the accumulated value and restart accumulation
+//				The accumulator is always in enable mode, if the incoming data is invalid, set the input value as 0
 //
 // Used by:
 //				RL_LJ_Evaluation_Unit.v
@@ -43,19 +44,31 @@ module Partial_Force_Acc
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Signals connected to accumulators
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	reg acc_enable;																// Enable the accumulation operation
-	// Register the incoming force before sending for accumulation (for alignment with the acc_force and acc_enable)
-	reg [DATA_WIDTH-1:0] partial_force_x_reg;
-	reg [DATA_WIDTH-1:0] partial_force_y_reg;
-	reg [DATA_WIDTH-1:0] partial_force_z_reg;
-	// Register the accumulated force (for alignment with the in_partial_force and acc_enable)
-	reg [DATA_WIDTH-1:0] acc_force_x_reg;
-	reg [DATA_WIDTH-1:0] acc_force_y_reg;
-	reg [DATA_WIDTH-1:0] acc_force_z_reg;
+	// Enable the accumulation operation
+	// Always set as enable
+	wire acc_enable;
+	assign acc_enable = ~rst;
+	
 	// Accumulated output value
 	wire [DATA_WIDTH-1:0] acc_value_out_x;									
 	wire [DATA_WIDTH-1:0] acc_value_out_y;
 	wire [DATA_WIDTH-1:0] acc_value_out_z;
+	
+	// Assign wires for partial force, if the incoming data is invalid, set as 0
+	wire [DATA_WIDTH-1:0] partial_force_x_in_wire;
+	wire [DATA_WIDTH-1:0] partial_force_y_in_wire;
+	wire [DATA_WIDTH-1:0] partial_force_z_in_wire;
+	assign partial_force_x_in_wire = (in_input_valid) ? in_partial_force_x : 0;
+	assign partial_force_y_in_wire = (in_input_valid) ? in_partial_force_y : 0;
+	assign partial_force_z_in_wire = (in_input_valid) ? in_partial_force_z : 0;
+	
+	// Assign wires for accumulation data, if particle id changes, set the acc value as 0
+	wire [DATA_WIDTH-1:0] acc_force_x_in_wire;
+	wire [DATA_WIDTH-1:0] acc_force_y_in_wire;
+	wire [DATA_WIDTH-1:0] acc_force_z_in_wire;
+	assign acc_force_x_in_wire = (cur_particle_id == in_particle_id) ? acc_value_out_x : 0;
+	assign acc_force_y_in_wire = (cur_particle_id == in_particle_id) ? acc_value_out_y : 0;
+	assign acc_force_z_in_wire = (cur_particle_id == in_particle_id) ? acc_value_out_z : 0;
 
 	// Controller for accumulation operation
 	always@(posedge clk)
@@ -63,14 +76,6 @@ module Partial_Force_Acc
 		if(rst)
 			begin
 			cur_particle_id <= 0;
-			// Accumulator signals
-			acc_enable <= 1'b0;
-			partial_force_x_reg <= 0;
-			partial_force_y_reg <= 0;
-			partial_force_z_reg <= 0;
-			acc_force_x_reg <= 0;
-			acc_force_y_reg <= 0;
-			acc_force_z_reg <= 0;
 			// Output signal
 			out_particle_id <= 0;
 			out_particle_acc_force_x <= 0;
@@ -80,42 +85,16 @@ module Partial_Force_Acc
 			end
 		else
 			begin
-			// Always enable the accumulator
-			// If the input value is invalid, then set the incoming value as 0
-			acc_enable <= 1'b1;
-				
-			////////////////////////////////////////////////////
-			// Assign the particle force to be accumulated
-			////////////////////////////////////////////////////
-			if(in_input_valid)
-				begin
-				partial_force_x_reg <= in_partial_force_x;
-				partial_force_y_reg <= in_partial_force_y;
-				partial_force_z_reg <= in_partial_force_z;
-				end
-			else
-				begin
-				partial_force_x_reg <= 0;
-				partial_force_y_reg <= 0;
-				partial_force_z_reg <= 0;
-				end
-			
 			////////////////////////////////////////////////////
 			// Register the accumulated force
 			////////////////////////////////////////////////////
 			if(cur_particle_id == in_particle_id)
 				begin
 				cur_particle_id <= cur_particle_id;
-				acc_force_x_reg <= acc_value_out_x;
-				acc_force_y_reg <= acc_value_out_y;
-				acc_force_z_reg <= acc_value_out_z;
 				end
 			else
 				begin
 				cur_particle_id <= in_particle_id;			// update the particle id
-				acc_force_x_reg <= 0;
-				acc_force_y_reg <= 0;
-				acc_force_z_reg <= 0;
 				end
 			
 			////////////////////////////////////////////////////
@@ -147,8 +126,10 @@ module Partial_Force_Acc
 		.clk(clk),
 		.clr(rst),
 		.ena(acc_enable),
-		.ax(partial_force_x_reg),
-		.ay(acc_force_x_reg),
+		.ax(partial_force_x_in_wire),
+//		.ax(partial_force_x_reg),
+//		.ay(acc_force_x_reg),
+		.ay(acc_force_x_in_wire),
 		.result(acc_value_out_x)
 	);
 	
@@ -161,8 +142,10 @@ module Partial_Force_Acc
 		.clk(clk),
 		.clr(rst),
 		.ena(acc_enable),
-		.ax(partial_force_y_reg),
-		.ay(acc_force_y_reg),
+		.ax(partial_force_y_in_wire),
+//		.ax(partial_force_y_reg),
+//		.ay(acc_force_y_reg),
+		.ay(acc_force_y_in_wire),
 		.result(acc_value_out_y)
 	);
 	
@@ -175,8 +158,10 @@ module Partial_Force_Acc
 		.clk(clk),
 		.clr(rst),
 		.ena(acc_enable),
-		.ax(partial_force_z_reg),
-		.ay(acc_force_z_reg),
+		.ax(partial_force_z_in_wire),
+//		.ax(partial_force_z_reg),
+//		.ay(acc_force_z_reg),
+		.ay(acc_force_z_in_wire),
 		.result(acc_value_out_z)
 	);
 		
