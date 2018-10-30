@@ -1,12 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: RL_LJ_Top.v
+// Module: RL_LJ_Top_Raw_Data_Testing.v
 //
 //	Function: 
 //				Evaluate the dataset using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
-// 			The input data is pre-processed ApoA1 data with partiation into cells
-//				Mapping a single reference pariticle cell and multiple neighbor particle cells onto one RL_LJ_Evaluation_Unit (memory content in ref and neighbor are realistic to actual distibution)
-//				Including force accumulation & Motion Update
-//				Cell coordinates start from (1,1,1) instead of (0,0,0)
+// 			The input data is raw ApoA1 data without sorting into cells
+//				Mapping a single reference pariticle memory and a single neighbor particle memory onto one RL_LJ_Evaluation_Unit (memory content in ref and neighbor are the same)
+//				No force accumulation & No Motion Update
 //
 //	Purpose:
 //				Filter version, used for testing and verification only
@@ -15,31 +14,29 @@
 //				TBD
 //
 // Dependency:
-//				RL_LJ_Evaluation_Unit.v
+//				RL_LJ_Force_Evaluation_Unit.v
 //
 // Latency: TBD
 //
 // Todo:
-//				This is a work in progress module that will be used in the final system
+//				This is a temperoal module that used for verification
 //				1, parameterize # of force evaluation units in it
 //
-// Created by: Chen Yang 10/30/18
+// Created by: Chen Yang 10/18/18
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module RL_LJ_Top
+module RL_LJ_Top_Raw_Data_Testing
 #(
 	parameter DATA_WIDTH 					= 32,
 	// High level parameters
-	parameter NUM_EVAL_UNIT					= 1,										// # of evaluation units in the design
+	parameter NUM_FORCE_EVAL_UNIT			= 1,
 	// Dataset defined parameters
-	parameter PARTICLE_ID_WIDTH			= 20,										// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
-	parameter MAX_CELL_PARTICLE_NUM		= 220,									// The maximum # of particles can be in a cell
-	parameter CELL_ADDR_WIDTH				= 8,										// log(MAX_CELL_PARTICLE_NUM)
-//	parameter REF_PARTICLE_NUM				= 100,
-//	parameter REF_RAM_ADDR_WIDTH			= 7,										// log(REF_PARTICLE_NUM)
-//	parameter NEIGHBOR_PARTICLE_NUM		= 100,
-//	parameter NEIGHBOR_RAM_ADDR_WIDTH	= 7,										// log(NEIGHBOR_RAM_ADDR_WIDTH)
+	parameter PARTICLE_ID_WIDTH			= 20,										// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
+	parameter REF_PARTICLE_NUM				= 100,
+	parameter REF_RAM_ADDR_WIDTH			= 7,										// log(REF_PARTICLE_NUM)
+	parameter NEIGHBOR_PARTICLE_NUM		= 100,
+	parameter NEIGHBOR_RAM_ADDR_WIDTH	= 7,										// log(NEIGHBOR_RAM_ADDR_WIDTH)
 	// Filter parameters
 	parameter NUM_FILTER						= 4,	// 8
 	parameter ARBITER_MSB 					= 8,	//128								// 2^(NUM_FILTER-1)
@@ -58,12 +55,12 @@ module RL_LJ_Top
 	input  clk,
 	input  rst,
 	input  start,
-	output [NUM_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] ref_particle_id,
-	output [NUM_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] neighbor_particle_id,
-	output [NUM_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_X,
-	output [NUM_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_Y,
-	output [NUM_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_Z,
-	output [NUM_EVAL_UNIT-1:0] forceoutput_valid,
+	output [NUM_FORCE_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] ref_particle_id,
+	output [NUM_FORCE_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] neighbor_particle_id,
+	output [NUM_FORCE_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_X,
+	output [NUM_FORCE_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_Y,
+	output [NUM_FORCE_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_Z,
+	output [NUM_FORCE_EVAL_UNIT-1:0] forceoutput_valid,
 	output reg done
 );
 
@@ -236,297 +233,144 @@ module RL_LJ_Top
 			end
 	
 	
-	RL_LJ_Evaluation_Unit
+	// Force evaluation unit
+	// Including filters and force evaluation pipeline
+	RL_LJ_Force_Evaluation_Unit
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		// Dataset defined parameters
-		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH),
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH),							// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
 		// Filter parameters
 		.NUM_FILTER(NUM_FILTER),
-		.ARBITER_MSB(ARBITER_MSB),
+		.ARBITER_MSB(ARBITER_MSB),											// 2^(NUM_FILTER-1)
 		.FILTER_BUFFER_DEPTH(FILTER_BUFFER_DEPTH),
 		.FILTER_BUFFER_ADDR_WIDTH(FILTER_BUFFER_ADDR_WIDTH),
-		.CUTOFF_2(CUTOFF_2),
+		.CUTOFF_2(CUTOFF_2),													// in IEEE floating point format
 		// Force Evaluation parameters
 		.SEGMENT_NUM(SEGMENT_NUM),
 		.SEGMENT_WIDTH(SEGMENT_WIDTH),
 		.BIN_NUM(BIN_NUM),
 		.BIN_WIDTH(BIN_WIDTH),
-		.LOOKUP_NUM(LOOKUP_NUM),
-		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
+		.LOOKUP_NUM(LOOKUP_NUM),											// SEGMENT_NUM * BIN_NUM
+		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)							// log(LOOKUP_NUM) / log 2
 	)
-	RL_LJ_Evaluation_Unit
+	RL_LJ_Force_Evaluation_Unit
 	(
 		.clk(clk),
 		.rst(rst),
-		.in_input_pair_valid,				//input  [NUM_FILTER-1:0]
-		.in_ref_particle_id,					//input  [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.in_neighbor_particle_id,			//input  [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.in_ref_particle_position,			//input  [NUM_FILTER*3*DATA_WIDTH-1:0]			// {refz, refy, refx}
-		.in_neighbor_particle_position,	//input  [NUM_FILTER*3*DATA_WIDTH-1:0]			// {neighborz, neighbory, neighborx}
-		.out_back_pressure_to_input,		//output [NUM_FILTER-1:0] 							// backpressure signal to stop new data arrival from particle memory
-		// Output accumulated force for reference particles
-		// The output value is the accumulated value
-		// Connected to home cell
-		.out_ref_particle_id,				//output [PARTICLE_ID_WIDTH-1:0]
-		.out_ref_LJ_Force_X,					//output [DATA_WIDTH-1:0]
-		.out_ref_LJ_Force_Y,					//output [DATA_WIDTH-1:0]
-		.out_ref_LJ_Force_Z,					//output [DATA_WIDTH-1:0]
-		.out_ref_force_valid,				//output
-		// Output partial force for neighbor particles
-		// The output value should be the minus value of the calculated force data
-		// Connected to neighbor cells, if the neighbor paritle comes from the home cell, then discard, since the value will be recalculated when evaluating this particle as reference one
-		.out_neighbor_particle_id,			//output [PARTICLE_ID_WIDTH-1:0]
-		.out_neighbor_LJ_Force_X,			//output [DATA_WIDTH-1:0]
-		.out_neighbor_LJ_Force_Y,			//output [DATA_WIDTH-1:0]
-		.out_neighbor_LJ_Force_Z,			//output [DATA_WIDTH-1:0]
-		.out_neighbor_force_valid			//output
+		.input_valid(input_valid_wire),												// INPUT [NUM_FILTER-1:0]
+		.ref_particle_id(ref_particle_id_in_reg),									// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id(neighbor_particle_id_in_reg),					// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.refx(refx_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.refy(refy_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.refz(refz_in_wire),																// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighborx(neighborx_in_wire),												// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighbory(neighbory_in_wire),												// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighborz(neighborz_in_wire),												// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.ref_particle_id_out(ref_particle_id[PARTICLE_ID_WIDTH-1:0]),		// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id_out(neighbor_particle_id[PARTICLE_ID_WIDTH-1:0]),		// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.LJ_Force_X(LJ_Force_X[DATA_WIDTH-1:0]),									// OUTPUT [DATA_WIDTH-1:0]
+		.LJ_Force_Y(LJ_Force_Y[DATA_WIDTH-1:0]),									// OUTPUT [DATA_WIDTH-1:0]
+		.LJ_Force_Z(LJ_Force_Z[DATA_WIDTH-1:0]),									// OUTPUT [DATA_WIDTH-1:0]
+		.forceoutput_valid(forceoutput_valid[0]),									// OUTPUT
+		.back_pressure_to_input(back_pressure_to_input_wire)					// OUTPUT [NUM_FILTER-1:0]
 	);
 
-	// Cell particle memory
-	// In this impelementation, take cell(2,2,2) as home cell (cell cooridinate starts from (1,1,1))
-	// The neighbor cells including:
-	//	Side: (3,1,1),(3,1,2),(3,1,3),(3,2,1),(3,2,2),(3,2,3),(3,3,1),(3,3,2),(3,3,3)
-	// Column: (2,3,1),(2,3,2),(2,3,3)
-	// Top: (2,2,3)
-	// Data orgainization in cell memory: (pos_z, pos_y, pos_x)
-	
-	// Home cell (2,2,2)
-	cell_2_2_2
+	// Reference particle position ram
+	ram_ref_x
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH),
+		.PARTICLE_NUM(REF_PARTICLE_NUM),
+		.ADDR_WIDTH(REF_RAM_ADDR_WIDTH)
 	)
-	cell_2_2_2
+	ram_ref_x
 	(
 		.address(home_rdaddr),
 		.clock(clk),
 		.data(),
 		.rden(rden),
-		.wren(1'b0),
-		.q()
+		.wren(wren),
+		.q(refx)
 	);
 
-	// Neighbor cell (3,1,1)
-	cell_3_1_1
+	ram_ref_y
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH),
+		.PARTICLE_NUM(REF_PARTICLE_NUM),
+		.ADDR_WIDTH(REF_RAM_ADDR_WIDTH)
 	)
-	cell_3_1_1
+	ram_ref_y
 	(
-		.address(),
+		.address(home_rdaddr),
 		.clock(clk),
 		.data(),
 		.rden(rden),
-		.wren(1'b0),
-		.q()
+		.wren(wren),
+		.q(refy)
+	);
+
+	ram_ref_z
+	#(
+		.DATA_WIDTH(DATA_WIDTH),
+		.PARTICLE_NUM(REF_PARTICLE_NUM),
+		.ADDR_WIDTH(REF_RAM_ADDR_WIDTH)
+	)
+	ram_ref_z
+	(
+		.address(home_rdaddr),
+		.clock(clk),
+		.data(),
+		.rden(rden),
+		.wren(wren),
+		.q(refz)
+	);
+
+	ram_neighbor_x
+	#(
+		.DATA_WIDTH(DATA_WIDTH),
+		.PARTICLE_NUM(NEIGHBOR_PARTICLE_NUM),
+		.ADDR_WIDTH(NEIGHBOR_RAM_ADDR_WIDTH)
+	)
+	ram_neighbor_x
+	(
+		.address(neighbor_rdaddr),
+		.clock(clk),
+		.data(),
+		.rden(rden),
+		.wren(wren),
+		.q(neighborx)
 	);
 	
-	// Neighbor cell (3,1,2)
-	cell_3_1_2
+	ram_neighbor_y
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH),
+		.PARTICLE_NUM(NEIGHBOR_PARTICLE_NUM),
+		.ADDR_WIDTH(NEIGHBOR_RAM_ADDR_WIDTH)
 	)
-	cell_3_1_2
+	ram_neighbor_y
 	(
-		.address(),
+		.address(neighbor_rdaddr),
 		.clock(clk),
 		.data(),
 		.rden(rden),
-		.wren(1'b0),
-		.q()
+		.wren(wren),
+		.q(neighbory)
 	);
 	
-	// Neighbor cell (3,1,3)
-	cell_3_1_3
+	ram_neighbor_z
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH),
+		.PARTICLE_NUM(NEIGHBOR_PARTICLE_NUM),
+		.ADDR_WIDTH(NEIGHBOR_RAM_ADDR_WIDTH)
 	)
-	cell_3_1_3
+	ram_neighbor_z
 	(
-		.address(),
+		.address(neighbor_rdaddr),
 		.clock(clk),
 		.data(),
 		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (3,2,1)
-	cell_3_2_1
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_3_2_1
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (3,2,2)
-	cell_3_2_2
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_3_2_2
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (3,2,3)
-	cell_3_2_3
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_3_2_3
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (3,3,1)
-	cell_3_3_1
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_3_3_1
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (3,3,2)
-	cell_3_3_2
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_3_3_2
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (3,3,3)
-	cell_3_3_3
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_3_3_3
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (2,3,1)
-	cell_2_3_1
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_2_3_1
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (2,3,2)
-	cell_2_3_2
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_2_3_2
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (2,3,3)
-	cell_2_3_3
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_2_3_3
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
-	);
-	
-	// Neighbor cell (2,2,3)
-	cell_2_2_3
-	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
-	)
-	cell_2_2_3
-	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q()
+		.wren(wren),
+		.q(neighborz)
 	);
 
 endmodule

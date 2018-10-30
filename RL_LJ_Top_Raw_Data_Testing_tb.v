@@ -1,25 +1,29 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: RL_LJ_Top_tb.v
+// Module: RL_LJ_Top_Raw_Data_Testing_tb.v
 //
 //	Function:
-//				Testbench for RL_LJ_Top
+//				Testbench for RL_LJ_Top_Raw_Data_Testing
+//				Evaluate the dataset using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
+// 			The input data is raw ApoA1 data without sorting into cells
+//				Mapping a single reference pariticle memory and a single neighbor particle memory onto one RL_LJ_Evaluation_Unit (memory content in ref and neighbor are the same)
+//				Each unit handles a single home cell
 //
 // Dependency:
-// 			RL_LJ_Top.v
+// 			RL_LJ_Top_Raw_Data_Testing.v
 //
-// Created by: Chen Yang 10/30/18
+// Created by: Chen Yang 10/18/18
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/1ns
 
-module RL_LJ_Top_tb;
+module RL_LJ_Top_Raw_Data_Testing_tb;
 
 	parameter DATA_WIDTH 					= 32;
 	// High level parameters
 	parameter NUM_FORCE_EVAL_UNIT			= 1;
 	// Dataset defined parameters
-	parameter PARTICLE_ID_WIDTH			= 20;										// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	parameter PARTICLE_ID_WIDTH			= 20;										// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
 	parameter REF_PARTICLE_NUM				= 100;
 	parameter REF_RAM_ADDR_WIDTH			= 7;										// log(REF_PARTICLE_NUM)
 	parameter NEIGHBOR_PARTICLE_NUM		= 100;
@@ -63,7 +67,7 @@ module RL_LJ_Top_tb;
 	end
 
 	// UUT
-	RL_LJ_Top
+	RL_LJ_Top_Raw_Data_Testing
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		// High level parameters
@@ -88,7 +92,7 @@ module RL_LJ_Top_tb;
 		.LOOKUP_NUM(LOOKUP_NUM),								// SEGMENT_NUM * BIN_NUM
 		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)				// log LOOKUP_NUM / log 2
 	)
-	RL_LJ_Top
+	RL_LJ_Top_Raw_Data_Testing
 	(
 		.clk(clk),
 		.rst(rst),

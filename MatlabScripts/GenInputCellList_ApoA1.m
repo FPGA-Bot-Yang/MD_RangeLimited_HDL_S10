@@ -9,6 +9,10 @@
 % Output file:
 %       cell_ini_file_idx_idy_idz.mif
 %
+% Attention:
+%		* If the # of particles per cell change, special care need to take when generate the first element (# of particles in the cell) in the mif file
+%			~ take care of how many 0s need to be patched
+%
 % Key variables:
 %       position_data(particle_id, position)                    ---- the aligned position data for all the read in particles (algined to (0,0,0))
 %       particle_in_cell_counter(cell_x, cell_y, cell_z)        ---- recording how many particles in each cell
@@ -132,6 +136,7 @@ fprintf('Particles mapping to cells finished! Total of %d particles falling out 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Write the ApoA1 data to Memeory initialization file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fprintf('Starting write Mem init file...\n');
 for x_ptr = 1:size(GEN_CELL_RANGE_X,2)
     cell_id_x = GEN_CELL_RANGE_X(x_ptr);
     for y_ptr = 1:size(GEN_CELL_RANGE_Y,2)
@@ -167,7 +172,7 @@ for x_ptr = 1:size(GEN_CELL_RANGE_X,2)
             end
             % Fill the rest memory data with 0
             if cell_particle_num+1 < CELL_PARTICLE_MAX
-                for entry_num = (cell_particle_num+2):(CELL_PARTICLE_MAX-1)
+                for entry_num = (cell_particle_num+1):(CELL_PARTICLE_MAX-1)
                     fprintf(fileID,'%d : %tX%tX%tX;\n',entry_num, single(0), single(0), single(0));
                 end
             end
@@ -180,3 +185,4 @@ for x_ptr = 1:size(GEN_CELL_RANGE_X,2)
         end
     end
 end
+fprintf('Mem init file generation finished!\n');

@@ -54,7 +54,6 @@ module RL_LJ_Evaluation_Unit
 (
 	input  clk,
 	input  rst,
-	input  start,
 	input  [NUM_FILTER-1:0] in_input_pair_valid,
 	input  [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] in_ref_particle_id,
 	input  [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] in_neighbor_particle_id,
@@ -79,12 +78,13 @@ module RL_LJ_Evaluation_Unit
 	output out_neighbor_force_valid
 );
 	
+	wire [PARTICLE_ID_WIDTH-1:0] ref_particle_id_wire;				// Wires sending from RL_LJ_Force_Evaluation_Unit to Partial_Force_Acc
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Wires for assigning the output neighbor particle partial force value
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// assign the neighbor particle partial force valid, connected directly to force evaluation unit
 	wire evaluated_force_valid;
-	assign out_neighbor_particle_id = evaluated_force_valid;
 	// assign the neighbor particle partial force, should negate the sign bit to signify the mutual force
 	wire [DATA_WIDTH-1:0] LJ_Force_X_wire;
 	wire [DATA_WIDTH-1:0] LJ_Force_Y_wire;
@@ -153,7 +153,7 @@ module RL_LJ_Evaluation_Unit
 		.neighborx(neighborx_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
 		.neighbory(neighbory_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
 		.neighborz(neighborz_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.ref_particle_id_out(out_ref_particle_id),					// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.ref_particle_id_out(ref_particle_id_wire),					// OUTPUT [PARTICLE_ID_WIDTH-1:0]
 		.neighbor_particle_id_out(out_neighbor_particle_id),		// OUTPUT [PARTICLE_ID_WIDTH-1:0]
 		.LJ_Force_X(LJ_Force_X_wire),										// OUTPUT [DATA_WIDTH-1:0]
 		.LJ_Force_Y(LJ_Force_Y_wire),										// OUTPUT [DATA_WIDTH-1:0]
@@ -174,7 +174,7 @@ module RL_LJ_Evaluation_Unit
 		.clk(clk),
 		.rst(rst),
 		.in_input_valid(evaluated_force_valid),
-		.in_particle_id(out_ref_particle_id),
+		.in_particle_id(ref_particle_id_wire),
 		.in_partial_force_x(LJ_Force_X_wire),
 		.in_partial_force_y(LJ_Force_Y_wire),
 		.in_partial_force_z(LJ_Force_Z_wire),
