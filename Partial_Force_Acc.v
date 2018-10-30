@@ -127,8 +127,6 @@ module Partial_Force_Acc
 		.clr(rst),
 		.ena(acc_enable),
 		.ax(partial_force_x_in_wire),
-//		.ax(partial_force_x_reg),
-//		.ay(acc_force_x_reg),
 		.ay(acc_force_x_in_wire),
 		.result(acc_value_out_x)
 	);
@@ -143,8 +141,6 @@ module Partial_Force_Acc
 		.clr(rst),
 		.ena(acc_enable),
 		.ax(partial_force_y_in_wire),
-//		.ax(partial_force_y_reg),
-//		.ay(acc_force_y_reg),
 		.ay(acc_force_y_in_wire),
 		.result(acc_value_out_y)
 	);
@@ -159,8 +155,6 @@ module Partial_Force_Acc
 		.clr(rst),
 		.ena(acc_enable),
 		.ax(partial_force_z_in_wire),
-//		.ax(partial_force_z_reg),
-//		.ay(acc_force_z_reg),
 		.ay(acc_force_z_in_wire),
 		.result(acc_value_out_z)
 	);

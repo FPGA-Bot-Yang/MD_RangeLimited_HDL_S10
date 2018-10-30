@@ -9,7 +9,8 @@
 //							* Accumulation unit for reference particles
 //				Output:
 //							* Each iteration, output neighbor particle's partial force
-//							* when the reference particle is done, output the accumulated force on this reference particle
+//							(** if the neighbor particle belongs to the home cell, then don't write that particle value back. It will be recalculated when treat the neighbor particle as reference particle)
+//							* When the reference particle is done, output the accumulated force on this reference particle
 //
 // Mapping Model:
 //				Half-shell mapping
@@ -60,32 +61,49 @@ module RL_LJ_Evaluation_Unit
 	input  [NUM_FILTER*3*DATA_WIDTH-1:0] in_ref_particle_position,			// {refz, refy, refx}
 	input  [NUM_FILTER*3*DATA_WIDTH-1:0] in_neighbor_particle_position,	// {neighborz, neighbory, neighborx}
 	output [NUM_FILTER-1:0] out_back_pressure_to_input,						// backpressure signal to stop new data arrival from particle memory
-	// Output partial force for neighbor particles
-	// The output value should be the minus value of the calculated force data 
+	// Output accumulated force for reference particles
+	// The output value is the accumulated value
+	// Connected to home cell
 	output [PARTICLE_ID_WIDTH-1:0] out_ref_particle_id,
+	output [DATA_WIDTH-1:0] out_ref_LJ_Force_X,
+	output [DATA_WIDTH-1:0] out_ref_LJ_Force_Y,
+	output [DATA_WIDTH-1:0] out_ref_LJ_Force_Z,
+	output out_ref_force_valid,
+	// Output partial force for neighbor particles
+	// The output value should be the minus value of the calculated force data
+	// Connected to neighbor cells, if the neighbor paritle comes from the home cell, then discard, since the value will be recalculated when evaluating this particle as reference one
 	output [PARTICLE_ID_WIDTH-1:0] out_neighbor_particle_id,
-	output [DATA_WIDTH-1:0] out_LJ_Force_X,
-	output [DATA_WIDTH-1:0] out_LJ_Force_Y,
-	output [DATA_WIDTH-1:0] out_LJ_Force_Z,
-	output out_forceoutput_valid
+	output [DATA_WIDTH-1:0] out_neighbor_LJ_Force_X,
+	output [DATA_WIDTH-1:0] out_neighbor_LJ_Force_Y,
+	output [DATA_WIDTH-1:0] out_neighbor_LJ_Force_Z,
+	output out_neighbor_force_valid
 );
-
-	// Wires for assigning the output reference particle value
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Wires for assigning the output neighbor particle partial force value
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// assign the neighbor particle partial force valid, connected directly to force evaluation unit
+	wire evaluated_force_valid;
+	assign out_neighbor_particle_id = evaluated_force_valid;
+	// assign the neighbor particle partial force, should negate the sign bit to signify the mutual force
 	wire [DATA_WIDTH-1:0] LJ_Force_X_wire;
 	wire [DATA_WIDTH-1:0] LJ_Force_Y_wire;
 	wire [DATA_WIDTH-1:0] LJ_Force_Z_wire;
 	generate
 		begin: neighbor_particle_partial_force_assignment
-		assign out_LJ_Force_X[DATA_WIDTH-2:0] = LJ_Force_X_wire[DATA_WIDTH-2:0];	
-		assign out_LJ_Force_X[DATA_WIDTH-1] = ~LJ_Force_X_wire[DATA_WIDTH-1];		// Negate the sign bit
-		assign out_LJ_Force_Y[DATA_WIDTH-2:0] = LJ_Force_Y_wire[DATA_WIDTH-2:0];
-		assign out_LJ_Force_Y[DATA_WIDTH-1] = ~LJ_Force_Y_wire[DATA_WIDTH-1];		// Negate the sign bit
-		assign out_LJ_Force_Z[DATA_WIDTH-2:0] = LJ_Force_Z_wire[DATA_WIDTH-2:0];
-		assign out_LJ_Force_Z[DATA_WIDTH-1] = ~LJ_Force_Z_wire[DATA_WIDTH-1];		// Negate the sign bit
+		assign out_neighbor_LJ_Force_X[DATA_WIDTH-2:0] = LJ_Force_X_wire[DATA_WIDTH-2:0];	
+		assign out_neighbor_LJ_Force_X[DATA_WIDTH-1] = ~LJ_Force_X_wire[DATA_WIDTH-1];		// Negate the sign bit
+		assign out_neighbor_LJ_Force_Y[DATA_WIDTH-2:0] = LJ_Force_Y_wire[DATA_WIDTH-2:0];
+		assign out_neighbor_LJ_Force_Y[DATA_WIDTH-1] = ~LJ_Force_Y_wire[DATA_WIDTH-1];		// Negate the sign bit
+		assign out_neighbor_LJ_Force_Z[DATA_WIDTH-2:0] = LJ_Force_Z_wire[DATA_WIDTH-2:0];
+		assign out_neighbor_LJ_Force_Z[DATA_WIDTH-1] = ~LJ_Force_Z_wire[DATA_WIDTH-1];		// Negate the sign bit
 		end
 	endgenerate
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Wires for assigning input particle data to Force Evaluation Unit
+	// Data alignment: {refz, refy, refx}, {neighborz, neighbory, neighborx}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	wire [NUM_FILTER*DATA_WIDTH-1:0] refx_in_wire, refy_in_wire, refz_in_wire;
 	wire [NUM_FILTER*DATA_WIDTH-1:0] neighborx_in_wire, neighbory_in_wire, neighborz_in_wire;
 	genvar i;
@@ -140,8 +158,31 @@ module RL_LJ_Evaluation_Unit
 		.LJ_Force_X(LJ_Force_X_wire),										// OUTPUT [DATA_WIDTH-1:0]
 		.LJ_Force_Y(LJ_Force_Y_wire),										// OUTPUT [DATA_WIDTH-1:0]
 		.LJ_Force_Z(LJ_Force_Z_wire),										// OUTPUT [DATA_WIDTH-1:0]
-		.forceoutput_valid(out_forceoutput_valid),					// OUTPUT
+		.forceoutput_valid(evaluated_force_valid),					// OUTPUT
 		.back_pressure_to_input(out_back_pressure_to_input)		// OUTPUT [NUM_FILTER-1:0]
+	);
+	
+	// Partial force accumulator
+	// Working on reference particle
+	Partial_Force_Acc
+	#(
+		.DATA_WIDTH(DATA_WIDTH),
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)							// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
+	)
+	Partial_Force_Acc
+	(
+		.clk(clk),
+		.rst(rst),
+		.in_input_valid(evaluated_force_valid),
+		.in_particle_id(out_ref_particle_id),
+		.in_partial_force_x(LJ_Force_X_wire),
+		.in_partial_force_y(LJ_Force_Y_wire),
+		.in_partial_force_z(LJ_Force_Z_wire),
+		.out_particle_id(out_ref_particle_id),
+		.out_particle_acc_force_x(out_ref_LJ_Force_X),
+		.out_particle_acc_force_y(out_ref_LJ_Force_Y),
+		.out_particle_acc_force_z(out_ref_LJ_Force_Z),
+		.out_acc_force_valid(out_ref_force_valid)						// only set as valid when the particle_id changes, which means the accumulation for the current particle is done
 	);
 
 endmodule
