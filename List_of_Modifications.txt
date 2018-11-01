@@ -1,4 +1,4 @@
-Path Changes:
+File Path Changes:
 	lut.v:
 	ram_ref.v:
 	ram_neighbor.v:
@@ -6,6 +6,9 @@ Path Changes:
 Change the # of filters:
 	Filter_Bank.v: 
 		Assignment of output ports: need to change the case list to select the appropriate filter output to final output
+	RL_LJ_Top.v:
+		Mapping cells onto each filters
+		In the FSM, change filter mapping related registers assignments (complex)
 
 Change the pipeline stages of r2 and force evaluation:
 	RL_LJ_Pipeline_1st_Order.v:
@@ -16,3 +19,12 @@ Change the pipeline stages of r2 and force evaluation:
 	Filter_Logic.v:
 		Delay register chain from r2_compute output to Filter_Buffer
 		Assignment on filter_back_pressure: depending on r2_compute latency
+
+Chage the # of Evaluation Units:
+	RL_LJ_Top.v:
+		In the FSM, change the state of READ_REF_PARTICLE
+		In the FSM, change the determination logic at the state of CHECK_HOME_CELL_DONE
+
+Change the mapping scheme from Cell to Filters:
+	RL_LJ_Top.v:
+		In the FSM
