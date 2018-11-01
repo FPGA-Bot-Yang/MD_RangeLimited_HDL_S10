@@ -110,6 +110,7 @@ module RL_LJ_Top
 	reg [NUM_FILTER*CELL_ADDR_WIDTH-1:0] FSM_Filter_Read_Addr;
 	// Flags signify if the workload on each Filter is finished
 	reg [NUM_FILTER-1:0] FSM_Filter_Done_Processing;
+	reg [NUM_FILTER-1:0] prev_FSM_Filter_Done_Processing;
 	// Registers for pointing to the current reference particle
 	reg [CELL_ADDR_WIDTH-1:0] FSM_Ref_Particle_Addr;
 	// Registers for current reference particle position
@@ -155,6 +156,10 @@ module RL_LJ_Top
 	///////////////////////////////////////////////////////////////////////////////////////////////e
 	always@(posedge clk)
 		begin
+		// Assign a bunch of prev registers for processing use
+		prev_FSM_Filter_Done_Processing <= FSM_Filter_Done_Processing;				// Used in assigning the FSM_to_ForceEval_input_pair_valid, to make up the one cycle delay when read address is assigned but actual data comes later
+		
+		
 		if(rst)
 			begin
 			rden <= 1'b0;
@@ -340,7 +345,7 @@ module RL_LJ_Top
 					FSM_Ref_Particle_Position <= FSM_Ref_Particle_Position;		// Keep the current Ref_Particle_Position
 
 					//////////////////////////////////////////////////////////////////////////////////////////////
-					// Process filter read address
+					// Process Filter Read Address
 					//////////////////////////////////////////////////////////////////////////////////////////////
 					// Filter 0
 					// Handle home cell (222)
@@ -496,7 +501,6 @@ module RL_LJ_Top
 							end
 						end	
 			
-			
 					// Filter 6
 					// Handles 2 cells (323, 331)
 					if(FSM_Filter_Sel_Cell[6] == 1'b0)			// Processing the 1st neighbor cell
@@ -558,6 +562,22 @@ module RL_LJ_Top
 							FSM_Filter_Done_Processing[7] <= 1'b1;								// Processing done
 							end
 						end	
+					
+					
+					//////////////////////////////////////////////////////////////////////////////////////////////
+					// Process Input Data to Force Evaluation Unit
+					//////////////////////////////////////////////////////////////////////////////////////////////
+					// All share the same reference particles
+					FSM_to_ForceEval_ref_particle_position <= {FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position};
+					// Reference particle ID is the same
+					FSM_to_ForceEval_ref_particle_id <= 0;
+					FSM_to_ForceEval_neighbor_particle_position <= 0;
+					FSM_to_ForceEval_neighbor_particle_id <= 0;
+					// If the filter is not done processing, then the input should be valid
+					// ?????? There suppose to be a one cycle delay here, suppose at a cycle, the flag just turn 1, but the last readout data should still be valid
+					// Perhaps can be done by assigning a prev_FSM_Filter_Done_Processing register?
+					FSM_to_ForceEval_input_pair_valid <= ~prev_FSM_Filter_Done_Processing;	
+					
 					
 					
 					end
