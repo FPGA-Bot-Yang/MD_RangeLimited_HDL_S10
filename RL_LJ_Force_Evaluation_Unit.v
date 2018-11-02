@@ -1,7 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module: RL_LJ_Force_Evaluation_Unit.v
 //
-//	Function: Evaluate the LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
+//	Function: 
+//				Evaluate the LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
 // 			Including a set of Filters and a single Force evaluation pipeline
 //				The module connected the Filter_Bank and Force_Evaluation_Pipeline together for easy implementation
 //				The module also contains the delay register chain to pass the particle ID from r2_compute output along with the force output

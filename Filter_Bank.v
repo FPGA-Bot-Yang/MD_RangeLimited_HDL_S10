@@ -1,7 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module: Filter_Bank.v
 //
-//	Function: Holding multiple filter, perform arbitration to read from multiple available filter buffers
+//	Function: 
+//					Holding multiple filter, perform arbitration to read from multiple available filter buffers
 //					Sending selected data to force evaluation pipeline
 //
 // Used by:

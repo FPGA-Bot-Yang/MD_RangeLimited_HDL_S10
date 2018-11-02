@@ -1,7 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module: RL_LJ_Evaluation_Unit.v
 //
-//	Function: Evaluate the accumulated LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
+//	Function: 
+//				Evaluate the accumulated LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
 // 			Force_Evaluation_Unit with Accumulation_Unit and send out neighbor particle force (with negation)
 //				Single set of force evaluation unit, including:
 //							* Single force evaluation pipeline
@@ -38,8 +39,8 @@ module RL_LJ_Evaluation_Unit
 	// Dataset defined parameters
 	parameter PARTICLE_ID_WIDTH			= 20,										// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
 	// Filter parameters
-	parameter NUM_FILTER						= 4,	// 8
-	parameter ARBITER_MSB 					= 8,	//128								// 2^(NUM_FILTER-1)
+	parameter NUM_FILTER						= 8,		// 4
+	parameter ARBITER_MSB 					= 128,	// 8							// 2^(NUM_FILTER-1)
 	parameter FILTER_BUFFER_DEPTH 		= 32,
 	parameter FILTER_BUFFER_ADDR_WIDTH	= 5,
 	parameter CUTOFF_2 						= 32'h43100000,						// (12^2=144 in IEEE floating point)
@@ -85,6 +86,8 @@ module RL_LJ_Evaluation_Unit
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// assign the neighbor particle partial force valid, connected directly to force evaluation unit
 	wire evaluated_force_valid;
+	// assign the output port for neighbor partial force valid
+	assign out_neighbor_force_valid = evaluated_force_valid;
 	// assign the neighbor particle partial force, should negate the sign bit to signify the mutual force
 	wire [DATA_WIDTH-1:0] LJ_Force_X_wire;
 	wire [DATA_WIDTH-1:0] LJ_Force_Y_wire;

@@ -17,32 +17,33 @@ module RL_LJ_Top_tb;
 
 	parameter DATA_WIDTH 					= 32;
 	// High level parameters
-	parameter NUM_FORCE_EVAL_UNIT			= 1;
+	parameter NUM_EVAL_UNIT					= 1;											// # of evaluation units in the design
 	// Dataset defined parameters
-	parameter PARTICLE_ID_WIDTH			= 20;										// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
-	parameter REF_PARTICLE_NUM				= 100;
-	parameter REF_RAM_ADDR_WIDTH			= 7;										// log(REF_PARTICLE_NUM)
-	parameter NEIGHBOR_PARTICLE_NUM		= 100;
-	parameter NEIGHBOR_RAM_ADDR_WIDTH	= 7;										// log(NEIGHBOR_RAM_ADDR_WIDTH)
+	parameter NUM_NEIGHBOR_CELLS			= 13;											// # of neighbor cells per home cell, for Half-shell method, is 13
+	parameter CELL_ID_WIDTH					= 4;											// log(NUM_NEIGHBOR_CELLS)
+	parameter MAX_CELL_PARTICLE_NUM		= 220;										// The maximum # of particles can be in a cell
+	parameter CELL_ADDR_WIDTH				= 8;											// log(MAX_CELL_PARTICLE_NUM)
+	parameter PARTICLE_ID_WIDTH			= CELL_ID_WIDTH*3+CELL_ADDR_WIDTH;	// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
 	// Filter parameters
-	parameter NUM_FILTER						= 4;	// 8
-	parameter ARBITER_MSB 					= 8;	//128								// 2^(NUM_FILTER-1)
+	parameter NUM_FILTER						= 8;		//4
+	parameter ARBITER_MSB 					= 128;	//8								// 2^(NUM_FILTER-1)
 	parameter FILTER_BUFFER_DEPTH 		= 32;
 	parameter FILTER_BUFFER_ADDR_WIDTH	= 5;
-	parameter CUTOFF_2 						= 32'h43100000;						// (12^2=144 in IEEE floating point)
+	parameter CUTOFF_2 						= 32'h43100000;							// (12^2=144 in IEEE floating point)
 	// Force Evaluation parameters
 	parameter SEGMENT_NUM					= 14;
 	parameter SEGMENT_WIDTH					= 4;
 	parameter BIN_NUM							= 256;
 	parameter BIN_WIDTH						= 8;
-	parameter LOOKUP_NUM						= SEGMENT_NUM * BIN_NUM;			// SEGMENT_NUM * BIN_NUM
-	parameter LOOKUP_ADDR_WIDTH			= SEGMENT_WIDTH + BIN_WIDTH;		// log LOOKUP_NUM / log 2
+	parameter LOOKUP_NUM						= SEGMENT_NUM * BIN_NUM;				// SEGMENT_NUM * BIN_NUM
+	parameter LOOKUP_ADDR_WIDTH			= SEGMENT_WIDTH + BIN_WIDTH;			// log LOOKUP_NUM / log 2
 
 	
 	reg clk, rst, start;
-	wire [NUM_FORCE_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] ref_particle_id, neighbor_particle_id;
-	wire [NUM_FORCE_EVAL_UNIT*DATA_WIDTH-1:0] LJ_Force_X, LJ_Force_Y, LJ_Force_Z;
-	wire [NUM_FORCE_EVAL_UNIT-1:0] forceoutput_valid;
+	wire [NUM_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] ref_particle_id, neighbor_particle_id;
+	wire [NUM_EVAL_UNIT*DATA_WIDTH-1:0] ref_LJ_Force_X, ref_LJ_Force_Y, ref_LJ_Force_Z;
+	wire [NUM_EVAL_UNIT*DATA_WIDTH-1:0] neighbor_LJ_Force_X, neighbor_LJ_Force_Y, neighbor_LJ_Force_Z;
+	wire [NUM_EVAL_UNIT-1:0] ref_forceoutput_valid, neighbor_forceoutput_valid;
 	wire done;
 	
 	always #1 clk <= ~clk;
@@ -55,7 +56,7 @@ module RL_LJ_Top_tb;
 		#10
 		rst <= 0;
 		
-		#2
+		#8
 		start <= 1;
 		
 		#100
@@ -67,13 +68,13 @@ module RL_LJ_Top_tb;
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		// High level parameters
-		.NUM_FORCE_EVAL_UNIT(NUM_FORCE_EVAL_UNIT),
+		.NUM_EVAL_UNIT(NUM_EVAL_UNIT),
 		// Dataset defined parameters
+		.NUM_NEIGHBOR_CELLS(NUM_NEIGHBOR_CELLS),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH),				// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
-		.REF_PARTICLE_NUM(REF_PARTICLE_NUM),
-		.REF_RAM_ADDR_WIDTH(REF_RAM_ADDR_WIDTH),			// log(REF_PARTICLE_NUM)
-		.NEIGHBOR_PARTICLE_NUM(NEIGHBOR_PARTICLE_NUM),
-		.NEIGHBOR_RAM_ADDR_WIDTH(NEIGHBOR_RAM_ADDR_WIDTH),	// log(NEIGHBOR_RAM_ADDR_WIDTH)
 		// Filter parameters
 		.NUM_FILTER(NUM_FILTER),
 		.ARBITER_MSB(ARBITER_MSB),								// 2^(NUM_FILTER-1)
@@ -94,11 +95,16 @@ module RL_LJ_Top_tb;
 		.rst(rst),
 		.start(start),
 		.ref_particle_id(ref_particle_id),
+		.ref_LJ_Force_X(ref_LJ_Force_X),
+		.ref_LJ_Force_Y(ref_LJ_Force_Y),
+		.ref_LJ_Force_Z(ref_LJ_Force_Z),
+		.ref_forceoutput_valid(ref_forceoutput_valid),
 		.neighbor_particle_id(neighbor_particle_id),
-		.LJ_Force_X(LJ_Force_X),
-		.LJ_Force_Y(LJ_Force_Y),
-		.LJ_Force_Z(LJ_Force_Z),
-		.forceoutput_valid(forceoutput_valid),
+		.neighbor_LJ_Force_X(neighbor_LJ_Force_X),
+		.neighbor_LJ_Force_Y(neighbor_LJ_Force_Y),
+		.neighbor_LJ_Force_Z(neighbor_LJ_Force_Z),
+		.neighbor_forceoutput_valid(neighbor_forceoutput_valid),
+		// Done signal, when entire home cell is done processing, this will keep high until the next time 'start' signal turn high
 		.done(done)
 	);
 	

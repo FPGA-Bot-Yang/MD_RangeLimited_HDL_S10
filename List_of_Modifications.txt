@@ -8,7 +8,10 @@ Change the # of filters:
 		Assignment of output ports: need to change the case list to select the appropriate filter output to final output
 	RL_LJ_Top.v:
 		Mapping cells onto each filters
+	Particle_Pair_Gen_HalfShell.v:
 		In the FSM, change filter mapping related registers assignments (complex)
+		In the FSM control variable section, change the assignment to FSM_Neighbor_Particle_ID
+
 
 Change the pipeline stages of r2 and force evaluation:
 	RL_LJ_Pipeline_1st_Order.v:
@@ -22,9 +25,12 @@ Change the pipeline stages of r2 and force evaluation:
 
 Chage the # of Evaluation Units:
 	RL_LJ_Top.v:
+	Particle_Pair_Gen_HalfShell.v:
 		In the FSM, change the state of READ_REF_PARTICLE
 		In the FSM, change the determination logic at the state of CHECK_HOME_CELL_DONE
+		In singal declaration section, need to change the size and assignment of FSM_Ref_Particle_ID
 
 Change the mapping scheme from Cell to Filters:
-	RL_LJ_Top.v:
+	Particle_Pair_Gen_HalfShell.v
 		In the FSM
+		In the FSM control variable section, change the assignment to FSM_Neighbor_Particle_Position
