@@ -54,8 +54,6 @@ GEN_CELL_RANGE_X = [1 2 3];
 GEN_CELL_RANGE_Y = [1 2 3];
 GEN_CELL_RANGE_Z = [1 2 3];
 
-%filename_list = {'particle_ref_x.mif', 'particle_ref_y.mif', 'particle_ref_z.mif', 'particle_neighbor_x.mif', 'particle_neighbor_y.mif', 'particle_neighbor_z.mif'};
-%file_count = 6;                     % total number of files
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Preprocessing the Raw Input data

@@ -5,6 +5,9 @@
 % Run the following scripts before run this:
 %                   LJ_no_smooth_poly_interpolation_accuracy.m          % This one generate the lookup table entries
 %
+% Output:
+%       VERIFICATION_REFERENCE_OUTPUT.txt
+%
 % By: Chen Yang
 % 10/02/2018
 % Boston University, CAAD Lab
@@ -107,7 +110,7 @@ if INTERPOLATION_ORDER > 2
 end
 
 % Prepare the output file
-fresult = fopen('REFERENCE_OUTPUT.txt', 'wt');
+fresult = fopen('VERIFICATION_REFERENCE_OUTPUT.txt', 'wt');
 fprintf(fresult,'ParticlePairs:\t\t\t\t\t\tTotal LJ\tX_Comp\t\tY_Comp\t\tZ_Comp\n');
 fprintf(fresult,'\t\tDistance info: r2\tdx\tdy\tdz\t\n');
 
