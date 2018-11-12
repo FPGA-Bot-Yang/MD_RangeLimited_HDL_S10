@@ -129,10 +129,10 @@ module Particle_Pair_Gen_HalfShell
 	reg [NUM_FILTER*CELL_ADDR_WIDTH-1:0] delay_FSM_Filter_Read_Addr;
 	// Flags signify if the workload on each Filter is finished
 	reg [NUM_FILTER-1:0] FSM_Filter_Done_Processing;
-	wire [NUM_FILTER-1:0] FSM_Filter_Done_Processing_all_1_flag;
-	assign FSM_Filter_Done_Processing_all_1_flag = -1;
 	reg [NUM_FILTER-1:0] FSM_Filter_Done_Processing_reg1;
 	reg [NUM_FILTER-1:0] delay_FSM_Filter_Done_Processing;
+	wire [NUM_FILTER-1:0] FSM_Filter_Done_Processing_all_1_flag;
+	assign FSM_Filter_Done_Processing_all_1_flag = -1;
 	// Registers for pointing to the current reference particle
 	reg [CELL_ADDR_WIDTH-1:0] FSM_Ref_Particle_Addr;
 	// Registers for current reference particle position
@@ -680,15 +680,16 @@ module Particle_Pair_Gen_HalfShell
 					// FSM control registers					
 					FSM_Cell_Particle_Num <= FSM_Cell_Particle_Num;					// Keep the Cell_Particle_Num during the entire process
 					FSM_Filter_Sel_Cell <= FSM_Filter_Sel_Cell;						// Keep the selection bit
-					FSM_Filter_Read_Addr <= 0;												// Reset filter read address to 0
-					FSM_Filter_Done_Processing <= 0;
+					FSM_Filter_Read_Addr <= FSM_Filter_Read_Addr;					// Reset filter read address to 0
+					FSM_Filter_Done_Processing <= FSM_Filter_Done_Processing;
 					FSM_Ref_Particle_Position <= FSM_Ref_Particle_Position;		// Keep the current Ref_Particle_Position
 					// FSM to Force Evaluation
-					FSM_to_ForceEval_ref_particle_position <= 0;
-					FSM_to_ForceEval_neighbor_particle_position <= 0;
-					FSM_to_ForceEval_ref_particle_id <= 0;
-					FSM_to_ForceEval_neighbor_particle_id <= 0;
-					FSM_to_ForceEval_input_pair_valid <= 0;
+					// ** Keep assigning the reference &neighbor particle information since there is a 2 cycles delay between read address assigned and actual data readout
+					FSM_to_ForceEval_ref_particle_position <= {FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position,FSM_Ref_Particle_Position};
+					FSM_to_ForceEval_neighbor_particle_position <= FSM_Neighbor_Particle_Position;
+					FSM_to_ForceEval_ref_particle_id <= {FSM_Ref_Particle_ID,FSM_Ref_Particle_ID,FSM_Ref_Particle_ID,FSM_Ref_Particle_ID,FSM_Ref_Particle_ID,FSM_Ref_Particle_ID,FSM_Ref_Particle_ID,FSM_Ref_Particle_ID};
+					FSM_to_ForceEval_neighbor_particle_id <= FSM_Neighbor_Particle_ID;
+					FSM_to_ForceEval_input_pair_valid <= ~delay_FSM_Filter_Done_Processing;
 					
 					// if there are still reference particles not traversed, increment the read address (the fetch will be done in READ_REF_PARTICLE stage)
 					if(FSM_Ref_Particle_Addr < FSM_Cell_Particle_Num[CELL_ADDR_WIDTH-1:0])

@@ -1,3 +1,9 @@
 11/11/2018
     Particle_Pair_Gen_HalfShell.v:
         The output read address is not right, when read address changes from one cell to another, it's not starting from 0. Check cell 332,333.
+        Solve: (11/12/2018)The assignment to the output FSM_to_Cell_read_addr is misaligned by 1 word.
+
+
+11/12/2018
+    Particle_Pair_Gen_HalfShell.v:
+        For each reference particle, mising the last neighbor particle from cell 322 (filter 5), value is 96h'41A56A7F4158E560420E6042.
