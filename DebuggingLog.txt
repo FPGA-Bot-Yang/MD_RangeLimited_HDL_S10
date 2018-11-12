@@ -7,3 +7,4 @@
 11/12/2018
     Particle_Pair_Gen_HalfShell.v:
         For each reference particle, mising the last neighbor particle from cell 322 (filter 5), value is 96h'41A56A7F4158E560420E6042.
+        Solve: (11/12/2018) There are 2 cycles delay between address assignment and data shown on the output port. Previous the last particle is not picked up before the FSM moved on to the next reference particle. Now at the 'CHECK_HOME_CELL_DONE' state, keep assigning the particle information 'FSM_to_ForceEval_xxx'.
