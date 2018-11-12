@@ -327,7 +327,7 @@ end
 
 %% Prepare the output file
 fresult = fopen('VERIFICATION_PARTICLE_PAIR_INPUT.txt', 'wt');
-fprintf(fresult,'Reference ID\t\t\tNeighbor ID\t\t\tReference Particle Position\t\t\tNeighbor Particle Position\n');
+fprintf(fresult,'Reference ID\tNeighbor ID\tValid\tReference Particle Position\t\t\t\t\tNeighbor Particle Position\n');
 
 %% Assembling particle pairs
 % Home cell id
@@ -338,6 +338,8 @@ home_cell_particle_num = particle_in_cell_counter(HOME_CELL_X,HOME_CELL_Y,HOME_C
 filter_process_particle_max = max(filter_input_particle_num);
 % Temp input holder for each filter
 tmp_filter_input = zeros(NUM_FILTER,3);
+% Temp valid bit for each filter
+tmp_valid_bit = zeros(NUM_FILTER,1);
 % Traverse all the reference particles
 for ref_particle_ptr = 1:home_cell_particle_num
     % Get ref particle position
@@ -347,15 +349,25 @@ for ref_particle_ptr = 1:home_cell_particle_num
     % Traverse neighbor particles
     for neighbor_particle_ptr = 1:filter_process_particle_max
         % Write the reference particle information to output file first
-        fprintf(fresult,'%d\t%d\t%tX%tX%tX\t',ref_particle_ptr, neighbor_particle_ptr, ref_pos_z,ref_pos_y,ref_pos_x);
+        fprintf(fresult,'%d\t%d\t',ref_particle_ptr, neighbor_particle_ptr);
         % Assign the input value to each filter from the reservoir
         for filter_id = NUM_FILTER:-1:1
-            if neighbor_particle_ptr < filter_input_particle_num(filter_id)
+            if neighbor_particle_ptr <= filter_input_particle_num(filter_id)
                 tmp_filter_input(filter_id,1:3) = filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,1:3);
+                tmp_valid_bit(filter_id) = 1;
             else
                 tmp_filter_input(filter_id,1:3) = filter_input_particle_reservoir(filter_id,filter_input_particle_num(filter_id),1:3);
+                tmp_valid_bit(filter_id) = 0;
             end
-            % Write the current filter input to output file
+        end
+        % Write the valid bit to output file
+        for filter_id = NUM_FILTER:-1:1
+            fprintf(fresult,'%d',tmp_valid_bit(filter_id));
+        end
+        % Write reference particle position
+        fprintf(fresult,'\t%tX%tX%tX\t',ref_pos_z,ref_pos_y,ref_pos_x);
+        % Write neighbor particle position
+        for filter_id = NUM_FILTER:-1:1
             fprintf(fresult,'%tX%tX%tX',tmp_filter_input(filter_id,3),tmp_filter_input(filter_id,2),tmp_filter_input(filter_id,1));
         end
         fprintf(fresult,'\n');
