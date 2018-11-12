@@ -190,8 +190,8 @@ module Particle_Pair_Gen_HalfShell
 	generate
 		for(i = 2; i < NUM_FILTER; i = i + 1)		// For each filter
 			begin: assign_read_addr_FSM_to_Cell
-			assign FSM_to_Cell_read_addr[(2*i-1)*CELL_ADDR_WIDTH-1:(2*i-2)*CELL_ADDR_WIDTH] = (FSM_Filter_Sel_Cell[i]) ? 0 : FSM_Filter_Read_Addr[i*CELL_ADDR_WIDTH-1:(i-1)*CELL_ADDR_WIDTH];
-			assign FSM_to_Cell_read_addr[(2*i)*CELL_ADDR_WIDTH-1:(2*i-1)*CELL_ADDR_WIDTH] = (FSM_Filter_Sel_Cell[i]) ? FSM_Filter_Read_Addr[i*CELL_ADDR_WIDTH-1:(i-1)*CELL_ADDR_WIDTH] : 0 ;
+			assign FSM_to_Cell_read_addr[(2*i-1)*CELL_ADDR_WIDTH-1:(2*i-2)*CELL_ADDR_WIDTH] = (FSM_Filter_Sel_Cell[i]) ? 0 : FSM_Filter_Read_Addr[(i+1)*CELL_ADDR_WIDTH-1:i*CELL_ADDR_WIDTH];
+			assign FSM_to_Cell_read_addr[(2*i)*CELL_ADDR_WIDTH-1:(2*i-1)*CELL_ADDR_WIDTH] = (FSM_Filter_Sel_Cell[i]) ? FSM_Filter_Read_Addr[(i+1)*CELL_ADDR_WIDTH-1:i*CELL_ADDR_WIDTH] : 0 ;
 			end
 	endgenerate
 	
