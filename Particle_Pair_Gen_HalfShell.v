@@ -101,8 +101,8 @@ module Particle_Pair_Gen_HalfShell
 	parameter READ_REF_PARTICLE		= 3'b010;
 	parameter RECORD_REF_PARTICLE		= 3'b011;
 	parameter EVALUATION 	  			= 3'b100;
-	parameter WAIT_FOR_FINISH 			= 3'b101;
-	parameter CHECK_HOME_CELL_DONE	= 3'b110;
+	parameter CHECK_HOME_CELL_DONE	= 3'b101;
+	parameter WAIT_FOR_FINISH 			= 3'b110;
 	parameter DONE 			  			= 3'b111;
 	// Control Signals
 	reg FSM_to_Output_homecell_done;
