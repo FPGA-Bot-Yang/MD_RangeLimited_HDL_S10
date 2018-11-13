@@ -1,6 +1,7 @@
 // defines
 
-//`define OFF_CAMPUS_PATH 1
+//`define STX_PATH 1
+//`define STX_2ND_PATH 1
 `define WINDOWS_PATH 1
 
 /*

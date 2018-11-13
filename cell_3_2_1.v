@@ -78,8 +78,12 @@ module  cell_3_2_1
         altera_syncram_component.clock_enable_input_a  = "BYPASS",
         altera_syncram_component.clock_enable_output_a  = "BYPASS",
 		  
-`ifdef OFF_CAMPUS_PATH
+`ifdef WINDOWS_PATH
+		  altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_2_1.hex"
+`elsif STX_PATH
         altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_2_1.hex"
+`elsif STX_2ND_PATH
+		  altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/cell_ini_file_3_2_1.hex"
 `else
         altera_syncram_component.init_file = "/home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_2_1.hex"
 `endif
