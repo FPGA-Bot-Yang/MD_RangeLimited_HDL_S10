@@ -80,6 +80,8 @@ module  ram_ref_z
 		  
 `ifdef OFF_CAMPUS_PATH
         altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/particle_ref_z.hex"
+`elsif WINDOWS_PATH
+		  altera_syncram_component.init_file = "F:\Dropbox\CAAD_Server\MD_RL_Pipeline\Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0\SourceCode\particle_ref_z.hex"
 `else
         altera_syncram_component.init_file = "/home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/particle_ref_z.hex"
 `endif

@@ -1,6 +1,7 @@
 // defines
 
 //`define OFF_CAMPUS_PATH 1
+`define WINDOWS_PATH 1
 
 /*
 parameter FILTER_BUFFER_DEPTH		= 10;
