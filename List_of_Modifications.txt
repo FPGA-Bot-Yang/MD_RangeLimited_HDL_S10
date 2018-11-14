@@ -34,3 +34,7 @@ Change the mapping scheme from Cell to Filters:
 	Particle_Pair_Gen_HalfShell.v
 		In the FSM
 		In the FSM control variable section, change the assignment to FSM_Neighbor_Particle_Position
+
+Change the latency of between the read address is assigned and the acutal data read out from position memory:
+	Particle_Pair_Gen_HalfShell.v
+		Mostly at the beginning of the FSM, the # of stages of those delay registers
