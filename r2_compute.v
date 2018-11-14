@@ -2,6 +2,7 @@
 // Module: r2_compute.v
 //
 //	Function: Evaluate the r2 value between the reference particle and neighbor particle based on the input coordinate
+//					ref - neighbor
 //
 // Used by:
 //				RL_LJ_Pipeline_1st_Order_no_filter.v

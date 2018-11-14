@@ -49,6 +49,7 @@
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Bank.v
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Logic.v
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Buffer.v
+ vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/Filter_Buffer_tb.v
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Pipeline_1st_Order_no_filter.v
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Pipeline_1st_Order_no_filter_tb.v
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Evaluate_Pairs_1st_Order.v

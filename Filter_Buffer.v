@@ -1,3 +1,22 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Module: Filter_Buffer.v
+//
+//	Function:
+//				Buffer the particle pairs that pass the filter
+//
+// Timing:
+//				When the first write data is issued: after one cycle, empty falling down
+//				When the last data is read out, empty rise one cycle after the rdreq's arrival, along with the last data
+//				Data_out port remain as the last readout data if empty or rdreq is low
+// 
+//
+// Dependency:
+// 			Filter_Logic.v
+//
+// Created by: Chen Yang 11/14/18
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // (C) 2001-2018 Intel Corporation. All rights reserved.
 // Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
@@ -9,7 +28,6 @@
 // sole purpose of programming logic devices manufactured by Intel and sold by 
 // Intel or its authorized distributors.  Please refer to the applicable 
 // agreement for further details.
-
 
 
 // synopsys translate_off

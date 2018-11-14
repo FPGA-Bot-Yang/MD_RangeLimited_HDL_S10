@@ -46,16 +46,30 @@ module Filter_Bank
 	output reg [DATA_WIDTH-1:0] dz,
 	output reg out_valid,
 	
-	output [NUM_FILTER-1:0] back_pressure_to_input							// If one of the FIFO is full, then set the back_pressure flag to stop more incoming particle pairs
+	output [NUM_FILTER-1:0] out_back_pressure_to_input,				// If one of the FIFO is full, then set the back_pressure flag to stop more incoming particle pairs
+	output out_all_buffer_empty												// Output to FSM that generate particle pairs. Only when all the filter buffers are empty, then the FSM will move on to the next reference particle
+																						// Avoid the cases when the force pipelines are evaluating for 2 different reference particles when switching after one reference particle, this will lead to the accumulation error for the reference particle
 );
 
 	// Wires between Filter_Logic and Arbiter
 	wire [NUM_FILTER*DATA_WIDTH-1:0] r2_wire, dx_wire, dy_wire, dz_wire;
 	wire [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] ref_particle_id_out_wire, neighbor_particle_id_out_wire;
-	wire [NUM_FILTER-1:0] arbitration_result;								// Arbitor -> Filter
 	wire [NUM_FILTER-1:0] filter_data_available;							// Filter -> Arbitor
+	wire [NUM_FILTER-1:0] arbitration_result;								// Arbitor -> Filter
+	// The arbitration_result is directly used as read request signal for the selected filter buffer
+	// Since there is a one cycle delay between the read request is assigned and the data readout from the FIFO, thus implement a one cycle delay for the arbitration_result when assigning the output port of particle pairs information
+	reg  [NUM_FILTER-1:0] prev_arbitration_result;	
+	always@(posedge clk)
+		begin
+		prev_arbitration_result <= arbitration_result;
+		end
 	
-	// Assign the output
+	/////////////////////////////////////////////////////////////////////////////////
+	// Assign the output ports
+	/////////////////////////////////////////////////////////////////////////////////
+	// Assign buffer empty signal
+	assign out_all_buffer_empty = (filter_data_available == 0) ? 1'b1 : 1'b0;
+	
 	// Need to change this if # of filters changed
 	generate
 		// Filter_num = 4
@@ -63,7 +77,7 @@ module Filter_Bank
 			begin
 			always@(posedge clk)
 				begin
-				case(arbitration_result)
+				case(prev_arbitration_result)
 					4'b0001:
 						begin
 						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
@@ -106,8 +120,8 @@ module Filter_Bank
 						end
 					default:
 						begin
-						ref_particle_id_out <= 0;
-						neighbor_particle_id_out <= 0;
+						ref_particle_id_out <= ref_particle_id_out;
+						neighbor_particle_id_out <= neighbor_particle_id_out;
 						r2 <= 0;
 						dx <= 0;
 						dy <= 0;
@@ -123,7 +137,7 @@ module Filter_Bank
 			begin
 			always@(posedge clk)
 				begin
-				case(arbitration_result)
+				case(prev_arbitration_result)
 					7'b0000001:
 						begin
 						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
@@ -213,7 +227,7 @@ module Filter_Bank
 			begin
 			always@(posedge clk)
 				begin
-				case(arbitration_result)
+				case(prev_arbitration_result)
 					8'b00000001:
 						begin
 						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
@@ -296,8 +310,8 @@ module Filter_Bank
 						end
 					default:
 						begin
-						ref_particle_id_out <= 0;
-						neighbor_particle_id_out <= 0;
+						ref_particle_id_out <= ref_particle_id_out;
+						neighbor_particle_id_out <= neighbor_particle_id_out;
 						r2 <= 0;
 						dx <= 0;
 						dy <= 0;
@@ -313,7 +327,7 @@ module Filter_Bank
 			begin
 			always@(posedge clk)
 				begin
-				case(arbitration_result)
+				case(prev_arbitration_result)
 					9'b000000001:
 						begin
 						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
@@ -406,8 +420,8 @@ module Filter_Bank
 						end
 					default:
 						begin
-						ref_particle_id_out <= 0;
-						neighbor_particle_id_out <= 0;
+						ref_particle_id_out <= ref_particle_id_out;
+						neighbor_particle_id_out <= neighbor_particle_id_out;
 						r2 <= 0;
 						dx <= 0;
 						dy <= 0;
@@ -422,7 +436,7 @@ module Filter_Bank
 			begin
 			always@(posedge clk)
 				begin
-				case(arbitration_result)
+				case(prev_arbitration_result)
 					8'b00000001:
 						begin
 						ref_particle_id_out <= ref_particle_id_out_wire[PARTICLE_ID_WIDTH-1:0];
@@ -505,8 +519,8 @@ module Filter_Bank
 						end
 					default:
 						begin
-						ref_particle_id_out <= 0;
-						neighbor_particle_id_out <= 0;
+						ref_particle_id_out <= ref_particle_id_out;
+						neighbor_particle_id_out <= neighbor_particle_id_out;
 						r2 <= 0;
 						dx <= 0;
 						dy <= 0;
@@ -553,7 +567,7 @@ module Filter_Bank
 			.sel(arbitration_result[i]),									// Input
 			.particle_pair_available(filter_data_available[i]),	// Output
 			// Connect to input generator
-			.filter_back_pressure(back_pressure_to_input[i])		// Output: Buffer should have enough space to store 17 pairs after the input stop coming
+			.filter_back_pressure(out_back_pressure_to_input[i])		// Output: Buffer should have enough space to store 17 pairs after the input stop coming
 	);
 	end
 	endgenerate

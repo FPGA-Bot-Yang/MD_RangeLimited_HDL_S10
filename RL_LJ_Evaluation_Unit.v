@@ -61,6 +61,7 @@ module RL_LJ_Evaluation_Unit
 	input  [NUM_FILTER*3*DATA_WIDTH-1:0] in_ref_particle_position,			// {refz, refy, refx}
 	input  [NUM_FILTER*3*DATA_WIDTH-1:0] in_neighbor_particle_position,	// {neighborz, neighbory, neighborx}
 	output [NUM_FILTER-1:0] out_back_pressure_to_input,						// backpressure signal to stop new data arrival from particle memory
+	output out_all_buffer_empty_to_input,											// Output to FSM that generate particle pairs. Only when all the filter buffers are empty, then the FSM will move on to the next reference particle
 	// Output accumulated force for reference particles
 	// The output value is the accumulated value
 	// Connected to home cell
@@ -147,22 +148,23 @@ module RL_LJ_Evaluation_Unit
 	(
 		.clk(clk),
 		.rst(rst),
-		.input_valid(in_input_pair_valid),								// INPUT [NUM_FILTER-1:0]
-		.ref_particle_id(in_ref_particle_id),							// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.neighbor_particle_id(in_neighbor_particle_id),				// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.refx(refx_in_wire),													// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.refy(refy_in_wire),													// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.refz(refz_in_wire),													// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighborx(neighborx_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighbory(neighbory_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighborz(neighborz_in_wire),									// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.ref_particle_id_out(ref_particle_id_wire),					// OUTPUT [PARTICLE_ID_WIDTH-1:0]
-		.neighbor_particle_id_out(out_neighbor_particle_id),		// OUTPUT [PARTICLE_ID_WIDTH-1:0]
-		.LJ_Force_X(LJ_Force_X_wire),										// OUTPUT [DATA_WIDTH-1:0]
-		.LJ_Force_Y(LJ_Force_Y_wire),										// OUTPUT [DATA_WIDTH-1:0]
-		.LJ_Force_Z(LJ_Force_Z_wire),										// OUTPUT [DATA_WIDTH-1:0]
-		.forceoutput_valid(evaluated_force_valid),					// OUTPUT
-		.back_pressure_to_input(out_back_pressure_to_input)		// OUTPUT [NUM_FILTER-1:0]
+		.input_valid(in_input_pair_valid),										// INPUT [NUM_FILTER-1:0]
+		.ref_particle_id(in_ref_particle_id),									// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id(in_neighbor_particle_id),						// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.refx(refx_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.refy(refy_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.refz(refz_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighborx(neighborx_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighbory(neighbory_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighborz(neighborz_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.ref_particle_id_out(ref_particle_id_wire),							// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id_out(out_neighbor_particle_id),				// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.LJ_Force_X(LJ_Force_X_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.LJ_Force_Y(LJ_Force_Y_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.LJ_Force_Z(LJ_Force_Z_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.forceoutput_valid(evaluated_force_valid),							// OUTPUT
+		.out_back_pressure_to_input(out_back_pressure_to_input),			// OUTPUT [NUM_FILTER-1:0]
+		.out_all_buffer_empty_to_input(out_all_buffer_empty_to_input)	// OUTPUT
 	);
 	
 	// Partial force accumulator

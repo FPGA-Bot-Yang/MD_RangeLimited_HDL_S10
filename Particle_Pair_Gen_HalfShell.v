@@ -80,6 +80,7 @@ module Particle_Pair_Gen_HalfShell
 	output FSM_to_Cell_rden,
 	// Ports connect to Force Evaluation Unit
 	input  [NUM_FILTER-1:0] ForceEval_to_FSM_backpressure,				// Backpressure signal from Force Evaluation Unit
+	input  ForceEval_to_FSM_all_buffer_empty,									// Only when all the filter buffers are empty, then the FSM will move on to the next reference particle
 	output reg [NUM_FILTER*3*DATA_WIDTH-1:0] FSM_to_ForceEval_ref_particle_position,
 	output reg [NUM_FILTER*3*DATA_WIDTH-1:0] FSM_to_ForceEval_neighbor_particle_position,
 	output reg [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_to_ForceEval_ref_particle_id,					// {cell_z, cell_y, cell_x, ref_particle_rd_addr}
@@ -680,10 +681,10 @@ module Particle_Pair_Gen_HalfShell
 					//////////////////////////////////////////////////////////////////////////////////////////////
 					// Assign Next State
 					//////////////////////////////////////////////////////////////////////////////////////////////
-					// If all the filters are done processing, then move to next state
-//					if(~FSM_Filter_Done_Processing == 0)
-//					if(FSM_Filter_Done_Processing == 8'b11111111)
-					if(FSM_Filter_Done_Processing == FSM_Filter_Done_Processing_all_1_flag)
+					// Move to next reference particle when
+					//		1, If input to all the filters are done processing
+					//		2, All filter buffer are empty (Avoid the cases when the force pipelines are evaluating for 2 different reference particles when switching after one reference particle, this will lead to the accumulation error for the reference particle)
+					if(FSM_Filter_Done_Processing == FSM_Filter_Done_Processing_all_1_flag && ForceEval_to_FSM_all_buffer_empty)
 						state <= CHECK_HOME_CELL_DONE;
 					else
 						state <= EVALUATION;					

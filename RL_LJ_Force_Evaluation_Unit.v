@@ -65,7 +65,9 @@ module RL_LJ_Force_Evaluation_Unit
 	output [DATA_WIDTH-1:0] LJ_Force_Z,
 	output forceoutput_valid,
 	
-	output [NUM_FILTER-1:0] back_pressure_to_input			// If one of the FIFO is full, then set the back_pressure flag to stop more incoming particle pairs
+	output [NUM_FILTER-1:0] out_back_pressure_to_input,			// If one of the FIFO is full, then set the back_pressure flag to stop more incoming particle pairs
+	output out_all_buffer_empty_to_input								// Output to FSM that generate particle pairs. Only when all the filter buffers are empty, then the FSM will move on to the next reference particle
+																					// Avoid the cases when the force pipelines are evaluating for 2 different reference particles when switching after one reference particle, this will lead to the accumulation error for the reference particle
 );
 
 	// Assign parameters for A, B, QQ (currently not used)
@@ -215,7 +217,8 @@ module RL_LJ_Force_Evaluation_Unit
 		.dy(dy),
 		.dz(dz),
 		.out_valid(r2_valid),
-		.back_pressure_to_input(back_pressure_to_input)						// If one of the FIFO is full, then set the back_pressure flag to stop more incoming particle pairs
+		.out_back_pressure_to_input(out_back_pressure_to_input),						// If one of the FIFO is full, then set the back_pressure flag to stop more incoming particle pairs
+		.out_all_buffer_empty(out_all_buffer_empty_to_input)
 	);
 
 	// Evaluate Pair-wise LJ forces

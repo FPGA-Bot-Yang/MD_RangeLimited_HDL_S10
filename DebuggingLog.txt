@@ -7,4 +7,22 @@
 11/12/2018
     Particle_Pair_Gen_HalfShell.v:
         For each reference particle, mising the last neighbor particle from cell 322 (filter 5), value is 96h'41A56A7F4158E560420E6042.
-        Solve: (11/12/2018) There are 2 cycles delay between address assignment and data shown on the output port. Previous the last particle is not picked up before the FSM moved on to the next reference particle. Now at the 'CHECK_HOME_CELL_DONE' state, keep assigning the particle information 'FSM_to_ForceEval_xxx'.
+        Solve: (11/12/2018) There are 2 cycles delay between address assignment and data shown on the output port. Previous the last particle is not picked up before the Particle_Pair_Gen moved on to the next reference particle. Now at the 'CHECK_HOME_CELL_DONE' state, keep assigning the particle information 'FSM_to_ForceEval_xxx'.
+
+11/13/2018
+	RL_LJ_Evaluation_Unit.v:
+		Input particle ID to accumulation unit is switching between 0 (when input is not valid) and actual value. This keeps resetting the accumulation value since every time ID changed, it will reset. Need to find out why input particle ID is reset to 0 when the input is not valid.
+		Problem locations: Filter_Bank.v:
+			Sometime if the particle pair is not passing the filter, the buffer is empty. But if all the buffers are empty, the arbitration result is given 0. In that case, whenever an arbitration failed, it will generate a 0. Fix here, the particle ID should remain the same even if the arbitration is failed.
+		Fix 1: (11/13/2018) Change in Filter_Bank.v, when selecting from the results based on the arbitration result, in the default case (which means arbitration failed), keep the id as the previous value instead of 0.
+		New problem: (11/13/2018) There are cases when the reference pariticle ID reverse back from 22202 to 22201, 
+			When the reference particle move on to next one, there are still particle pairs in the filter buffer that holds the previous referen particle
+		Fix 2: (11/14/2018) Assign a new flag from Filter_Bank to Particle_Pair_Gen, only when all the filter buffers are empty, then Particle_Pair_Gen can move on to next reference particle.
+		New Problem: (11/14/2018) There should be a one cycle delay between you issue the filter buffer read request and take the data out of the buffer, but in real case, the force evaluation unit acutally taking the preivous data from the fifo.
+		Fix 3: (11/14/2018) When assigning the output ports in Filter_Bank.v, used to use 'arbitration_result' as the selection signal. However this signal is also used as the read request for FIFOs. Since there is a one cycle delay here, implement a 'prev_arbitration_result' signal as selection signal for output.
+		New Problem: (11/14/2018) RL_LJ_Evaluation_Unit.v, the output force missing particle pairs (22202, 22201). 
+		Fix 4: (11/14/2018) In Filter_Logic.v, when passing the particle ID from input to output, there's one more cycle delay added (should be 17, implemented 18 by mistake). Change the particle ID delay register stages and fixed the issue.
+		
+		
+		
+		

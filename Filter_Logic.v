@@ -73,7 +73,7 @@ module Filter_Logic
 	assign particle_pair_available = ~buffer_empty;
 	
 	// Delay registers for input particle IDs
-	// Delay for 17 (r2_comput) + 1 (delay in input) = 18 cycles
+	// Delay for 17 (r2_compute) cycles
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg0;
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg1;
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg2;
@@ -90,7 +90,7 @@ module Filter_Logic
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg13;
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg14;
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg15;
-	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg16;
+//	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg16;
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_delayed;
 	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_reg0;
 	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_reg1;
@@ -108,7 +108,7 @@ module Filter_Logic
 	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_reg13;
 	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_reg14;
 	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_reg15;
-	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_reg16;
+//	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_reg16;
 	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_delayed;
 	
 	always@(posedge clk)
@@ -131,7 +131,7 @@ module Filter_Logic
 			ref_particle_id_reg13 <= 0;
 			ref_particle_id_reg14 <= 0;
 			ref_particle_id_reg15 <= 0;
-			ref_particle_id_reg16 <= 0;
+//			ref_particle_id_reg16 <= 0;
 			ref_particle_id_delayed <= 0;
 			neighbor_particle_id_reg0 <= 0;
 			neighbor_particle_id_reg1 <= 0;
@@ -149,7 +149,7 @@ module Filter_Logic
 			neighbor_particle_id_reg13 <= 0;
 			neighbor_particle_id_reg14 <= 0;
 			neighbor_particle_id_reg15 <= 0;
-			neighbor_particle_id_reg16 <= 0;
+//			neighbor_particle_id_reg16 <= 0;
 			neighbor_particle_id_delayed <= 0;
 			end
 		else
@@ -170,8 +170,8 @@ module Filter_Logic
 			ref_particle_id_reg13 <= ref_particle_id_reg12;
 			ref_particle_id_reg14 <= ref_particle_id_reg13;
 			ref_particle_id_reg15 <= ref_particle_id_reg14;
-			ref_particle_id_reg16 <= ref_particle_id_reg15;
-			ref_particle_id_delayed <= ref_particle_id_reg16;
+//			ref_particle_id_reg16 <= ref_particle_id_reg15;
+			ref_particle_id_delayed <= ref_particle_id_reg15;
 			neighbor_particle_id_reg0 <= neighbor_particle_id;
 			neighbor_particle_id_reg1 <= neighbor_particle_id_reg0;
 			neighbor_particle_id_reg2 <= neighbor_particle_id_reg1;
@@ -188,8 +188,8 @@ module Filter_Logic
 			neighbor_particle_id_reg13 <= neighbor_particle_id_reg12;
 			neighbor_particle_id_reg14 <= neighbor_particle_id_reg13;
 			neighbor_particle_id_reg15 <= neighbor_particle_id_reg14;
-			neighbor_particle_id_reg16 <= neighbor_particle_id_reg15;
-			neighbor_particle_id_delayed <= neighbor_particle_id_reg16;
+//			neighbor_particle_id_reg16 <= neighbor_particle_id_reg15;
+			neighbor_particle_id_delayed <= neighbor_particle_id_reg15;
 			end
 		end
 

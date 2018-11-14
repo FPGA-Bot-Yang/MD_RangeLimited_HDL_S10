@@ -114,6 +114,7 @@ module RL_LJ_Top
 	wire [NUM_FILTER-1:0] FSM_to_ForceEval_input_pair_valid;			// Signify the valid of input particle data, this signal should have 1 cycle delay of the rden signal, thus wait for the data read out from BRAM
 	//// Signals connect from Force Evaluation module to FSM
 	wire [NUM_FILTER-1:0] ForceEval_to_FSM_backpressure;
+	wire ForceEval_to_FSM_all_buffer_empty;
 
 	
 	// FSM for generating particle pairs
@@ -146,6 +147,7 @@ module RL_LJ_Top
 		.FSM_to_Cell_rden(rden),
 		// Ports connect to Force Evaluation Unit
 		.ForceEval_to_FSM_backpressure(ForceEval_to_FSM_backpressure),											// input  [NUM_FILTER-1:0]  								// Backpressure signal from Force Evaluation Unit
+		.ForceEval_to_FSM_all_buffer_empty(ForceEval_to_FSM_all_buffer_empty),								// input															// Only when all the filter buffers are empty, then the FSM will move on to the next reference particle
 		.FSM_to_ForceEval_ref_particle_position(FSM_to_ForceEval_ref_particle_position),  				// output [NUM_FILTER*3*DATA_WIDTH-1:0] 
 		.FSM_to_ForceEval_neighbor_particle_position(FSM_to_ForceEval_neighbor_particle_position),	// output [NUM_FILTER*3*DATA_WIDTH-1:0] 
 		.FSM_to_ForceEval_ref_particle_id(FSM_to_ForceEval_ref_particle_id),									// output [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] 		// {cell_z, cell_y, cell_x, ref_particle_rd_addr}
@@ -188,6 +190,7 @@ module RL_LJ_Top
 		.in_ref_particle_position(FSM_to_ForceEval_ref_particle_position),				//input  [NUM_FILTER*3*DATA_WIDTH-1:0]			// {refz, refy, refx}
 		.in_neighbor_particle_position(FSM_to_ForceEval_neighbor_particle_position),	//input  [NUM_FILTER*3*DATA_WIDTH-1:0]			// {neighborz, neighbory, neighborx}
 		.out_back_pressure_to_input(ForceEval_to_FSM_backpressure),							//output [NUM_FILTER-1:0] 							// backpressure signal to stop new data arrival from particle memory
+		.out_all_buffer_empty_to_input(ForceEval_to_FSM_all_buffer_empty),				//output													// Only when all the filter buffers are empty, then the FSM will move on to the next reference particle
 		// Output accumulated force for reference particles
 		// The output value is the accumulated value
 		// Connected to home cell
