@@ -13,7 +13,7 @@
 //
 // Mapping Scheme:
 //				Half-shell method: each home cell interact with 13 nearest neighbors
-//				For 8 Filters configurations, the mapping is follows:
+//				For 8 Filters configurations, the mapping is follows(cell_x, cell_y, cell_z):
 //					Filter 0: 222 (home)
 //					Filter 1: 223 (face) 
 //					Filter 2: 231 (edge) 232 (face) 
@@ -30,7 +30,7 @@
 //						When refernece particles in a home cell have all done processing, this signal will set high, until the next start signal arrives
 //
 // Format:
-//				particle_id [PARTICLE_ID_WIDTH-1:0]:  {cell_z, cell_y, cell_x, particle_in_cell_rd_addr}
+//				particle_id [PARTICLE_ID_WIDTH-1:0]:  {cell_x, cell_y, cell_z, particle_in_cell_rd_addr}
 //
 // Used by:
 //				RL_LJ_Top.v
@@ -150,13 +150,13 @@ module Particle_Pair_Gen_HalfShell
 	// **** Wires for assembling the Neighbor_Particle_ID
 	wire [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_Neighbor_Particle_ID;
 	assign FSM_Neighbor_Particle_ID[1*PARTICLE_ID_WIDTH-1:0*PARTICLE_ID_WIDTH] = {4'd2,4'd2,4'd2,delay_FSM_Filter_Read_Addr[1*CELL_ADDR_WIDTH-1:0*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH] = {4'd3,4'd2,4'd2,delay_FSM_Filter_Read_Addr[2*CELL_ADDR_WIDTH-1:1*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[2]) ? {4'd2,4'd3,4'd2,delay_FSM_Filter_Read_Addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]} : {4'd1,4'd3,4'd2,delay_FSM_Filter_Read_Addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[3]) ? {4'd1,4'd1,4'd3,delay_FSM_Filter_Read_Addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]} : {4'd3,4'd3,4'd2,delay_FSM_Filter_Read_Addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[4]) ? {4'd3,4'd1,4'd3,delay_FSM_Filter_Read_Addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]} : {4'd2,4'd1,4'd3,delay_FSM_Filter_Read_Addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[5]) ? {4'd2,4'd2,4'd3,delay_FSM_Filter_Read_Addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]} : {4'd1,4'd2,4'd3,delay_FSM_Filter_Read_Addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[6]) ? {4'd1,4'd3,4'd3,delay_FSM_Filter_Read_Addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]} : {4'd3,4'd2,4'd3,delay_FSM_Filter_Read_Addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[7]) ? {4'd3,4'd3,4'd3,delay_FSM_Filter_Read_Addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]} : {4'd2,4'd3,4'd3,delay_FSM_Filter_Read_Addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH] = {4'd2,4'd2,4'd3,delay_FSM_Filter_Read_Addr[2*CELL_ADDR_WIDTH-1:1*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[2]) ? {4'd2,4'd3,4'd2,delay_FSM_Filter_Read_Addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]} : {4'd2,4'd3,4'd1,delay_FSM_Filter_Read_Addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[3]) ? {4'd3,4'd1,4'd1,delay_FSM_Filter_Read_Addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]} : {4'd2,4'd3,4'd3,delay_FSM_Filter_Read_Addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[4]) ? {4'd3,4'd1,4'd3,delay_FSM_Filter_Read_Addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]} : {4'd3,4'd1,4'd2,delay_FSM_Filter_Read_Addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[5]) ? {4'd3,4'd2,4'd2,delay_FSM_Filter_Read_Addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]} : {4'd3,4'd2,4'd1,delay_FSM_Filter_Read_Addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[6]) ? {4'd3,4'd3,4'd1,delay_FSM_Filter_Read_Addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]} : {4'd3,4'd2,4'd3,delay_FSM_Filter_Read_Addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[7]) ? {4'd3,4'd3,4'd3,delay_FSM_Filter_Read_Addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]} : {4'd3,4'd3,4'd2,delay_FSM_Filter_Read_Addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]};
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Signals between Cell Module and FSM

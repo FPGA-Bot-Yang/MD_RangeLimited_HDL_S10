@@ -63,11 +63,11 @@ NUM_FILTER = 8;                                     % Number of filters in the p
 FILTER_BUFFER_DEPTH = 32;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
 %% Data Arraies for processing
 % Bounding box of 12A, total of 9*9*7 cells, organized in a 4D array
-position_data = zeros(TOTAL_PARTICLE,3);            % The raw input data
+position_data = single(zeros(TOTAL_PARTICLE,3));                                        % The raw input data
 particle_in_cell_counter = zeros(CELL_COUNT_X,CELL_COUNT_Y,CELL_COUNT_Z);               % counters tracking the # of particles in each cell
-cell_particle = zeros(CELL_COUNT_X*CELL_COUNT_Y*CELL_COUNT_Z,CELL_PARTICLE_MAX,8);      % 3D array holding sorted cell particles(cell_id, particle_id, particle_info), cell_id = (cell_x-1)*9*7+(cell_y-1)*7+cell_z
-                                                                                        % Particle info: 1~3:position(x,y,z), 4~6:force component in each direction, 7: energy, 8:# of partner particles
-filter_input_particle_reservoir = zeros(NUM_FILTER,2*CELL_PARTICLE_MAX,3);              % Hold all the particles that need to send to each filter to process, 1:x, 2:y, 3:z
+cell_particle = single(zeros(CELL_COUNT_X*CELL_COUNT_Y*CELL_COUNT_Z,CELL_PARTICLE_MAX,8)); % 3D array holding sorted cell particles(cell_id, particle_id, particle_info), cell_id = (cell_x-1)*9*7+(cell_y-1)*7+cell_z
+                                                                                        % Particle info: 1~3:position(x,y,z), 4~6:force component in each direction(x,y,z), 7: energy, 8:# of partner particles
+filter_input_particle_reservoir = single(zeros(NUM_FILTER,2*CELL_PARTICLE_MAX,7));      % Hold all the particles that need to send to each filter to process, 1:x; 2:y; 3:z; 4-6:cell_ID x,y,z; 7: particle_in_cell_counter
 filter_input_particle_num = zeros(NUM_FILTER,1);                                        % Record how many reference particles each filter need to evaluate
 %% Simulation Control Parameters
 % Assign the Home cell
@@ -170,6 +170,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,1:tmp_particle_num,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num,1:3);
+            % Assign the particles ID
+            for particle_ptr = 1:tmp_particle_num
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr;
+            end
         % Process neighbor cell 223
         case 2
             neighbor_cell_x = HOME_CELL_X;
@@ -182,6 +187,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,1:tmp_particle_num,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num,1:3);
+            % Assign the particles ID
+            for particle_ptr = 1:tmp_particle_num
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr;
+            end
         % Process neighbor cell 231, 232
         case 3
             % Processing 1st cell
@@ -195,6 +205,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,1:tmp_particle_num_1,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_1,1:3);
+            % Assign the particles ID
+            for particle_ptr = 1:tmp_particle_num_1
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr;
+            end
             
             % Process 2nd cell
             neighbor_cell_x = HOME_CELL_X;
@@ -207,6 +222,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1 + tmp_particle_num_2;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_2,1:3);
+            % Assign the particles ID
+            for particle_ptr = tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr-tmp_particle_num_1;
+            end
             
         % Process neighbor cell 233, 311
         case 4
@@ -221,6 +241,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,1:tmp_particle_num_1,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_1,1:3);
+            % Assign the particles ID
+            for particle_ptr = 1:tmp_particle_num_1
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr;
+            end
             
             % Process 2nd cell
             neighbor_cell_x = HOME_CELL_X+1;
@@ -233,6 +258,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1 + tmp_particle_num_2;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_2,1:3);
+            % Assign the particles ID
+            for particle_ptr = tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr-tmp_particle_num_1;
+            end
             
         % Process neighbor cell 312, 313
         case 5
@@ -247,6 +277,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,1:tmp_particle_num_1,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_1,1:3);
+            % Assign the particles ID
+            for particle_ptr = 1:tmp_particle_num_1
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr;
+            end
             
             % Process 2nd cell
             neighbor_cell_x = HOME_CELL_X+1;
@@ -259,6 +294,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1 + tmp_particle_num_2;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_2,1:3);
+            % Assign the particles ID
+            for particle_ptr = tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr-tmp_particle_num_1;
+            end
             
         % Process neighbor cell 321, 322
         case 6
@@ -273,6 +313,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,1:tmp_particle_num_1,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_1,1:3);
+            % Assign the particles ID
+            for particle_ptr = 1:tmp_particle_num_1
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr;
+            end
             
             % Process 2nd cell
             neighbor_cell_x = HOME_CELL_X+1;
@@ -285,6 +330,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1 + tmp_particle_num_2;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_2,1:3);
+            % Assign the particles ID
+            for particle_ptr = tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr-tmp_particle_num_1;
+            end
             
         % Process neighbor cell 323, 331
         case 7
@@ -299,6 +349,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,1:tmp_particle_num_1,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_1,1:3);
+            % Assign the particles ID
+            for particle_ptr = 1:tmp_particle_num_1
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr;
+            end
             
             % Process 2nd cell
             neighbor_cell_x = HOME_CELL_X+1;
@@ -311,6 +366,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1 + tmp_particle_num_2;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_2,1:3);
+            % Assign the particles ID
+            for particle_ptr = tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr-tmp_particle_num_1;
+            end
             
         % Process neighbor cell 332, 333
         case 8
@@ -325,6 +385,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,1:tmp_particle_num_1,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_1,1:3);
+            % Assign the particles ID
+            for particle_ptr = 1:tmp_particle_num_1
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr;
+            end
             
             % Process 2nd cell
             neighbor_cell_x = HOME_CELL_X+1;
@@ -337,7 +402,11 @@ for filter_id = 1:NUM_FILTER
             filter_input_particle_num(filter_id) = tmp_particle_num_1 + tmp_particle_num_2;
             % Assign the particles from neighbor cell to reservoir
             filter_input_particle_reservoir(filter_id,tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2,1:3) = cell_particle(neighbor_cell_id,1:tmp_particle_num_2,1:3);
-            
+            % Assign the particles ID
+            for particle_ptr = tmp_particle_num_1+1:tmp_particle_num_1+tmp_particle_num_2
+                filter_input_particle_reservoir(filter_id,particle_ptr,4:6) = [neighbor_cell_x,neighbor_cell_y,neighbor_cell_z];
+                filter_input_particle_reservoir(filter_id,particle_ptr,7) = particle_ptr-tmp_particle_num_1;
+            end
     end
 end
 fprintf('Mapping cell particles to filters done!\n');
@@ -349,7 +418,7 @@ if GEN_PAIRWISE_INPUT_DATA_TO_FILTER == 1
     fprintf('*** Start generating VERIFICATION_PARTICLE_PAIR_INPUT.txt! ***\n');
     %% Prepare the output file
     fresult = fopen('VERIFICATION_PARTICLE_PAIR_INPUT.txt', 'wt');
-    fprintf(fresult,'Reference ID\tNeighbor ID\tValid\tReference Particle Position\t\t\t\t\tNeighbor Particle Position\n');
+    fprintf(fresult,'Ref ID\tNeighbor ID\t\t\t\t\t\t\t\t\tValid\tReference Particle Position\t\tNeighbor Particle Position\n');
 
     %% Assembling particle pairs
     % Home cell id
@@ -370,8 +439,8 @@ if GEN_PAIRWISE_INPUT_DATA_TO_FILTER == 1
         ref_pos_z = cell_particle(home_cell_id,ref_particle_ptr,3);
         % Traverse neighbor particles
         for neighbor_particle_ptr = 1:filter_process_particle_max
-            % Write the reference particle information to output file first
-            fprintf(fresult,'%d\t%d\t',ref_particle_ptr, neighbor_particle_ptr);
+            % Write the reference particle ID
+            fprintf(fresult,'%d%d%d%2X\t',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr);
             % Assign the input value to each filter from the reservoir
             for filter_id = NUM_FILTER:-1:1
                 if neighbor_particle_ptr <= filter_input_particle_num(filter_id)
@@ -381,7 +450,10 @@ if GEN_PAIRWISE_INPUT_DATA_TO_FILTER == 1
                     tmp_filter_input(filter_id,1:3) = filter_input_particle_reservoir(filter_id,filter_input_particle_num(filter_id),1:3);
                     tmp_valid_bit(filter_id) = 0;
                 end
+                % Write neighbor particle ID
+                fprintf(fresult,'%d%d%d%2X',filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,4:7));
             end
+            fprintf(fresult,'\t');
             % Write the valid bit to output file
             for filter_id = NUM_FILTER:-1:1
                 fprintf(fresult,'%d',tmp_valid_bit(filter_id));
@@ -462,7 +534,7 @@ if GEN_PAIRWISE_FORCE_VALUE == 1
 
     %% Prepare output file
     fresult = fopen('VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt', 'wt');
-    fprintf(fresult,'Ref ID\tNeighbor ID\tReference Particle Position(x,y,z)\tNeighbor Particle Position(x,y,z)\tR2\tdx\tdy\tdz\tForce_X\tForce_Y\tForce_Z\n');
+    fprintf(fresult,'Format\tRef ID\tNeighbor ID\tReference Position(x,y,z)\tNeighbor Position(x,y,z)\tR2\t\t\tdx\t\t\tdy\t\t\tdz\t\t\tForce_X\t\tForce_Y\t\tForce_Z\n');
     
     %% Start Evaluation
     % Home cell id
@@ -477,6 +549,10 @@ if GEN_PAIRWISE_FORCE_VALUE == 1
         ref_pos_x = cell_particle(home_cell_id,ref_particle_ptr,1);
         ref_pos_y = cell_particle(home_cell_id,ref_particle_ptr,2);
         ref_pos_z = cell_particle(home_cell_id,ref_particle_ptr,3);
+        tmp_force_acc_x = single(0);
+        tmp_force_acc_y = single(0);
+        tmp_force_acc_z = single(0);
+        tmp_counter_particles_within_cutoff = 0;
         % Traverse paticle from each cells one at a time
         % mimic clock cycle
         for neighbor_particle_ptr = 1:filter_process_particle_max
@@ -494,6 +570,7 @@ if GEN_PAIRWISE_FORCE_VALUE == 1
                     r2 = dx*dx + dy*dy + dz*dz;
                     % Pass the filter
                     if r2 ~= 0 &&  r2 < CUTOFF_RADIUS_2
+                        tmp_counter_particles_within_cutoff = tmp_counter_particles_within_cutoff + 1;
                         %% Force Evaluation
                         % Table lookup
                         seg_ptr = 0;        % The first segment will be #0, second will be #1, etc....
@@ -545,14 +622,27 @@ if GEN_PAIRWISE_FORCE_VALUE == 1
                         F_LJ_x = single(F_LJ * dx);
                         F_LJ_y = single(F_LJ * dy);
                         F_LJ_z = single(F_LJ * dz);
+                        
+                        % Accumulate force for reference particles
+                        tmp_force_acc_x = tmp_force_acc_x + F_LJ_x;
+                        tmp_force_acc_y = tmp_force_acc_y + F_LJ_y;
+                        tmp_force_acc_z = tmp_force_acc_z + F_LJ_z;
 
                         %% Write result to output file
-                        fprintf(fresult,'HEX:\t%d\t%d\t(%tX,%tX,%tX)<->(%tX,%tX,%tX)\t%tX\t%tX\t%tX\t%tX\t%tX\t%tX\t%tX\n',ref_particle_ptr,neighbor_particle_ptr,ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
-                        fprintf(fresult,'DEC:\t%d\t%d\t(%.3f,%.3f,%.3f)<->(%.3f,%.3f,%.3f)\t\t\t\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n',ref_particle_ptr,neighbor_particle_ptr,ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
+                        fprintf(fresult,'HEX:\t%d%d%d%2X\t%d%d%d%2X\t(%tX,%tX,%tX)<->(%tX,%tX,%tX)\t%tX\t%tX\t%tX\t%tX\t%tX\t%tX\t%tX\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,4:7),ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
+                        fprintf(fresult,'DEC:\t%d%d%d%2X\t%d%d%d%2X\t(%.3f,%.3f,%.3f)<->(%.3f,%.3f,%.3f)\t\t\t\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,4:7),ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
                     end
                 end
             end
         end
+        
+        % Write the accumulated force to array
+        cell_particle(home_cell_id,ref_particle_ptr,4:6) = [tmp_force_acc_x, tmp_force_acc_y, tmp_force_acc_z];
+        % Write the particle pairs that lies within the cutoff radius with the reference particle
+        cell_particle(home_cell_id,ref_particle_ptr,8) = tmp_counter_particles_within_cutoff;
+        
+        %% Write accumulated force to output file
+        fprintf(fresult, '***Reference particle %d%d%d%2X: (%.3f,%.3f,%.3f), # of partner particles is %d, accumulated partial force is (in X,Y,Z order) HEX:(%tX,%tX,%tX), DEC:(%.3f,%.3f,%.3f).\n\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,ref_pos_x,ref_pos_y,ref_pos_z, cell_particle(home_cell_id,ref_particle_ptr,8), cell_particle(home_cell_id,ref_particle_ptr,4:6),cell_particle(home_cell_id,ref_particle_ptr,4:6));
     end
     % Cloes file
     fclose(fresult);
