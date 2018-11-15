@@ -15,12 +15,16 @@
 %       Filter 6: 323(edge) 331(corner)
 %       Filter 7: 332(edge) 333(corner)
 %
+% Data Organization in array:
+%       1, posx; 2, posy; 3, posz
+%
 % Process:
 %       1, import the raw ApoA1 data, and pre-processing
 %       2, mapping the ApoA1 data into cells
 %
 % Output file:
-%       VERIFICATION_PARTICLE_PAIR_INPUT.txt
+%       VERIFICATION_PARTICLE_PAIR_INPUT.txt (Particle_Pair_Gen_HalfShell.v)
+%       VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt (RL_LJ_Top.v)
 %
 % By: Chen Yang
 % 10/29/2018
@@ -32,9 +36,19 @@ clear all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Verfication Control Parameter
+GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 0;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
+GEN_PAIRWISE_FORCE_VALUE = 1;                       % Generate VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt
 %% General Simulation Parameters
 CUTOFF_RADIUS = single(12);                         % Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS * CUTOFF_RADIUS;    % Cutoff distance square
+INTERPOLATION_ORDER = 1;
+SEGMENT_NUM = 14;                       % # of segment
+BIN_NUM = 256;                          % # of bins per segment
+% Range starting from 2^-6 (ApoA1 min r2 is 0.015793)
+MIN_RANGE = 0.015625;                  % minimal range for the evaluation
+% ApoA1 cutoff is 12~13 Ang, thus set the bin as 14 to cover the range
+MAX_RANGE = MIN_RANGE * 2^SEGMENT_NUM;  % maximum range for the evaluation (currently this is the cutoff radius)
 %% Benmarck Related Parameters (related with CUTOFF_RADIUS)
 CELL_COUNT_X = 9;
 CELL_COUNT_Y = 9;
@@ -46,13 +60,14 @@ COMMON_PATH = '';
 INPUT_FILE_NAME = 'input_positions_ApoA1.txt';
 %% HDL design parameters
 NUM_FILTER = 8;                                     % Number of filters in the pipeline
+FILTER_BUFFER_DEPTH = 32;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
 %% Data Arraies for processing
 % Bounding box of 12A, total of 9*9*7 cells, organized in a 4D array
 position_data = zeros(TOTAL_PARTICLE,3);            % The raw input data
 particle_in_cell_counter = zeros(CELL_COUNT_X,CELL_COUNT_Y,CELL_COUNT_Z);               % counters tracking the # of particles in each cell
 cell_particle = zeros(CELL_COUNT_X*CELL_COUNT_Y*CELL_COUNT_Z,CELL_PARTICLE_MAX,8);      % 3D array holding sorted cell particles(cell_id, particle_id, particle_info), cell_id = (cell_x-1)*9*7+(cell_y-1)*7+cell_z
                                                                                         % Particle info: 1~3:position(x,y,z), 4~6:force component in each direction, 7: energy, 8:# of partner particles
-filter_input_particle_reservoir = zeros(NUM_FILTER,2*CELL_PARTICLE_MAX,3);              % Hold all the particles that need to send to each filter to process
+filter_input_particle_reservoir = zeros(NUM_FILTER,2*CELL_PARTICLE_MAX,3);              % Hold all the particles that need to send to each filter to process, 1:x, 2:y, 3:z
 filter_input_particle_num = zeros(NUM_FILTER,1);                                        % Record how many reference particles each filter need to evaluate
 %% Simulation Control Parameters
 % Assign the Home cell
@@ -140,6 +155,7 @@ fprintf('Particles mapping to cells finished! Total of %d particles falling out 
 %% Genearating input particle pairs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Collect particles from neighbor cells and assign to the filter that will process it (mapping scheme is shown in the global comment section) 
+fprintf('*** Start mapping cell paricles to each filter! ***\n');
 for filter_id = 1:NUM_FILTER
     switch filter_id
         % Process home cell 222
@@ -324,56 +340,221 @@ for filter_id = 1:NUM_FILTER
             
     end
 end
+fprintf('Mapping cell particles to filters done!\n');
 
-%% Prepare the output file
-fresult = fopen('VERIFICATION_PARTICLE_PAIR_INPUT.txt', 'wt');
-fprintf(fresult,'Reference ID\tNeighbor ID\tValid\tReference Particle Position\t\t\t\t\tNeighbor Particle Position\n');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Write input particle pairs to output file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if GEN_PAIRWISE_INPUT_DATA_TO_FILTER == 1
+    fprintf('*** Start generating VERIFICATION_PARTICLE_PAIR_INPUT.txt! ***\n');
+    %% Prepare the output file
+    fresult = fopen('VERIFICATION_PARTICLE_PAIR_INPUT.txt', 'wt');
+    fprintf(fresult,'Reference ID\tNeighbor ID\tValid\tReference Particle Position\t\t\t\t\tNeighbor Particle Position\n');
 
-%% Assembling particle pairs
-% Home cell id
-home_cell_id = (HOME_CELL_X-1)*CELL_COUNT_Y*CELL_COUNT_Z + (HOME_CELL_Y-1)*CELL_COUNT_Z + HOME_CELL_Z;
-% Collect home cell particle count
-home_cell_particle_num = particle_in_cell_counter(HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z);
-% Find the maximum # of particle one filter need to process
-filter_process_particle_max = max(filter_input_particle_num);
-% Temp input holder for each filter
-tmp_filter_input = zeros(NUM_FILTER,3);
-% Temp valid bit for each filter
-tmp_valid_bit = zeros(NUM_FILTER,1);
-% Traverse all the reference particles
-for ref_particle_ptr = 1:home_cell_particle_num
-    % Get ref particle position
-    ref_pos_x = cell_particle(home_cell_id,ref_particle_ptr,1);
-    ref_pos_y = cell_particle(home_cell_id,ref_particle_ptr,2);
-    ref_pos_z = cell_particle(home_cell_id,ref_particle_ptr,3);
-    % Traverse neighbor particles
-    for neighbor_particle_ptr = 1:filter_process_particle_max
-        % Write the reference particle information to output file first
-        fprintf(fresult,'%d\t%d\t',ref_particle_ptr, neighbor_particle_ptr);
-        % Assign the input value to each filter from the reservoir
-        for filter_id = NUM_FILTER:-1:1
-            if neighbor_particle_ptr <= filter_input_particle_num(filter_id)
-                tmp_filter_input(filter_id,1:3) = filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,1:3);
-                tmp_valid_bit(filter_id) = 1;
-            else
-                tmp_filter_input(filter_id,1:3) = filter_input_particle_reservoir(filter_id,filter_input_particle_num(filter_id),1:3);
-                tmp_valid_bit(filter_id) = 0;
+    %% Assembling particle pairs
+    % Home cell id
+    home_cell_id = (HOME_CELL_X-1)*CELL_COUNT_Y*CELL_COUNT_Z + (HOME_CELL_Y-1)*CELL_COUNT_Z + HOME_CELL_Z;
+    % Collect home cell particle count
+    home_cell_particle_num = particle_in_cell_counter(HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z);
+    % Find the maximum # of particle one filter need to process
+    filter_process_particle_max = max(filter_input_particle_num);
+    % Temp input holder for each filter
+    tmp_filter_input = zeros(NUM_FILTER,3);
+    % Temp valid bit for each filter
+    tmp_valid_bit = zeros(NUM_FILTER,1);
+    % Traverse all the reference particles
+    for ref_particle_ptr = 1:home_cell_particle_num
+        % Get ref particle position
+        ref_pos_x = cell_particle(home_cell_id,ref_particle_ptr,1);
+        ref_pos_y = cell_particle(home_cell_id,ref_particle_ptr,2);
+        ref_pos_z = cell_particle(home_cell_id,ref_particle_ptr,3);
+        % Traverse neighbor particles
+        for neighbor_particle_ptr = 1:filter_process_particle_max
+            % Write the reference particle information to output file first
+            fprintf(fresult,'%d\t%d\t',ref_particle_ptr, neighbor_particle_ptr);
+            % Assign the input value to each filter from the reservoir
+            for filter_id = NUM_FILTER:-1:1
+                if neighbor_particle_ptr <= filter_input_particle_num(filter_id)
+                    tmp_filter_input(filter_id,1:3) = filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,1:3);
+                    tmp_valid_bit(filter_id) = 1;
+                else
+                    tmp_filter_input(filter_id,1:3) = filter_input_particle_reservoir(filter_id,filter_input_particle_num(filter_id),1:3);
+                    tmp_valid_bit(filter_id) = 0;
+                end
             end
+            % Write the valid bit to output file
+            for filter_id = NUM_FILTER:-1:1
+                fprintf(fresult,'%d',tmp_valid_bit(filter_id));
+            end
+            % Write reference particle position
+            fprintf(fresult,'\t%tX%tX%tX\t',ref_pos_z,ref_pos_y,ref_pos_x);
+            % Write neighbor particle position
+            for filter_id = NUM_FILTER:-1:1
+                fprintf(fresult,'%tX%tX%tX',tmp_filter_input(filter_id,3),tmp_filter_input(filter_id,2),tmp_filter_input(filter_id,1));
+            end
+            fprintf(fresult,'\n');
         end
-        % Write the valid bit to output file
-        for filter_id = NUM_FILTER:-1:1
-            fprintf(fresult,'%d',tmp_valid_bit(filter_id));
-        end
-        % Write reference particle position
-        fprintf(fresult,'\t%tX%tX%tX\t',ref_pos_z,ref_pos_y,ref_pos_x);
-        % Write neighbor particle position
-        for filter_id = NUM_FILTER:-1:1
-            fprintf(fresult,'%tX%tX%tX',tmp_filter_input(filter_id,3),tmp_filter_input(filter_id,2),tmp_filter_input(filter_id,1));
-        end
-        fprintf(fresult,'\n');
     end
+    % Cloes file
+    fclose(fresult);
+    fprintf('VERIFICATION_PARTICLE_PAIR_INPUT.txt generated!\n');
 end
 
-% Cloes file
-fclose(fresult);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Evaluate Force with data from 8 filters (currently the order of data from filters is not guaranteed)
+%% Including arbitration
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if GEN_PAIRWISE_FORCE_VALUE == 1
+    fprintf('*** Start generating VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt! ***\n');
+    %% Load in the index data
+    fileID_0  = fopen('c0_14.txt', 'r');
+    fileID_1  = fopen('c1_14.txt', 'r');
+    if INTERPOLATION_ORDER > 1
+        fileID_2  = fopen('c2_14.txt', 'r');
+    end
+    if INTERPOLATION_ORDER > 2
+        fileID_3  = fopen('c3_14.txt', 'r');
+    end
 
+    fileID_4  = fopen('c0_8.txt', 'r');
+    fileID_5  = fopen('c1_8.txt', 'r');
+    if INTERPOLATION_ORDER > 1
+        fileID_6  = fopen('c2_8.txt', 'r');
+    end
+    if INTERPOLATION_ORDER > 2
+        fileID_7  = fopen('c3_8.txt', 'r');
+    end
+
+    % Fetch the index for the polynomials
+    read_in_c0_vdw14 = textscan(fileID_0, '%f');
+    read_in_c1_vdw14 = textscan(fileID_1, '%f');
+    if INTERPOLATION_ORDER > 1
+        read_in_c2_vdw14 = textscan(fileID_2, '%f');
+    end
+    if INTERPOLATION_ORDER > 2
+        read_in_c3_vdw14 = textscan(fileID_3, '%f');
+    end
+    read_in_c0_vdw8 = textscan(fileID_4, '%f');
+    read_in_c1_vdw8 = textscan(fileID_5, '%f');
+    if INTERPOLATION_ORDER > 1
+        read_in_c2_vdw8 = textscan(fileID_6, '%f');
+    end
+    if INTERPOLATION_ORDER > 2
+        read_in_c3_vdw8 = textscan(fileID_7, '%f');
+    end
+    % close file
+    fclose(fileID_0);
+    fclose(fileID_1);
+    if INTERPOLATION_ORDER > 1
+        fclose(fileID_2);
+    end
+    if INTERPOLATION_ORDER > 2
+        fclose(fileID_3);
+    end
+    fclose(fileID_4);
+    fclose(fileID_5);
+    if INTERPOLATION_ORDER > 1
+        fclose(fileID_6);
+    end
+    if INTERPOLATION_ORDER > 2
+        fclose(fileID_7);
+    end
+
+    %% Prepare output file
+    fresult = fopen('VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt', 'wt');
+    fprintf(fresult,'Ref ID\tNeighbor ID\tReference Particle Position(x,y,z)\tNeighbor Particle Position(x,y,z)\tR2\tdx\tdy\tdz\tForce_X\tForce_Y\tForce_Z\n');
+    
+    %% Start Evaluation
+    % Home cell id
+    home_cell_id = (HOME_CELL_X-1)*CELL_COUNT_Y*CELL_COUNT_Z + (HOME_CELL_Y-1)*CELL_COUNT_Z + HOME_CELL_Z;
+    % Collect home cell particle count
+    home_cell_particle_num = particle_in_cell_counter(HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z);
+    % Find the maximum # of particle one filter need to process
+    filter_process_particle_max = max(filter_input_particle_num);
+    %% Traverse all the reference particles
+    for ref_particle_ptr = 1:home_cell_particle_num
+        % Get ref particle position
+        ref_pos_x = cell_particle(home_cell_id,ref_particle_ptr,1);
+        ref_pos_y = cell_particle(home_cell_id,ref_particle_ptr,2);
+        ref_pos_z = cell_particle(home_cell_id,ref_particle_ptr,3);
+        % Traverse paticle from each cells one at a time
+        % mimic clock cycle
+        for neighbor_particle_ptr = 1:filter_process_particle_max
+            % Traverse each filter and applying filtering logic
+            for filter_id = 1:NUM_FILTER
+                % Only cover the valid data in each filter reservoir
+                if neighbor_particle_ptr <= filter_input_particle_num(filter_id)
+                    neighbor_pos_x = filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,1);
+                    neighbor_pos_y = filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,2);
+                    neighbor_pos_z = filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,3);
+                    % Calculate dx, dy, dz, r2
+                    dx = ref_pos_x - neighbor_pos_x;
+                    dy = ref_pos_y - neighbor_pos_y;
+                    dz = ref_pos_z - neighbor_pos_z;
+                    r2 = dx*dx + dy*dy + dz*dz;
+                    % Pass the filter
+                    if r2 ~= 0 &&  r2 < CUTOFF_RADIUS_2
+                        %% Force Evaluation
+                        % Table lookup
+                        seg_ptr = 0;        % The first segment will be #0, second will be #1, etc....
+                        while(r2 >= MIN_RANGE * 2^(seg_ptr+1))
+                            seg_ptr = seg_ptr + 1;
+                        end
+                        if(seg_ptr >= SEGMENT_NUM)      % if the segment pointer is larger than the maximum number of segment, then error out
+                            disp('Error occur: could not locate the segment for the input r2');
+                            return;
+                        end
+                        % Locate the bin in the current segment
+                        segment_min = single(MIN_RANGE * 2^seg_ptr);
+                        segment_max = single(segment_min * 2);
+                        segment_step = single((segment_max - segment_min) / BIN_NUM);
+                        bin_ptr = floor((r2 - segment_min)/segment_step) + 1;            % the bin_ptr will give which bin it locate
+                        % Calculate the index for table lookup
+                        lut_index = seg_ptr * BIN_NUM + bin_ptr;
+                        % Fetch the index for the polynomials
+                        c0_vdw14 = single(read_in_c0_vdw14{1}(lut_index));
+                        c1_vdw14 = single(read_in_c1_vdw14{1}(lut_index));
+                        if INTERPOLATION_ORDER > 1
+                            c2_vdw14 = single(read_in_c2_vdw14{1}(lut_index));
+                        end
+                        if INTERPOLATION_ORDER > 2
+                            c3_vdw14 = single(read_in_c3_vdw14{1}(lut_index));
+                        end
+                        c0_vdw8 = single(read_in_c0_vdw8{1}(lut_index));
+                        c1_vdw8 = single(read_in_c1_vdw8{1}(lut_index));
+                        if INTERPOLATION_ORDER > 1
+                            c2_vdw8 = single(read_in_c2_vdw8{1}(lut_index));
+                        end
+                        if INTERPOLATION_ORDER > 2
+                            c3_vdw8 = single(read_in_c3_vdw8{1}(lut_index));
+                        end
+                        % Calculate the poly value
+                        switch(INTERPOLATION_ORDER)
+                            case 1
+                                vdw14 = polyval([c1_vdw14 c0_vdw14], r2);
+                                vdw8 = polyval([c1_vdw8 c0_vdw8], r2);
+                            case 2
+                                vdw14 = polyval([c2_vdw14 c1_vdw14 c0_vdw14], r2);
+                                vdw8 = polyval([c2_vdw8 c1_vdw8 c0_vdw8], r2);
+                            case 3
+                                vdw14 = polyval([c3_vdw14 c2_vdw14 c1_vdw14 c0_vdw14], r2);
+                                vdw8 = polyval([c3_vdw8 c2_vdw8 c1_vdw8 c0_vdw8], r2);
+                        end
+                        % Calculate the total force
+                        F_LJ = single(vdw14) - single(vdw8);
+                        F_LJ_x = single(F_LJ * dx);
+                        F_LJ_y = single(F_LJ * dy);
+                        F_LJ_z = single(F_LJ * dz);
+
+                        %% Write result to output file
+                        fprintf(fresult,'HEX:\t%d\t%d\t(%tX,%tX,%tX)<->(%tX,%tX,%tX)\t%tX\t%tX\t%tX\t%tX\t%tX\t%tX\t%tX\n',ref_particle_ptr,neighbor_particle_ptr,ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
+                        fprintf(fresult,'DEC:\t%d\t%d\t(%.3f,%.3f,%.3f)<->(%.3f,%.3f,%.3f)\t\t\t\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n',ref_particle_ptr,neighbor_particle_ptr,ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
+                    end
+                end
+            end
+        end
+    end
+    % Cloes file
+    fclose(fresult);
+    fprintf('VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt generated!!\n');
+end
