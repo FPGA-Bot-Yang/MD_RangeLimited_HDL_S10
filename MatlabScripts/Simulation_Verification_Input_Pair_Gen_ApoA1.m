@@ -63,7 +63,8 @@ NUM_FILTER = 8;                                     % Number of filters in the p
 FILTER_BUFFER_DEPTH = 32;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
 %% Data Arraies for processing
 % Bounding box of 12A, total of 9*9*7 cells, organized in a 4D array
-position_data = single(zeros(TOTAL_PARTICLE,3));                                        % The raw input data
+raw_position_data = zeros(TOTAL_PARTICLE,3);                                            % The raw input data
+position_data = single(zeros(TOTAL_PARTICLE,3));                                        % The shifted input data
 particle_in_cell_counter = zeros(CELL_COUNT_X,CELL_COUNT_Y,CELL_COUNT_Z);               % counters tracking the # of particles in each cell
 cell_particle = single(zeros(CELL_COUNT_X*CELL_COUNT_Y*CELL_COUNT_Z,CELL_PARTICLE_MAX,8)); % 3D array holding sorted cell particles(cell_id, particle_id, particle_info), cell_id = (cell_x-1)*9*7+(cell_y-1)*7+cell_z
                                                                                         % Particle info: 1~3:position(x,y,z), 4~6:force component in each direction(x,y,z), 7: energy, 8:# of partner particles
@@ -92,7 +93,7 @@ line_counter = 1;
 while ~feof(fp)
     tline = fgets(fp);
     line_elements = textscan(tline,'%f');
-    position_data(line_counter,:) = line_elements{1}; 
+    raw_position_data(line_counter,:) = line_elements{1}; 
     line_counter = line_counter + 1;
 end
 % Close File
@@ -100,17 +101,17 @@ fclose(fp);
 fprintf('Particle data loading finished!\n');
 
 %% Find the min, max of raw data in each dimension
-min_x  = min(position_data(:,1));
-max_x  = max(position_data(:,1));
-min_y  = min(position_data(:,2));
-max_y  = max(position_data(:,2));
-min_z  = min(position_data(:,3));
-max_z  = max(position_data(:,3));
+min_x  = min(raw_position_data(:,1));
+max_x  = max(raw_position_data(:,1));
+min_y  = min(raw_position_data(:,2));
+max_y  = max(raw_position_data(:,2));
+min_z  = min(raw_position_data(:,3));
+max_z  = max(raw_position_data(:,3));
 % Original range is (-56.296,56.237), (-57.123,56.259), (-40.611,40.878)
 % shift all the data to positive
-position_data(:,1) = position_data(:,1)-min_x;          % range: 0 ~ 112.533
-position_data(:,2) = position_data(:,2)-min_y;          % range: 0 ~ 113.382
-position_data(:,3) = position_data(:,3)-min_z;          % range: 0 ~ 81.489
+position_data(:,1) = raw_position_data(:,1)-min_x;          % range: 0 ~ 112.533
+position_data(:,2) = raw_position_data(:,2)-min_y;          % range: 0 ~ 113.382
+position_data(:,3) = raw_position_data(:,3)-min_z;          % range: 0 ~ 81.489
 fprintf('All particles shifted to align on (0,0,0)\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -642,7 +643,7 @@ if GEN_PAIRWISE_FORCE_VALUE == 1
         cell_particle(home_cell_id,ref_particle_ptr,8) = tmp_counter_particles_within_cutoff;
         
         %% Write accumulated force to output file
-        fprintf(fresult, '***Reference particle %d%d%d%2X: (%.3f,%.3f,%.3f), # of partner particles is %d, accumulated partial force is (in X,Y,Z order) HEX:(%tX,%tX,%tX), DEC:(%.3f,%.3f,%.3f).\n\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,ref_pos_x,ref_pos_y,ref_pos_z, cell_particle(home_cell_id,ref_particle_ptr,8), cell_particle(home_cell_id,ref_particle_ptr,4:6),cell_particle(home_cell_id,ref_particle_ptr,4:6));
+        fprintf(fresult, '***Reference particle %d%d%d%2X: (%.3f,%.3f,%.3f), # of partner particles is %d, accumulated partial force is (in X,Y,Z order) HEX:(%tX,%tX,%tX), DEC:(%f,%f,%f).\n\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,ref_pos_x,ref_pos_y,ref_pos_z, cell_particle(home_cell_id,ref_particle_ptr,8), cell_particle(home_cell_id,ref_particle_ptr,4:6),cell_particle(home_cell_id,ref_particle_ptr,4:6));
     end
     % Cloes file
     fclose(fresult);

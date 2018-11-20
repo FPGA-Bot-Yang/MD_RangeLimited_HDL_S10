@@ -24,5 +24,18 @@
 		Fix 4: (11/14/2018) In Filter_Logic.v, when passing the particle ID from input to output, there's one more cycle delay added (should be 17, implemented 18 by mistake). Change the particle ID delay register stages and fixed the issue.
 		
 		
-		
+11/19/2018
+	Matlab script issue: GenInputCellList_ApoA1.m
+		Bug: the read in particle from input file is in double format, when covert to single, it introduces error. For example:
+		Bug Example: cell 222, element 2, pos_x = 13.567, from position_data(46623,1). However, when print out fprintf('%f',cell_particle(cell_id, 2,1)), the result is 13.5657001
+		Bug root: When load in the data from input file, in the following line: line_elements = textscan(tline,'%f32'), the read in value is already off. For the last element, is suppose to be (42.109,50.054,26.189), instead what is stored is (42.109001,50.054001,26.188999)
+		Some new discovery:
+			Check the following:
+				K>> fprintf('%f\n',13.5670)
+				13.567000
+				K>> fprintf('%f\n',single(-42.729) + single(56.296))
+				13.567001
+				K>> fprintf('%f\n',single(-42.729 + 56.296))
+				13.567000
+		Workaround: read in all the input data as double, find the min and max in each dimension also in double, perform shift in double. Then convert to single before assign to a new array. In this way, the pre-processed data will be stored correctly.
 		

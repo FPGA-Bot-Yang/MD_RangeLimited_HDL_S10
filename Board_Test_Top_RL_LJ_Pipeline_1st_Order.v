@@ -1,7 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Module: Board_Test_Top_RL_LJ_Pipeline_1st_Order.v
 //
-//	Function: Serve as the top module for on-board test
+//	Function: 
+//				Serve as the top module for on-board test
 //				The rst and start signal is given by memory modules controlled by in memory content editor
 //
 // Purpose:
@@ -35,7 +36,7 @@ module Board_Test_Top_RL_LJ_Pipeline_1st_Order
 	parameter RESULTS_ADDR_WIDTH		= 14										// log(RESULTS_DATA_NUM) / log(2)
 )
 (
-	input  ref_clk_125mhz,
+	input  ref_clk_125mhz,															// Pin AN27, 125MHz input from oscillator
 	output [DATA_WIDTH-1:0] LJ_Force_X,
 	output [DATA_WIDTH-1:0] LJ_Force_Y,
 	output [DATA_WIDTH-1:0] LJ_Force_Z,

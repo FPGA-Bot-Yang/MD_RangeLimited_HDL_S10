@@ -60,8 +60,8 @@ module Particle_Pair_Gen_HalfShell
 	// Dataset defined parameters
 	parameter NUM_NEIGHBOR_CELLS			= 13,											// # of neighbor cells per home cell, for Half-shell method, is 13
 	parameter CELL_ID_WIDTH					= 4,											// log(NUM_NEIGHBOR_CELLS)
-	parameter MAX_CELL_PARTICLE_NUM		= 220,										// The maximum # of particles can be in a cell
-	parameter CELL_ADDR_WIDTH				= 8,											// log(MAX_CELL_PARTICLE_NUM)
+	parameter MAX_CELL_PARTICLE_NUM		= 290,										// The maximum # of particles can be in a cell
+	parameter CELL_ADDR_WIDTH				= 9,											// log(MAX_CELL_PARTICLE_NUM)
 	parameter PARTICLE_ID_WIDTH			= CELL_ID_WIDTH*3+CELL_ADDR_WIDTH,	// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
 	// Filter parameters
 	parameter NUM_FILTER						= 8,		//4
