@@ -44,8 +44,8 @@
 //
 // Todo:
 //				This is a work in progress module that will be used in the final system
-//				0, Process the backpressure signal
 //				1, Implement a general numbering mechanism for all the cell in the simulation space, currently using fixed cells id for each input to filters
+//				1.1, Apply boundary conditions to cell ID when CELL_ID == 1 or CELL_ID = MAX
 //				2, parameterize # of force evaluation units in it
 //
 // Created by: Chen Yang 11/01/18
@@ -55,6 +55,10 @@
 module Particle_Pair_Gen_HalfShell
 #(
 	parameter DATA_WIDTH 					= 32,
+	// The home cell this unit is working on
+	parameter CELL_X							= 2,
+	parameter CELL_Y							= 2,
+	parameter CELL_Z							= 2,
 	// High level parameters
 	parameter NUM_EVAL_UNIT					= 1,											// # of evaluation units in the design
 	// Dataset defined parameters
@@ -105,6 +109,27 @@ module Particle_Pair_Gen_HalfShell
 	parameter CHECK_HOME_CELL_DONE	= 3'b101;
 	parameter WAIT_FOR_FINISH 			= 3'b110;
 	parameter DONE 			  			= 3'b111;
+	// Cell ID information
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// !!!!!!!ATTENTION: when CELL_ID is less than 1, need to apply boundary conditions
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	wire [CELL_ID_WIDTH-1:0] home_cell_id_x;
+	wire [CELL_ID_WIDTH-1:0] home_cell_id_y;
+	wire [CELL_ID_WIDTH-1:0] home_cell_id_z;
+	wire [CELL_ID_WIDTH-1:0] home_cell_id_x_plus_1;
+	wire [CELL_ID_WIDTH-1:0] home_cell_id_y_plus_1;
+	wire [CELL_ID_WIDTH-1:0] home_cell_id_y_minus_1;
+	wire [CELL_ID_WIDTH-1:0] home_cell_id_z_plus_1;
+	wire [CELL_ID_WIDTH-1:0] home_cell_id_z_minus_1;
+	assign home_cell_id_x = CELL_X;
+	assign home_cell_id_y = CELL_Y;
+	assign home_cell_id_z = CELL_Z;
+	assign home_cell_id_x_plus_1 = CELL_X + 1'b1;
+	assign home_cell_id_y_plus_1 = CELL_Y + 1'b1;
+	assign home_cell_id_z_plus_1 = CELL_Z + 1'b1;
+	assign home_cell_id_y_minus_1 = CELL_Y - 1'b1;
+	assign home_cell_id_z_minus_1 = CELL_Z - 1'b1;
+	
 	// Control Signals
 	reg FSM_to_Output_homecell_done;
 	assign done = FSM_to_Output_homecell_done;
@@ -143,20 +168,46 @@ module Particle_Pair_Gen_HalfShell
 	// Registers for current reference particle position
 	reg [3*DATA_WIDTH-1:0] FSM_Ref_Particle_Position;
 	// Wire for composing the reference particle global id
-	// !!!!! Need to implement a general ID mechianism for all the cells
-	// !!!!! For here, only set the home cell as 222
 	wire [NUM_EVAL_UNIT*PARTICLE_ID_WIDTH-1:0] FSM_Ref_Particle_ID;
-	assign FSM_Ref_Particle_ID = {4'd2,4'd2,4'd2,FSM_Ref_Particle_Addr};
-	// **** Wires for assembling the Neighbor_Particle_ID
+	assign FSM_Ref_Particle_ID = {home_cell_id_x,home_cell_id_y,home_cell_id_z,FSM_Ref_Particle_Addr};
+	// Wires for assembling the Neighbor_Particle_ID
 	wire [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_Neighbor_Particle_ID;
-	assign FSM_Neighbor_Particle_ID[1*PARTICLE_ID_WIDTH-1:0*PARTICLE_ID_WIDTH] = {4'd2,4'd2,4'd2,delay_FSM_Filter_Read_Addr[1*CELL_ADDR_WIDTH-1:0*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH] = {4'd2,4'd2,4'd3,delay_FSM_Filter_Read_Addr[2*CELL_ADDR_WIDTH-1:1*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[2]) ? {4'd2,4'd3,4'd2,delay_FSM_Filter_Read_Addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]} : {4'd2,4'd3,4'd1,delay_FSM_Filter_Read_Addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[3]) ? {4'd3,4'd1,4'd1,delay_FSM_Filter_Read_Addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]} : {4'd2,4'd3,4'd3,delay_FSM_Filter_Read_Addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[4]) ? {4'd3,4'd1,4'd3,delay_FSM_Filter_Read_Addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]} : {4'd3,4'd1,4'd2,delay_FSM_Filter_Read_Addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[5]) ? {4'd3,4'd2,4'd2,delay_FSM_Filter_Read_Addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]} : {4'd3,4'd2,4'd1,delay_FSM_Filter_Read_Addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[6]) ? {4'd3,4'd3,4'd1,delay_FSM_Filter_Read_Addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]} : {4'd3,4'd2,4'd3,delay_FSM_Filter_Read_Addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]};
-	assign FSM_Neighbor_Particle_ID[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[7]) ? {4'd3,4'd3,4'd3,delay_FSM_Filter_Read_Addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]} : {4'd3,4'd3,4'd2,delay_FSM_Filter_Read_Addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]};
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_0_CELL_ID_1;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_1_CELL_ID_1;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_2_CELL_ID_1;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_2_CELL_ID_2;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_3_CELL_ID_1;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_3_CELL_ID_2;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_4_CELL_ID_1;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_4_CELL_ID_2;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_5_CELL_ID_1;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_5_CELL_ID_2;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_6_CELL_ID_1;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_6_CELL_ID_2;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_7_CELL_ID_1;
+	wire [3*CELL_ID_WIDTH-1:0] FILTER_7_CELL_ID_2;
+	assign FILTER_0_CELL_ID_1 = {home_cell_id_x,home_cell_id_y,home_cell_id_z};									// 222
+	assign FILTER_1_CELL_ID_1 = {home_cell_id_x,home_cell_id_y,home_cell_id_z_plus_1};							// 223
+	assign FILTER_2_CELL_ID_1 = {home_cell_id_x,home_cell_id_y_plus_1,home_cell_id_z_minus_1};				// 231
+	assign FILTER_2_CELL_ID_2 = {home_cell_id_x,home_cell_id_y_plus_1,home_cell_id_z};							// 232
+	assign FILTER_3_CELL_ID_1 = {home_cell_id_x,home_cell_id_y_plus_1,home_cell_id_z_plus_1};					// 233
+	assign FILTER_3_CELL_ID_2 = {home_cell_id_x_plus_1,home_cell_id_y_minus_1,home_cell_id_z_minus_1};		// 311
+	assign FILTER_4_CELL_ID_1 = {home_cell_id_x_plus_1,home_cell_id_y_minus_1,home_cell_id_z};				// 312
+	assign FILTER_4_CELL_ID_2 = {home_cell_id_x_plus_1,home_cell_id_y_minus_1,home_cell_id_z_plus_1};		// 313
+	assign FILTER_5_CELL_ID_1 = {home_cell_id_x_plus_1,home_cell_id_y,home_cell_id_z_minus_1};				// 321
+	assign FILTER_5_CELL_ID_2 = {home_cell_id_x_plus_1,home_cell_id_y,home_cell_id_z};							// 322
+	assign FILTER_6_CELL_ID_1 = {home_cell_id_x_plus_1,home_cell_id_y,home_cell_id_z_plus_1};					// 323
+	assign FILTER_6_CELL_ID_2 = {home_cell_id_x_plus_1,home_cell_id_y_plus_1,home_cell_id_z_minus_1};		// 331
+	assign FILTER_7_CELL_ID_1 = {home_cell_id_x_plus_1,home_cell_id_y_plus_1,home_cell_id_z};					// 332
+	assign FILTER_7_CELL_ID_2 = {home_cell_id_x_plus_1,home_cell_id_y_plus_1,home_cell_id_z_plus_1};		// 333
+	assign FSM_Neighbor_Particle_ID[1*PARTICLE_ID_WIDTH-1:0*PARTICLE_ID_WIDTH] = {FILTER_0_CELL_ID_1,delay_FSM_Filter_Read_Addr[1*CELL_ADDR_WIDTH-1:0*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH] = {FILTER_1_CELL_ID_1,delay_FSM_Filter_Read_Addr[2*CELL_ADDR_WIDTH-1:1*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[2]) ? {FILTER_2_CELL_ID_2,delay_FSM_Filter_Read_Addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]} : {FILTER_2_CELL_ID_1,delay_FSM_Filter_Read_Addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[3]) ? {FILTER_3_CELL_ID_2,delay_FSM_Filter_Read_Addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]} : {FILTER_3_CELL_ID_1,delay_FSM_Filter_Read_Addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[4]) ? {FILTER_4_CELL_ID_2,delay_FSM_Filter_Read_Addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]} : {FILTER_4_CELL_ID_1,delay_FSM_Filter_Read_Addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[5]) ? {FILTER_5_CELL_ID_2,delay_FSM_Filter_Read_Addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]} : {FILTER_5_CELL_ID_1,delay_FSM_Filter_Read_Addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[6]) ? {FILTER_6_CELL_ID_2,delay_FSM_Filter_Read_Addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]} : {FILTER_6_CELL_ID_1,delay_FSM_Filter_Read_Addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]};
+	assign FSM_Neighbor_Particle_ID[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH] = (delay_FSM_Filter_Sel_Cell[7]) ? {FILTER_7_CELL_ID_2,delay_FSM_Filter_Read_Addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]} : {FILTER_7_CELL_ID_1,delay_FSM_Filter_Read_Addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]};
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Signals between Cell Module and FSM

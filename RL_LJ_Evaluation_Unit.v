@@ -36,6 +36,10 @@
 module RL_LJ_Evaluation_Unit
 #(
 	parameter DATA_WIDTH 					= 32,
+	// The home cell this unit is working on
+	parameter CELL_X							= 2,
+	parameter CELL_Y							= 2,
+	parameter CELL_Z							= 2,
 	// Dataset defined parameters
 	parameter PARTICLE_ID_WIDTH			= 20,										// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
 	// Filter parameters

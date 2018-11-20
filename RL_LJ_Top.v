@@ -120,6 +120,10 @@ module RL_LJ_Top
 	Particle_Pair_Gen_HalfShell
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
+		// The home cell this unit is working on
+		.CELL_X(2),
+		.CELL_Y(2),
+		.CELL_Z(2),
 		// High level parameters
 		.NUM_EVAL_UNIT(NUM_EVAL_UNIT),							// # of evaluation units in the design
 		// Dataset defined parameters
@@ -163,6 +167,10 @@ module RL_LJ_Top
 	RL_LJ_Evaluation_Unit
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
+		// The home cell this unit is working on
+		.CELL_X(2),
+		.CELL_Y(2),
+		.CELL_Z(2),
 		// Dataset defined parameters
 		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH),
 		// Filter parameters
@@ -207,7 +215,6 @@ module RL_LJ_Top
 		.out_neighbor_LJ_Force_Z(neighbor_LJ_Force_Z),			//output [DATA_WIDTH-1:0]
 		.out_neighbor_force_valid(neighbor_forceoutput_valid)	//output
 	);
-
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Cell particle memory
@@ -456,6 +463,31 @@ module RL_LJ_Top
 		.q(Cell_to_FSM_readout_particle_position[14*3*DATA_WIDTH-1:13*3*DATA_WIDTH])
 	);
 
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// Force cache
+	// Each cell has an independent cache, MSB -> LSB:{Force_Z, Force_Y, Force_X}
+	// The force Serve as the buffer to hold evaluated force values during evaluation
+	// The initial force value is 0
+	//	When new force value arrives, it will accumulate to the current stored value
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// Home cell 222
+	force_cache
+	#(
+		.DATA_WIDTH(DATA_WIDTH*3),
+		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
+		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+	)
+	cell_222_force_cache
+	(
+		.address(),
+		.clock(clk),
+		.data(),
+		.rden(force_cache_rd_en),
+		.wren(force_cache_wr_en),
+		.q()
+	);
+	
 
 endmodule
 
