@@ -15,6 +15,8 @@
 // 			Table lookup memory module
 //				multiply and summation IPs
 //
+// Testbench:
+//				RL_LJ_Evaluate_Pairs_LJ_1st_Order_tb.v
 //
 // FP IP timing:
 //				FP_SUB: ay - ax = result				latency: 3

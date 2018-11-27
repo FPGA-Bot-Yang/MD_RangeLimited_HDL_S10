@@ -18,6 +18,11 @@
 //				Each force pipeline working on a single reference particle until all the neighboring particles are evaluated, then move to the next reference particle
 //				Depending the # of cells, each unit will be responsible for part of a home cell, or a single home cell, or multiple home cells
 //
+// Format:
+//				particle_id [PARTICLE_ID_WIDTH-1:0]:  {cell_x, cell_y, cell_z, particle_in_cell_rd_addr}
+//				in_ref_particle_position [3*DATA_WIDTH-1:0]: {refz, refy, refx}
+//				in_neighbor_particle_position [3*DATA_WIDTH-1:0]: {neighborz, neighbory, neighborx}
+//
 //	Purpose:
 //				Filter version, used for final system (half-shell mapping scheme)
 //
@@ -27,7 +32,11 @@
 // Dependency:
 //				RL_LJ_Force_Evaluation_Unit.v
 //
-// Latency: TBD
+// Testbench:
+//				RL_LJ_Top_tb.v
+//
+// Timing:
+//				TBD
 //
 // Created by: Chen Yang 10/23/18
 //

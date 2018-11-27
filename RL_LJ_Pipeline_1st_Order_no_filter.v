@@ -15,6 +15,9 @@
 //				r2_compute.v
 // 			RL_LJ_Evaluate_Pairs_1st_Order.v
 //
+// Testbench:
+//				RL_LJ_Pipeline_1st_Order_no_filter_tb.v
+//
 // Latency: total: 											31 cycles
 //				r2_compute: 									17 cycles
 //				RL_LJ_Pipeline_1st_Order: 					14 cycles

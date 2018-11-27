@@ -31,12 +31,17 @@
 //
 // Format:
 //				particle_id [PARTICLE_ID_WIDTH-1:0]:  {cell_x, cell_y, cell_z, particle_in_cell_rd_addr}
+//				in_ref_particle_position [3*DATA_WIDTH-1:0]: {refz, refy, refx}
+//				in_neighbor_particle_position [3*DATA_WIDTH-1:0]: {neighborz, neighbory, neighborx}
 //
 // Used by:
 //				RL_LJ_Top.v
 //
 // Dependency:
 //				None
+//
+// Testbench:
+//				RL_LJ_Top_tb.v
 //
 // Latency: 
 //				Memory Read: 2 cycles latency between the assignment of read address and the realted data appear on the output port

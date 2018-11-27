@@ -2,18 +2,31 @@
 // Module: force_cache.v
 //
 //	Function: 
-//				Serve as the buffer to hold evaluated force values during evaluation
+//				Force cache need to be dual port RAM, one port for reading out particle force, the other used for write back accumulated force
+//				Serve as the actual buffer that holds evaluated force values during evaluation
 //				The initial force value is 0
 //				When new force value arrives, it will accumulate to the current stored value
+//				Read while writing: output is the old value
+//				Implementation: M20K
 //
 // Data Organization:
 //				MSB -> LSB: {Force_Z, Force_Y, Force_X}
 //
+// Timing:
+//				Read latency: (1 cycle)
+//					If the output is registered, then Read latency is 3 cycles: 1 cycle for registering the input read address, 1 cycle to read out, 1 cycle to update the output register (the input read address is registered, which is required when implemented in M20K)
+//					If the output is not registered, the read latency is 1 cycle after the address is assigned
+//				Write latency: (2 cycle)
+//					Since the input is registered, the latency is 2 cycles for write: 1 cycle for registering the input data, 1 cycle for updating the memeory content
+//				
 // Used by:
-//				RL_LJ_Top.v
+//				Force_Write_Back_Controller.v
 //
 // Dependency:
 //				N/A
+//
+// Testbench:
+//				force_cache_tb.v
 //
 // Created by: Chen Yang 11/20/2018
 //
@@ -35,7 +48,7 @@
 `include "define.v"
 
 // synopsys translate_off
-`timescale 1 ps / 1 ps
+`timescale 1 ns / 1 ns
 // synopsys translate_on
 module  force_cache
 #(
@@ -44,40 +57,43 @@ module  force_cache
 	parameter ADDR_WIDTH = 9
 )
 (
-	address,
-	clock,
-	data,
-	rden,
-	wren,
-	q
+    clock,
+    data,															// Write data into Port A
+    rdaddress,														// Read address for Port B
+    wraddress,														// Write address for Port A
+    wren,															// Write enable for Port A
+    q																	// Data readout from Port B, when data is writing from Port A while being read from Port B at the same time, it will readout the old data
 );
 
-    input  [ADDR_WIDTH-1:0]  address;
-    input    clock;
+	 input  clock;
     input  [DATA_WIDTH-1:0]  data;
-    input    rden;
-    input    wren;
+    input  [ADDR_WIDTH-1:0]  rdaddress;
+    input  [ADDR_WIDTH-1:0]  wraddress;
+    input  wren;
     output [DATA_WIDTH-1:0]  q;
-
+`ifndef ALTERA_RESERVED_QIS
+// synopsys translate_off
+`endif
     tri1     clock;
-    tri1     rden;
+    tri0     wren;
+`ifndef ALTERA_RESERVED_QIS
+// synopsys translate_on
+`endif
 
     wire [DATA_WIDTH-1:0] sub_wire0;
     wire [DATA_WIDTH-1:0] q = sub_wire0[DATA_WIDTH-1:0];
 
-
     altera_syncram  altera_syncram_component (
-                .address_a (address),
+                .address_a (wraddress),
+                .address_b (rdaddress),
                 .clock0 (clock),
                 .data_a (data),
-                .rden_a (rden),
                 .wren_a (wren),
-                .q_a (sub_wire0),
+                .q_b (sub_wire0),
                 .aclr0 (1'b0),
                 .aclr1 (1'b0),
                 .address2_a (1'b1),
                 .address2_b (1'b1),
-                .address_b (1'b1),
                 .addressstall_a (1'b0),
                 .addressstall_b (1'b0),
                 .byteena_a (1'b1),
@@ -87,45 +103,37 @@ module  force_cache
                 .clocken1 (1'b1),
                 .clocken2 (1'b1),
                 .clocken3 (1'b1),
-                .data_b (1'b1),
+                .data_b ({(DATA_WIDTH-1){1'b1}}),
                 .eccencbypass (1'b0),
                 .eccencparity (8'b0),
-                .eccstatus ( ),
-                .q_b ( ),
+                .eccstatus (),
+                .q_a (),
+                .rden_a (1'b1),
                 .rden_b (1'b1),
                 .sclr (1'b0),
                 .wren_b (1'b0));
     defparam
-        altera_syncram_component.width_byteena_a  = 1,
+        altera_syncram_component.address_aclr_b  = "NONE",
+        altera_syncram_component.address_reg_b  = "CLOCK0",
         altera_syncram_component.clock_enable_input_a  = "BYPASS",
-        altera_syncram_component.clock_enable_output_a  = "BYPASS",
-/*		  
-`ifdef WINDOWS_PATH
-		  altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_2_2_2.hex"
-`elsif STX_PATH
-        altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_2_2_2.hex"
-`elsif STX_2ND_PATH
-		  altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/cell_ini_file_2_2_2.hex"
-`else
-        altera_syncram_component.init_file = "/home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_2_2_2.hex"
-`endif
-,
-*/
+        altera_syncram_component.clock_enable_input_b  = "BYPASS",
+        altera_syncram_component.clock_enable_output_b  = "BYPASS",
         altera_syncram_component.intended_device_family  = "Stratix 10",
-        altera_syncram_component.lpm_hint  = "ENABLE_RUNTIME_MOD=NO",
         altera_syncram_component.lpm_type  = "altera_syncram",
         altera_syncram_component.numwords_a  = PARTICLE_NUM,
-        altera_syncram_component.operation_mode  = "SINGLE_PORT",
-        altera_syncram_component.outdata_aclr_a  = "NONE",
-        altera_syncram_component.outdata_sclr_a  = "NONE",
-        altera_syncram_component.outdata_reg_a  = "CLOCK0",
-        altera_syncram_component.enable_force_to_zero  = "TRUE",
+        altera_syncram_component.numwords_b  = PARTICLE_NUM,
+        altera_syncram_component.operation_mode  = "DUAL_PORT",
+        altera_syncram_component.outdata_aclr_b  = "NONE",
+        altera_syncram_component.outdata_sclr_b  = "NONE",
+//        altera_syncram_component.outdata_reg_b  = "CLOCK0",					// Register the port B output, if this one is selected, the latency for read is 3 cycles
+		  altera_syncram_component.outdata_reg_b  = "UNREGISTERED",				// Unregister the port B output, if this one is selected, the latency for read is 1 cycle
         altera_syncram_component.power_up_uninitialized  = "FALSE",
-        altera_syncram_component.ram_block_type  = "M20K",
-        altera_syncram_component.read_during_write_mode_port_a  = "DONT_CARE",
+		  altera_syncram_component.ram_block_type  = "M20K",
+        altera_syncram_component.read_during_write_mode_mixed_ports  = "OLD_DATA",
         altera_syncram_component.widthad_a  = ADDR_WIDTH,
-        altera_syncram_component.width_a  = DATA_WIDTH;
-
-
+        altera_syncram_component.widthad_b  = ADDR_WIDTH,
+        altera_syncram_component.width_a  = DATA_WIDTH,
+        altera_syncram_component.width_b  = DATA_WIDTH,
+        altera_syncram_component.width_byteena_a  = 1;
 
 endmodule

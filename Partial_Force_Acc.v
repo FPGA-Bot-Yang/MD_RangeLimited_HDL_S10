@@ -13,7 +13,11 @@
 // Dependency:
 //				FP_ACC.v
 //
-// Latency: TBD
+// Testbench:
+//				Partial_Force_Acc_tb.v
+//
+// Timing: 
+//				TBD
 //
 // Created by: Chen Yang 10/23/18
 //

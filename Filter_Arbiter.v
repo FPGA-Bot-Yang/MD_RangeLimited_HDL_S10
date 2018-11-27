@@ -28,6 +28,9 @@
 // Dependency:
 // 			None
 //
+// Testbench:
+//				Filter_Arbiter_tb.v
+//
 //	Latency:	0 cycle
 //
 // Created by: Chen Yang 10/12/18

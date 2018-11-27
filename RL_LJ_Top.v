@@ -24,7 +24,10 @@
 //					Filter 7: 332 (edge) 333 (corner) 
 //
 // Format:
-//				particle_id [PARTICLE_ID_WIDTH-1:0]:  {cell_z, cell_y, cell_x, particle_in_cell_rd_addr}
+//				particle_id [PARTICLE_ID_WIDTH-1:0]:  {cell_x, cell_y, cell_z, particle_in_cell_rd_addr}
+//				ref_particle_position [3*DATA_WIDTH-1:0]: {refz, refy, refx}
+//				neighbor_particle_position [3*DATA_WIDTH-1:0]: {neighborz, neighbory, neighborx}
+//				LJ_Force [3*DATA_WIDTH-1:0]: {LJ_Force_Z, LJ_Force_Y, LJ_Force_X}
 //
 // Used by:
 //				Board_Test_RL_LJ_Top.v
@@ -33,7 +36,11 @@
 //				RL_LJ_Evaluation_Unit.v
 //				Particle_Pair_Gen_HalfShell.v
 //
-// Latency: TBD
+// Testbench:
+//				RL_LJ_Top_tb.v
+//
+// Latency:
+//				TBD
 //
 // Todo:
 //				This is a work in progress module that will be used in the final system
@@ -48,6 +55,10 @@
 module RL_LJ_Top
 #(
 	parameter DATA_WIDTH 					= 32,
+	// The home cell this unit is working on
+	parameter CELL_X							= 2,
+	parameter CELL_Y							= 2,
+	parameter CELL_Z							= 2,
 	// High level parameters
 	parameter NUM_EVAL_UNIT					= 1,											// # of evaluation units in the design
 	// Dataset defined parameters
@@ -108,8 +119,8 @@ module RL_LJ_Top
 	//// Signals connect from FSM to Force Evaluation module
 	wire [NUM_FILTER*3*DATA_WIDTH-1:0] FSM_to_ForceEval_ref_particle_position;
 	wire [NUM_FILTER*3*DATA_WIDTH-1:0] FSM_to_ForceEval_neighbor_particle_position;
-	wire [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_to_ForceEval_ref_particle_id;				// {cell_z, cell_y, cell_x, ref_particle_rd_addr}
-	wire [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_to_ForceEval_neighbor_particle_id;		// {cell_z, cell_y, cell_x, neighbor_particle_rd_addr}
+	wire [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_to_ForceEval_ref_particle_id;				// {cell_x, cell_y, cell_z, ref_particle_rd_addr}
+	wire [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_to_ForceEval_neighbor_particle_id;		// {cell_x, cell_y, cell_z, neighbor_particle_rd_addr}
 	wire [NUM_FILTER-1:0] FSM_to_ForceEval_input_pair_valid;			// Signify the valid of input particle data, this signal should have 1 cycle delay of the rden signal, thus wait for the data read out from BRAM
 	//// Signals connect from Force Evaluation module to FSM
 	wire [NUM_FILTER-1:0] ForceEval_to_FSM_backpressure;
@@ -168,9 +179,9 @@ module RL_LJ_Top
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		// The home cell this unit is working on
-		.CELL_X(2),
-		.CELL_Y(2),
-		.CELL_Z(2),
+		.CELL_X(CELL_X),
+		.CELL_Y(CELL_Y),
+		.CELL_Z(CELL_Z),
 		// Dataset defined parameters
 		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH),
 		// Filter parameters
@@ -472,22 +483,33 @@ module RL_LJ_Top
 	//	When new force value arrives, it will accumulate to the current stored value
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Home cell 222
-	force_cache
+	Force_Write_Back_Controller
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
-		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH),
+		// Dell id this unit related to
+		.CELL_X(CELL_X),
+		.CELL_Y(CELL_Y),
+		.CELL_Z(CELL_Z),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
 	)
-	cell_222_force_cache
+	Cell_222_Force_Cache
 	(
-		.address(),
-		.clock(clk),
-		.data(),
-		.rden(force_cache_rd_en),
-		.wren(force_cache_wr_en),
-		.q()
-	);
-	
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(ref_forceoutput_valid),
+		.in_particle_id(ref_particle_id),
+		.in_partial_force({ref_LJ_Force_Z, ref_LJ_Force_Y, ref_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+);
 
 endmodule
 

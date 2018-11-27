@@ -9,9 +9,11 @@
 //				When the last data is read out, empty rise one cycle after the rdreq's arrival, along with the last data
 //				Data_out port remain as the last readout data if empty or rdreq is low
 // 
-//
 // Dependency:
 // 			Filter_Logic.v
+//
+// Testbench:
+//				Filter_Buffer_tb.v
 //
 // Created by: Chen Yang 11/14/18
 //
