@@ -42,6 +42,9 @@
 // Latency:
 //				TBD
 //
+// Attention:
+//				If the homecell is on the border, then need to apply boundary conditions when assigning the cell id for Force Caches
+//
 // Todo:
 //				This is a work in progress module that will be used in the final system
 //				0, Accumulation logic for neighbor particle partial forces
@@ -485,7 +488,7 @@ module RL_LJ_Top
 	// Home cell 222
 	Force_Write_Back_Controller
 	#(
-		.DATA_WIDTH(DATA_WIDTH),
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
 		// Dell id this unit related to
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y),
@@ -496,7 +499,7 @@ module RL_LJ_Top
 		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
 		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
 	)
-	Cell_222_Force_Cache
+	Home_Cell_Force_Cache
 	(
 		.clk(clk),
 		.rst(rst),
@@ -509,7 +512,384 @@ module RL_LJ_Top
 		.in_cache_read_address(),
 		.out_partial_force(),
 		.out_cache_readout_valid()
-);
+	);
+	
+	// Neighbor cell #1 (223)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X),
+		.CELL_Y(CELL_Y),
+		.CELL_Z(CELL_Z+1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_223_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #2 (231)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X),
+		.CELL_Y(CELL_Y+1'b1),
+		.CELL_Z(CELL_Z-1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_231_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #3 (232)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X),
+		.CELL_Y(CELL_Y+1'b1),
+		.CELL_Z(CELL_Z),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_232_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #4 (233)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X),
+		.CELL_Y(CELL_Y+1'b1),
+		.CELL_Z(CELL_Z+1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_233_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #5 (311)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y-1'b1),
+		.CELL_Z(CELL_Z-1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_311_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+
+	// Neighbor cell #6 (312)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y-1'b1),
+		.CELL_Z(CELL_Z),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_312_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #7 (313)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y-1'b1),
+		.CELL_Z(CELL_Z+1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_313_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #8 (321)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y),
+		.CELL_Z(CELL_Z-1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_321_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #9 (322)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y),
+		.CELL_Z(CELL_Z),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_322_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #10 (323)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y),
+		.CELL_Z(CELL_Z+1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_323_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #11 (331)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y+1'b1),
+		.CELL_Z(CELL_Z-1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_331_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+	
+	// Neighbor cell #12 (332)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y+1'b1),
+		.CELL_Z(CELL_Z),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_332_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
+
+	// Neighbor cell #13 (333)
+	Force_Write_Back_Controller
+	#(
+		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
+		// Dell id this unit related to
+		.CELL_X(CELL_X+1'b1),
+		.CELL_Y(CELL_Y+1'b1),
+		.CELL_Z(CELL_Z+1'b1),
+		// Dataset defined parameters
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
+		.CELL_ADDR_WIDTH(CELL_ADDR_WIDTH),						// log(MAX_CELL_PARTICLE_NUM)
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH)					// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
+	)
+	Neighbor_333_Force_Cache
+	(
+		.clk(clk),
+		.rst(rst),
+		// Cache input force
+		.in_partial_force_valid(neighbor_forceoutput_valid),
+		.in_particle_id(neighbor_particle_id),
+		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
+		// Cache output force
+		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(),
+		.out_partial_force(),
+		.out_cache_readout_valid()
+	);
 
 endmodule
 

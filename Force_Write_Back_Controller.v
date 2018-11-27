@@ -30,13 +30,14 @@
 // To do:
 //				0, Implement a buffer when there are more than 1 force evaluation units working at the same time. Cause each module may receive partial force from different evaluation units at the same time
 //
-// Created by: Chen Yang 11/20/2018
+// Created by:
+//				Chen Yang 11/20/2018
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module Force_Write_Back_Controller
 #(
-	parameter DATA_WIDTH 					= 32,
+	parameter DATA_WIDTH 					= 32,											// Data width of a single force value, 32-bit
 	// Dell id this unit related to
 	parameter CELL_X							= 2,
 	parameter CELL_Y							= 2,
@@ -78,13 +79,15 @@ module Force_Write_Back_Controller
 	// Delay the input force value by 2 cycles: 1 cycle for generating cache read address, 1 cycle for fetching data from cache
 	reg [3*DATA_WIDTH-1:0] in_partial_force_reg1;
 	reg [3*DATA_WIDTH-1:0] delay_in_partial_force;				// This one connected to accumualtor input
-	// Delay the write enable signal by 3 cycles: 1 cycle for fetching data from cache, 2 cycles for waiting addition finish
+	// Delay the write enable signal by 4 cycles: 1 cycle for assigning read address, 1 cycle for fetching data from cache, 2 cycles for waiting addition finish
 	reg cache_write_enable_reg1;
 	reg cache_write_enable_reg2;
+	reg cache_write_enable_reg3;
 	reg delay_cache_write_enable;
-	// Delay the cache write address by 3 cycles: 1 cycle for fetching data from cache, 2 cycles for waiting addition finish
+	// Delay the cache write address by 4 cycles: 1 cycle for assigning read address, 1 cycle for fetching data from cache, 2 cycles for waiting addition finish
 	reg [CELL_ADDR_WIDTH-1:0] cache_wr_address_reg1;
 	reg [CELL_ADDR_WIDTH-1:0] cache_wr_address_reg2;
+	reg [CELL_ADDR_WIDTH-1:0] cache_wr_address_reg3;
 	reg [CELL_ADDR_WIDTH-1:0] delay_cache_wr_address;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,13 +103,15 @@ module Force_Write_Back_Controller
 			// For conpensating the 2 cycles delay from input force to accumulator
 			in_partial_force_reg1 <= 0;
 			delay_in_partial_force <= 0;
-			// For conpensating the 3 cycles delay from write enable is assigned and accumulated value is calculated
+			// For conpensating the 4 cycles delay from write enable is assigned and accumulated value is calculated
 			cache_write_enable_reg1 <= 1'b0;
 			cache_write_enable_reg2 <= 1'b0;
+			cache_write_enable_reg3 <= 1'b0;
 			delay_cache_write_enable <= 1'b0;
-			// For conpensating the 3 cycles delay from write address is generated and accumulated value is calculated
+			// For conpensating the 4 cycles delay from write address is generated and accumulated value is calculated
 			cache_wr_address_reg1 <= 0;
 			cache_wr_address_reg2 <= 0;
+			cache_wr_address_reg3 <= 0;
 			delay_cache_wr_address <= 0;
 			
 			// Read output ports
@@ -129,11 +134,13 @@ module Force_Write_Back_Controller
 			// For conpensating the 3 cycles delay from write enable is assigned and accumulated value is calculated
 			cache_write_enable_reg1 <= cache_write_enable;
 			cache_write_enable_reg2 <= cache_write_enable_reg1;
-			delay_cache_write_enable <= cache_write_enable_reg2;
+			cache_write_enable_reg3 <= cache_write_enable_reg2;
+			delay_cache_write_enable <= cache_write_enable_reg3;
 			// For conpensating the 3 cycles delay from write address is generated and accumulated value is calculated
 			cache_wr_address_reg1 <= cache_wr_address;
 			cache_wr_address_reg2 <= cache_wr_address_reg1;
-			delay_cache_wr_address <= cache_wr_address_reg2;
+			cache_wr_address_reg3 <= cache_wr_address_reg2;
+			delay_cache_wr_address <= cache_wr_address_reg3;
 			
 			//// Priority grant to read request (usually read enable need to keep low during force evaluation process)
 			// if outside read request set, then no write activity is permitted
@@ -157,13 +164,13 @@ module Force_Write_Back_Controller
 				// Check if the incoming data is valid and belongs to the current cell
 				if(in_partial_force_valid && particle_cell_x == CELL_X && particle_cell_y == CELL_Y && particle_cell_z == CELL_Z)
 					begin
-					cache_rd_address <= 1;
+					cache_rd_address <= in_particle_id[CELL_ADDR_WIDTH-1:0];
 					cache_wr_address <= in_particle_id[CELL_ADDR_WIDTH-1:0];
 					cache_write_enable <= 1'b1;
 					end
 				else
 					begin
-					cache_rd_address <= 1;
+					cache_rd_address <= 0;
 					cache_wr_address <= 0;
 					cache_write_enable <= 1'b0;
 					end
