@@ -28,12 +28,12 @@
 //				Level 3: calculate Coulomb force + r8 term (MUL_ADD)										5 cycles
 //				Level 4: calculate Final force (MUL_ADD)														5 cycles
 //
-// Created by: Chen Yang 09/06/18
-//
 // Need to be done (10/03/18):
 //		Calculate the output for force components on each direction
 //		When select output force, need to propgate the r2 value along with the force evaluation datapath, to select the output force value
 //
+// Created by:
+//				Chen Yang 09/06/18
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_Evaluate_Pairs_Direct

@@ -29,8 +29,8 @@
 //				Level 2: calculate LJ Force (SUB)										3 cycles
 //				Level 3: calculate Force components in each direction (MUL)		4 cycles
 //
-// Created by: Chen Yang 10/01/2018 
-//
+// Created by:
+//				Chen Yang 10/01/2018 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_LJ_Evaluate_Pairs_1st_Order

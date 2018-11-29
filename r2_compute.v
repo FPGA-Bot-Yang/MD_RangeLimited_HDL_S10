@@ -24,12 +24,12 @@
 //				Level 3: calculate (x2 + y2) = (x2) + dy * dy (MUL_ADD)	5 cycles
 //				Level 4: calculate (x2 + y2) + dz * dz (MUL_ADD)			5 cycles
 //
-//
-// Created by: Chen Yang 07/15/18
 // Update log: 
 //			Chen Yang 10/01/18: add dx, dy, dz to output
 //			Chen Yang 10/03/18: remove the bug when only few sets of input are valid, the FP IP enable signal is not holding long enough
 //
+// Created by:
+//				Chen Yang 07/15/18
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module r2_compute

@@ -5,12 +5,11 @@
 //				Testbench for Filter_Buffer.v
 //				Checking when will the data show on the output port (if the rdreq is not assigned, will the data already be in there?)
 // 
-//
 // Dependency:
 // 			Filter_Buffer.v
 //
-// Created by: Chen Yang 11/14/18
-//
+// Created by:
+//				Chen Yang 11/14/18
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/1ns
 
@@ -37,7 +36,7 @@ module Filter_Buffer_tb;
 		if(rst)
 			begin
 			counter <= 0;
-			data_in <= 32'h00000000;
+			data_in <= 32'hDEADBEEF;
 			rdreq <= 1'b0;
 			wrreq <= 1'b0;
 			end

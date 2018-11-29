@@ -8,12 +8,11 @@
 // Dependency:
 // 			RL_Evaluate_Pairs_1st_Order.v
 //
-// Created by: Tony Geng 03/01/18
-// Update by: Chen Yang 05/21/18
-//
 // To do:
 //			done signal should not be issued until the last pair of particles is finished evaluation!
 //
+// Created by: Tony Geng 03/01/18
+// Update by: Chen Yang 05/21/18
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_Pipeline_1st_Order

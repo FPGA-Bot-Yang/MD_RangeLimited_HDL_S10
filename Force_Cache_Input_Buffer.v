@@ -1,8 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: Filter_Buffer.v
+// Module: Force_Cache_Input_Buffer.v
 //
 //	Function:
-//				Buffer the particle pairs that pass the filter
+//				Buffer the incoming force value if the particle it requires is being processing (true data dependency handler)
+//				When the requested particle is doen processing, pop up the buffer value whenever the incoming force is invalid or not target the current cell
 //
 // Timing:
 //				When the first write data is issued: after one cycle, empty falling down
@@ -12,13 +13,10 @@
 //				When the FIFO is empty, the output remains as the last valid readout data.
 // 
 // Used by:
-// 			Filter_Logic.v
-//
-// Testbench:
-//				Filter_Buffer_tb.v
+// 			Force_Write_Back_Controller.v
 //
 // Created by:
-//				Chen Yang 11/14/18
+//				Chen Yang 11/27/18
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // (C) 2001-2018 Intel Corporation. All rights reserved.
@@ -37,11 +35,11 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module  Filter_Buffer
+module  Force_Cache_Input_Buffer
 #(
-	parameter DATA_WIDTH = 32,
-	parameter FILTER_BUFFER_DEPTH = 32,
-	parameter FILTER_BUFFER_ADDR_WIDTH = 5					// log(FILTER_BUFFER_DEPTH) / log 2
+	parameter DATA_WIDTH = 32*3,
+	parameter BUFFER_DEPTH = 16,
+	parameter BUFFER_ADDR_WIDTH = 4					// log(BUFFER_DEPTH) / log 2
 )
 (
     clock,
@@ -61,16 +59,16 @@ module  Filter_Buffer
     output   empty;
     output   full;
     output [DATA_WIDTH-1:0]  q;
-    output [FILTER_BUFFER_ADDR_WIDTH-1:0]  usedw;
+    output [BUFFER_ADDR_WIDTH-1:0]  usedw;
 
     wire  sub_wire0;
     wire  sub_wire1;
     wire [DATA_WIDTH-1:0] sub_wire2;
-    wire [FILTER_BUFFER_ADDR_WIDTH-1:0] sub_wire3;
+    wire [BUFFER_ADDR_WIDTH-1:0] sub_wire3;
     wire  empty = sub_wire0;
     wire  full = sub_wire1;
     wire [DATA_WIDTH-1:0] q = sub_wire2[DATA_WIDTH-1:0];
-    wire [FILTER_BUFFER_ADDR_WIDTH-1:0] usedw = sub_wire3[FILTER_BUFFER_ADDR_WIDTH-1:0];
+    wire [BUFFER_ADDR_WIDTH-1:0] usedw = sub_wire3[BUFFER_ADDR_WIDTH-1:0];
 
     scfifo  scfifo_component (
                 .clock (clock),
@@ -90,11 +88,11 @@ module  Filter_Buffer
         scfifo_component.add_ram_output_register  = "OFF",
         scfifo_component.enable_ecc  = "FALSE",
         scfifo_component.intended_device_family  = "Stratix 10",
-        scfifo_component.lpm_numwords  = FILTER_BUFFER_DEPTH,
+        scfifo_component.lpm_numwords  = BUFFER_DEPTH,
         scfifo_component.lpm_showahead  = "OFF",
         scfifo_component.lpm_type  = "scfifo",
         scfifo_component.lpm_width  = DATA_WIDTH,
-        scfifo_component.lpm_widthu  = FILTER_BUFFER_ADDR_WIDTH,
+        scfifo_component.lpm_widthu  = BUFFER_ADDR_WIDTH,
         scfifo_component.overflow_checking  = "ON",
         scfifo_component.underflow_checking  = "ON",
         scfifo_component.use_eab  = "ON";

@@ -51,8 +51,8 @@
 //				1, Implement a general numbering mechanism for all the cell in the simulation space, currently using fixed cells id for each input to filters
 //				2, parameterize # of force evaluation units in it
 //
-// Created by: Chen Yang 10/30/18
-//
+// Created by:
+//				Chen Yang 10/30/18
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_LJ_Top
