@@ -60,6 +60,13 @@ module Force_Write_Back_Controller_tb;
 	wire [3*DATA_WIDTH-1:0] out_partial_force;
 	wire out_cache_readout_valid;
 	
+	reg [CELL_ADDR_WIDTH-1:0] particle_address;
+	
+	always@(*)
+		begin
+		in_particle_id <= {4'd2,4'd2,4'd2, particle_address};
+		end
+		
 	always #1 clk <= ~clk;
 	
 	
@@ -67,7 +74,7 @@ module Force_Write_Back_Controller_tb;
 		clk <= 1'b1;
 		rst <= 1'b1;
 		in_partial_force_valid <= 1'b0;
-		in_particle_id <= {4'd2,4'd2,4'd2,9'd1};
+		particle_address <= 9'd0;
 		in_partial_force <= {32'h3F800000, 32'h3F800000, 32'h3F800000};				// input value: {1.0,1.0,1.0}
 		in_read_data_request <= 1'b0;
 		in_cache_read_address <= 9'd1;
@@ -76,18 +83,110 @@ module Force_Write_Back_Controller_tb;
 		#10
 		rst <= 1'b0;
 		
-		// Input valid for 5 cycles
+		// ID： 1, Value 1.0, for 5 cycles
 		#10
 		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd1;
 		
-		// Input invalid
+		// ID: 2, Value 1.0
 		#10
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd2;
+		
+		// ID: 4, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd4;
+			
+		// ID: 3, Value 1.0, Input invalid
+		#2
+		in_partial_force_valid <= 1'b0;
+		particle_address <= 9'd3;
+		
+		// ID: 3, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd3;
+		
+		// ID: 4, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd4;
+		
+		// ID: 3, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd3;
+		
+		// ID: 5, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd5;
+		
+		// ID: 2, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd2;
+		
+		// ID: 2, Value 1.0, invalid
+		#2
+		in_partial_force_valid <= 1'b0;
+		particle_address <= 9'd2;
+		
+		// ID: 4, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd4;
+		
+		// ID: 3, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd3;
+		
+		// ID: 4, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd4;
+		
+		// ID: 3, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd3;
+		
+		// ID: 4, Value 1.0
+		#2
+		in_partial_force_valid <= 1'b1;
+		particle_address <= 9'd4;
+		
+		// Invalidate input to let the accumulation finish
+		#2
 		in_partial_force_valid <= 1'b0;
 		
 		// Readout the final result
-		#50
+		#100
 		in_read_data_request <= 1'b1;
+		in_cache_read_address <= 9'd1;
 		
+		#2
+		in_cache_read_address <= 9'd2;
+		
+		#2
+		in_cache_read_address <= 9'd3;
+		
+		#2
+		in_cache_read_address <= 9'd4;
+		
+		#2
+		in_cache_read_address <= 9'd5;
+		
+		//////////////////////////////////////////////////////////
+		// Final value:
+		//	1: 5.0 (32'h40A00000)
+		//	2: 2.0 (32'h40000000)
+		//	3: 4.0 (32'h40800000)
+		//	4: 5.0 (32'h40A00000)
+		//	5: 1.0 (32'h3F800000)
+		//////////////////////////////////////////////////////////
 		
 	end
 	
