@@ -88,12 +88,16 @@ module Force_Write_Back_Controller
 	input  in_read_data_request,																	// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 	input  [CELL_ADDR_WIDTH-1:0] in_cache_read_address,
 	output reg [3*DATA_WIDTH-1:0] out_partial_force,
+	output reg [PARTICLE_ID_WIDTH-1:0] out_particle_id,
 	output reg out_cache_readout_valid
 );
 
 	//// Delay registers
-	// Conpensate for the 1 cycle delay of reading data out from cache
+	// Conpensate for the 2 cycle delay between read request is issued and data read out from Force_Cache: Cycle 1: Read address registered to cache_rd_address; Cycle 2: Data read out
+	reg in_read_data_request_reg1;
 	reg delay_in_read_data_request;
+	reg [CELL_ADDR_WIDTH-1:0] in_cache_read_address_reg1;
+	reg [CELL_ADDR_WIDTH-1:0] delay_in_cache_read_address;
 	// Delay the write enable signal by 4 cycles: 1 cycle for assigning read address, 1 cycle for fetching data from cache, 2 cycles for waiting addition finish
 	reg cache_write_enable_reg1;
 	reg cache_write_enable_reg2;
@@ -108,6 +112,8 @@ module Force_Write_Back_Controller
 	reg [CELL_ADDR_WIDTH-1:0] delay_particle_address;
 	reg [3*DATA_WIDTH-1:0] delay_in_partial_force;
 	// Delay the control signal derived from the input information by one cycle
+	// The delay_input_matching should only have 1 cycle delay from the input_matching wire, however, when assigned in always block, the first register receive the same value at the same cycle as input_matching, thus I put 2 registers here, but only for getting the 1 cycle delay
+	reg input_matching_reg1;
 	reg delay_input_matching;
 	reg delay_input_buffer_empty;
 	// Delay the input to accumulator by one cycle to conpensate the one cycle delay to read previous data from force cache
@@ -130,6 +136,11 @@ module Force_Write_Back_Controller
 	wire [CELL_ADDR_WIDTH+3*DATA_WIDTH-1:0] input_buffer_readout_data;
 
 	//// Signals derived from input
+	// Extract the current cell id
+	wire [CELL_ID_WIDTH-1:0] cur_cell_x, cur_cell_y, cur_cell_z;
+	assign cur_cell_x = CELL_X;
+	assign cur_cell_y = CELL_Y;
+	assign cur_cell_z = CELL_Z;
 	// Extract the cell id from the incoming particle id
 	wire [CELL_ID_WIDTH-1:0] particle_cell_x, particle_cell_y, particle_cell_z;
 	assign {particle_cell_x, particle_cell_y, particle_cell_z} = in_particle_id[PARTICLE_ID_WIDTH-1:PARTICLE_ID_WIDTH-3*CELL_ID_WIDTH];
@@ -185,7 +196,10 @@ module Force_Write_Back_Controller
 			begin
 			// Delay registers
 			// For assigning the read out valid
+			in_read_data_request_reg1 <= 1'b0;
 			delay_in_read_data_request <= 1'b0;
+			in_cache_read_address_reg1 <= {(CELL_ADDR_WIDTH){1'b0}};
+			delay_in_cache_read_address <= {(CELL_ADDR_WIDTH){1'b0}};
 			// For conpensating the 4 cycles delay from write enable is assigned and accumulated value is calculated
 			cache_write_enable_reg1 <= 1'b0;
 			cache_write_enable_reg2 <= 1'b0;
@@ -200,6 +214,7 @@ module Force_Write_Back_Controller
 			delay_particle_address <= {(CELL_ADDR_WIDTH){1'b0}};
 			delay_in_partial_force <= {(3*DATA_WIDTH){1'b0}};
 			// For conpensating the one cycle delay to read from input FIFO, delay the control signal derived from the input information by one cycle
+			input_matching_reg1 <= 1'b0;
 			delay_input_matching <= 1'b0;
 			delay_input_buffer_empty <= 1'b1;
 			// For conpensating the one cycle delay of reading the previous value from force cache
@@ -214,6 +229,7 @@ module Force_Write_Back_Controller
 			
 			// Read output ports
 			out_partial_force <= {(3*DATA_WIDTH){1'b0}};
+			out_particle_id <= {(PARTICLE_ID_WIDTH){1'b0}};
 			out_cache_readout_valid <= 1'b0;
 			// Cache control signals
 			cache_rd_address <= {(CELL_ADDR_WIDTH){1'b0}};
@@ -228,7 +244,10 @@ module Force_Write_Back_Controller
 			begin
 			//// Delay registers
 			// For assigning the read out valid
-			delay_in_read_data_request <= in_read_data_request;
+			in_read_data_request_reg1 <= in_read_data_request;
+			delay_in_read_data_request <= in_read_data_request_reg1;
+			in_cache_read_address_reg1 <= in_cache_read_address;
+			delay_in_cache_read_address <= in_cache_read_address_reg1;
 			// For conpensating the 3 cycles delay from write enable is assigned and accumulated value is calculated
 			cache_write_enable_reg1 <= cache_write_enable;
 			cache_write_enable_reg2 <= cache_write_enable_reg1;
@@ -243,7 +262,8 @@ module Force_Write_Back_Controller
 			delay_particle_address <= particle_address;
 			delay_in_partial_force <= in_partial_force;
 			// For conpensating the one cycle delay to read from input FIFO, delay the control signal derived from the input information by one cycle
-			delay_input_matching <= input_matching;
+			input_matching_reg1 <= input_matching;
+			delay_input_matching <= input_matching_reg1;
 			delay_input_buffer_empty <= input_buffer_empty;
 			// For conpensating the one cycle delay of reading the previous value from force cache
 			delay_partial_force_to_accumulator <= partial_force_to_accumulator;
@@ -256,12 +276,14 @@ module Force_Write_Back_Controller
 			
 			//// Priority grant to read request (usually read enable need to keep low during force evaluation process)
 			// if outside read request set, then no write activity is permitted
-			if(in_read_data_request)
+			// There are 2 cycles delay between read request is assigned and force value is read out, thus keep the read_request state for 2 extra cycles after the in_read_data_request is cleared
+			if(in_read_data_request || in_read_data_request_reg1 || delay_in_read_data_request)
 				begin
 				// Active particle id for data dependence detection
 				active_particle_address <= 0;
 				// Read output ports
 				out_partial_force <= cache_readout_data;
+				out_particle_id <= {cur_cell_x,cur_cell_y,cur_cell_z,delay_in_cache_read_address};
 				out_cache_readout_valid <= delay_in_read_data_request;
 				// Cache control signals
 				cache_rd_address <= in_cache_read_address;
@@ -277,6 +299,7 @@ module Force_Write_Back_Controller
 				begin
 				// During force accumulation period, output the data that is being written into the memory
 				out_partial_force <= cache_write_data;
+				out_particle_id <= {cur_cell_x,cur_cell_y,cur_cell_z,delay_cache_wr_address};
 				out_cache_readout_valid <= 1'b0;
 				// If the input is valid and not being processed, then process the input
 				if(delay_input_matching && ~particle_occupied)
@@ -314,7 +337,7 @@ module Force_Write_Back_Controller
 				else
 					begin
 					// Active particle id for data dependence detection
-					active_particle_address <= {(CELL_ADDR_WIDTH){1'b1}};
+					active_particle_address <= {(CELL_ADDR_WIDTH){1'b0}};
 					// Cache control signal
 					cache_rd_address <= {(CELL_ADDR_WIDTH){1'b0}};
 					cache_wr_address <= {(CELL_ADDR_WIDTH){1'b0}};

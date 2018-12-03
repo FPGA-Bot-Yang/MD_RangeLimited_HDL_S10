@@ -7,10 +7,7 @@
 //	Purpose:
 //				
 //
-// Mapping Scheme:
-//				
-//
-// Format:
+// Data Organization:
 //				
 //
 // Used by:

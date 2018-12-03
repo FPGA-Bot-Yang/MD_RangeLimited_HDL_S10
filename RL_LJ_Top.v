@@ -511,6 +511,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -540,6 +541,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -569,6 +571,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -598,6 +601,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -627,6 +631,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -656,6 +661,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 
@@ -685,6 +691,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -714,6 +721,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -743,6 +751,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -772,6 +781,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -801,6 +811,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -830,6 +841,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 	
@@ -859,6 +871,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 
@@ -888,6 +901,7 @@ module RL_LJ_Top
 		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(),
 		.out_partial_force(),
+		.out_particle_id(),
 		.out_cache_readout_valid()
 	);
 

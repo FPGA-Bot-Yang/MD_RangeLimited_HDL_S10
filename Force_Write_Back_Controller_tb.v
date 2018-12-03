@@ -2,31 +2,29 @@
 // Module: Force_Write_Back_Controller_tb.v
 //
 //	Function: 
-//				
+//				Testbench for Force_Write_Back_Controller.v
 //
 //	Purpose:
-//				
+//				Testing the cases when consequective input are targeting the same particle
+//				Verify the input buffer mechanism
 //
-// Mapping Scheme:
-//				
-//
-// Format:
+// Data Organization:
+//				Force_Cache_Input_Buffer: {particle_address[CELL_ADDR_WIDTH-1:0], Force_Z, Force_Y, Force_X}
 //				
 //
 // Used by:
-//				.v
+//				N/A
 //
 // Dependency:
-//				.v
-//
-// Testbench:
-//				_tb.v
+//				Force_Write_Back_Controller.v
 //
 // Timing:
-//				TBD
-//
-// Todo:
-//				
+//				7 cycles: From the input of a valid result targeting this cell, till the accumulated value is successfully written into the force cache
+//				Cycle 1: register input & read from input FIFO (This may not necessary);
+//				Cycle 2: select from input or input FIFO;
+//				Cycle 3: read out previous force & delay the selected input force by one cycle to meet the previous force;
+//				Cycle 4-6: accumulation (1 cycle read in the signals, then 2 more cycles for actual evaluation);
+//				Cycle 7: write back force
 //
 // Created by: 
 //				Chen Yang 11/29/18
@@ -58,6 +56,7 @@ module Force_Write_Back_Controller_tb;
 	reg  in_read_data_request;																	// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 	reg  [CELL_ADDR_WIDTH-1:0] in_cache_read_address;
 	wire [3*DATA_WIDTH-1:0] out_partial_force;
+	wire [PARTICLE_ID_WIDTH-1:0] out_particle_id;
 	wire out_cache_readout_valid;
 	
 	reg [CELL_ADDR_WIDTH-1:0] particle_address;
@@ -77,13 +76,13 @@ module Force_Write_Back_Controller_tb;
 		particle_address <= 9'd0;
 		in_partial_force <= {32'h3F800000, 32'h3F800000, 32'h3F800000};				// input value: {1.0,1.0,1.0}
 		in_read_data_request <= 1'b0;
-		in_cache_read_address <= 9'd1;
+		in_cache_read_address <= 9'd0;
 		
 		// Clear reset signal
 		#10
 		rst <= 1'b0;
 		
-		// ID： 1, Value 1.0, for 5 cycles
+		// ID: 1, Value 1.0, for 5 cycles
 		#10
 		in_partial_force_valid <= 1'b1;
 		particle_address <= 9'd1;
@@ -163,7 +162,7 @@ module Force_Write_Back_Controller_tb;
 		in_partial_force_valid <= 1'b0;
 		
 		// Readout the final result
-		#100
+		#200
 		in_read_data_request <= 1'b1;
 		in_cache_read_address <= 9'd1;
 		
@@ -178,6 +177,9 @@ module Force_Write_Back_Controller_tb;
 		
 		#2
 		in_cache_read_address <= 9'd5;
+		
+		#2
+		in_read_data_request <= 1'b0;
 		
 		//////////////////////////////////////////////////////////
 		// Final value:
@@ -217,6 +219,7 @@ module Force_Write_Back_Controller_tb;
 		.in_read_data_request(in_read_data_request),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
 		.in_cache_read_address(in_cache_read_address),
 		.out_partial_force(out_partial_force),
+		.out_particle_id(out_particle_id),
 		.out_cache_readout_valid(out_cache_readout_valid)
 	);
 
