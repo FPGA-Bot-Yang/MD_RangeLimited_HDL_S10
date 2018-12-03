@@ -112,8 +112,6 @@ module Force_Write_Back_Controller
 	reg [CELL_ADDR_WIDTH-1:0] delay_particle_address;
 	reg [3*DATA_WIDTH-1:0] delay_in_partial_force;
 	// Delay the control signal derived from the input information by one cycle
-//	// The delay_input_matching should only have 1 cycle delay from the input_matching wire, however, when assigned in always block, the first register receive the same value at the same cycle as input_matching, thus I put 2 registers here, but only for getting the 1 cycle delay
-//	reg input_matching_reg1;
 	reg delay_input_matching;
 	reg delay_input_buffer_empty;
 	// Delay the input to accumulator by one cycle to conpensate the one cycle delay to read previous data from force cache
@@ -214,7 +212,6 @@ module Force_Write_Back_Controller
 			delay_particle_address <= {(CELL_ADDR_WIDTH){1'b0}};
 			delay_in_partial_force <= {(3*DATA_WIDTH){1'b0}};
 			// For conpensating the one cycle delay to read from input FIFO, delay the control signal derived from the input information by one cycle
-//			input_matching_reg1 <= 1'b0;
 			delay_input_matching <= 1'b0;
 			delay_input_buffer_empty <= 1'b1;
 			// For conpensating the one cycle delay of reading the previous value from force cache
@@ -262,7 +259,6 @@ module Force_Write_Back_Controller
 			delay_particle_address <= particle_address;
 			delay_in_partial_force <= in_partial_force;
 			// For conpensating the one cycle delay to read from input FIFO, delay the control signal derived from the input information by one cycle
-//			input_matching_reg1 <= input_matching;
 			delay_input_matching <= input_matching;
 			delay_input_buffer_empty <= input_buffer_empty;
 			// For conpensating the one cycle delay of reading the previous value from force cache
