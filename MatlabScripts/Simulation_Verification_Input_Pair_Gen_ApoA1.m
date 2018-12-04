@@ -547,6 +547,7 @@ if GEN_PAIRWISE_FORCE_VALUE == 1
     fresult = fopen('VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt', 'wt');
     fprintf(fresult,'Format\tRef ID\tNeighbor ID\tReference Position(x,y,z)\tNeighbor Position(x,y,z)\tR2\t\t\tdx\t\t\tdy\t\t\tdz\t\t\tForce_X\t\tForce_Y\t\tForce_Z\n');
     if GEN_PAIRWISE_NEIGHBOR_ACC_FORCE
+        fprintf('*** Start generating VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt! ***\n');
         fneighbor = fopen('VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt', 'wt');
         fprintf(fneighbor,'Format\tRef ID\tNeighbor ID\tReference Position(x,y,z)\tNeighbor Position(x,y,z)\tForce_X\t\tForce_Y\t\tForce_Z\n');
     end
@@ -649,7 +650,7 @@ if GEN_PAIRWISE_FORCE_VALUE == 1
 
                         %% Write result to output file
                         fprintf(fresult,'HEX:\t%d%d%d%2X\t%d%d%d%2X\t(%tX,%tX,%tX)<->(%tX,%tX,%tX)\t%tX\t%tX\t%tX\t%tX\t%tX\t%tX\t%tX\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,4:7),ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
-                        fprintf(fresult,'DEC:\t%d%d%d%2X\t%d%d%d%2X\t(%.3f,%.3f,%.3f)<->(%.3f,%.3f,%.3f)\t\t\t\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,4:7),ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
+                        fprintf(fresult,'DEC:\t%d%d%d%2X\t%d%d%d%2X\t(%.3f,%.3f,%.3f)<->(%.3f,%.3f,%.3f)\t\t\t\t%f\t%f\t%f\t%f\t%0.5g\t%0.5g\t%0.5g\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr,4:7),ref_pos_x,ref_pos_y,ref_pos_z,neighbor_pos_x,neighbor_pos_y,neighbor_pos_z,r2,dx,dy,dz,F_LJ_x,F_LJ_y,F_LJ_z);
                     
                         %% Accumulate the particle force to neighbor particles
                         if GEN_PAIRWISE_NEIGHBOR_ACC_FORCE
@@ -700,7 +701,7 @@ if GEN_PAIRWISE_FORCE_VALUE == 1
                     neighbor_particle_in_cell_ptr = filter_input_particle_reservoir(filter_id,neighbor_particle_ptr_tmp,7);
                     neighbor_cell_id = (neighbor_cell_x-1)*CELL_COUNT_Y*CELL_COUNT_Z + (neighbor_cell_y-1)*CELL_COUNT_Z + neighbor_cell_z;
                     fprintf(fneighbor,'HEX:\t%d%d%d%2X\t%d%d%d%2X\t(%tX,%tX,%tX)<->(%tX,%tX,%tX)\t%tX\t%tX\t%tX\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr_tmp,4:7),ref_pos_x,ref_pos_y,ref_pos_z,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr_tmp,1:3),cell_particle(neighbor_cell_id,neighbor_particle_in_cell_ptr,4:6));
-                    fprintf(fneighbor,'DEC:\t%d%d%d%2X\t%d%d%d%2X\t(%.3f,%.3f,%.3f)\t\t<->(%.3f,%.3f,%.3f)\t\t%f\t%f\t%f\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr_tmp,4:7),ref_pos_x,ref_pos_y,ref_pos_z,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr_tmp,1:3),cell_particle(neighbor_cell_id,neighbor_particle_in_cell_ptr,4:6));
+                    fprintf(fneighbor,'DEC:\t%d%d%d%2X\t%d%d%d%2X\t(%.3f,%.3f,%.3f)\t\t<->(%.3f,%.3f,%.3f)\t\t%0.5g\t%0.5g\t%0.5g\n',HOME_CELL_X,HOME_CELL_Y,HOME_CELL_Z,ref_particle_ptr,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr_tmp,4:7),ref_pos_x,ref_pos_y,ref_pos_z,filter_input_particle_reservoir(filter_id,neighbor_particle_ptr_tmp,1:3),cell_particle(neighbor_cell_id,neighbor_particle_in_cell_ptr,4:6));
                 end
             end
         end
