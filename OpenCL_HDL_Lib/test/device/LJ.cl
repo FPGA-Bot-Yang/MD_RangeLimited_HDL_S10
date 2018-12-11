@@ -24,7 +24,7 @@
 //                         __global const float *y, 
 //                         __global float *restrict z)
 
-#include "../../OpenCLCustomLib/LJ_Force_hdl.h"
+#include "../../RL_LJ_Evaluation.h"
 
 #define WORKSIZE 2000
 
@@ -32,6 +32,7 @@ __kernel void LJ(
 			//__global const float *restrict ref_x, 
             		//__global const float *restrict ref_y, 
             		//__global const float *restrict ref_z,
+					__global const int2 *restrict particle_id,
             		__global const float4 *restrict ref,
 			//__global const float *restrict neighbor_x,
 			//__global const float *restrict neighbor_y,
@@ -41,8 +42,7 @@ __kernel void LJ(
 {
 	#pragma unroll 1
 	for (int i = 0; i < WORKSIZE; ++i){
-		//Force_out[i] = LJ_Force_hdl(ref_x[i], ref_y[i], ref_z[i], neighbor_x[i], neighbor_y[i], neighbor_z[i]);
-		Force_out[i] = LJ_Force_hdl(ref[i], neighbor[i]);
+		Force_out[i] = RL_LJ_Evaluation(particle_id[i], ref[i], neighbor[i]);
 	}
 }
 
