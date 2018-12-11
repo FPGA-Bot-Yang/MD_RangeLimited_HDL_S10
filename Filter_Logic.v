@@ -66,7 +66,7 @@ module Filter_Logic
 	// 17 is the latency in r2_compute
 	// *** if r2_compute latency changed, need to change the threshold value to the new latency
 	wire [FILTER_BUFFER_ADDR_WIDTH-1:0] buffer_usedw;
-	assign filter_back_pressure = (FILTER_BUFFER_DEPTH - buffer_usedw <= 17) ? 1'b1 : 1'b0;
+	assign filter_back_pressure = (FILTER_BUFFER_DEPTH - buffer_usedw < 21) ? 1'b1 : 1'b0;
 	
 	// Assign Output: particle_pair_available
 	wire buffer_empty;
@@ -243,7 +243,7 @@ module Filter_Logic
 	// Data organization in buffer: MSB-LSB: {ref_particle_id, neighbor_particle_id, r2, dz, dy, dx}
 	Filter_Buffer
 	#(
-		.DATA_WIDTH(2*PARTICLE_ID_WIDTH+4*DATA_WIDTH),														// hold r2, dx, dy, dz
+		.DATA_WIDTH(2*PARTICLE_ID_WIDTH+4*DATA_WIDTH),							// hold r2, dx, dy, dz
 		.FILTER_BUFFER_DEPTH(FILTER_BUFFER_DEPTH),
 		.FILTER_BUFFER_ADDR_WIDTH(FILTER_BUFFER_ADDR_WIDTH)					// log(FILTER_BUFFER_DEPTH) / log 2
 	)
