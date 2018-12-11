@@ -135,7 +135,7 @@ module RL_LJ_Evaluation_OpenCL_Top_tb;
 				begin
 				ivalid <= 1'b1;
 				in_ref_particle_id <= {4'd2, 4'd2, 4'd2, 9'd1};
-				in_neighbor_particle_id <= {4'd2, 4'd2, 4'd3, 9'h16};
+				in_neighbor_particle_id <= {4'd2, 4'd2, 4'd3, 1'b0, counter};
 				in_refx <= 32'h41668F5C;
 				in_refy <= 32'h414153F8;
 				in_refz <= 32'h416974BC;
@@ -148,7 +148,7 @@ module RL_LJ_Evaluation_OpenCL_Top_tb;
 				begin
 				ivalid <= 1'b1;
 				in_ref_particle_id <= {4'd2, 4'd2, 4'd2, 9'd1};
-				in_neighbor_particle_id <= {4'd2, 4'd2, 4'd3, 9'h14};
+				in_neighbor_particle_id <= {4'd2, 4'd2, 4'd3, 1'b0, counter};
 				in_refx <= 32'h41668F5C;
 				in_refy <= 32'h414153F8;
 				in_refz <= 32'h416974BC;
@@ -161,7 +161,7 @@ module RL_LJ_Evaluation_OpenCL_Top_tb;
 				begin
 				ivalid <= 1'b1;
 				in_ref_particle_id <= {4'd2, 4'd2, 4'd2, 9'd1};
-				in_neighbor_particle_id <= {4'd2, 4'd2, 4'd3, 9'h16};
+				in_neighbor_particle_id <= {4'd2, 4'd2, 4'd3, 1'b0, counter};
 				in_refx <= 32'h41668F5C;
 				in_refy <= 32'h414153F8;
 				in_refz <= 32'h416974BC;
@@ -174,7 +174,7 @@ module RL_LJ_Evaluation_OpenCL_Top_tb;
 				begin
 				ivalid <= 1'b0;
 				in_ref_particle_id <= {4'd2, 4'd2, 4'd2, 9'd1};
-				in_neighbor_particle_id <= {4'd2, 4'd2, 4'd3, 9'h16};
+				in_neighbor_particle_id <= {4'd2, 4'd2, 4'd3, 1'b0, counter};
 				in_refx <= 32'h41668F5C;
 				in_refy <= 32'h414153F8;
 				in_refz <= 32'h416974BC;
