@@ -54,12 +54,12 @@ int main(){
 		Gen_Lookup_Mem(0, 8, BIN_NUM, SEG_NUM, &common_src_path);
 		Gen_Lookup_Mem(0, 14, BIN_NUM, SEG_NUM, &common_src_path);
 	}
-	else if(INTERPOLATION_ORDER >= 1){
+	if(INTERPOLATION_ORDER >= 1){
 		Gen_Lookup_Mem(1, 3, BIN_NUM, SEG_NUM, &common_src_path);
 		Gen_Lookup_Mem(1, 8, BIN_NUM, SEG_NUM, &common_src_path);
 		Gen_Lookup_Mem(1, 14, BIN_NUM, SEG_NUM, &common_src_path);
 	}
-	else if(INTERPOLATION_ORDER >= 2){
+	if(INTERPOLATION_ORDER >= 2){
 		Gen_Lookup_Mem(2, 3, BIN_NUM, SEG_NUM, &common_src_path);
 		Gen_Lookup_Mem(2, 8, BIN_NUM, SEG_NUM, &common_src_path);
 		Gen_Lookup_Mem(2, 14, BIN_NUM, SEG_NUM, &common_src_path);
