@@ -119,7 +119,7 @@
  view signals
 
  radix hex
- run 300ns
+ run 1000ns
 # #
 # # Report success to the shell.
 # exit -code 0
