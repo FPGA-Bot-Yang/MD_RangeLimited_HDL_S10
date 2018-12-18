@@ -42,13 +42,15 @@ module  FIFO
 #(
 	parameter DATA_WIDTH = 32,
 	parameter FIFO_DEPTH = 32,
-	parameter FIFO_ADDR_WIDTH = 5					// log(FILTER_BUFFER_DEPTH) / log 2
+	parameter FIFO_ADDR_WIDTH = 5,				// log(FILTER_BUFFER_DEPTH) / log 2
+	parameter ALMOST_FULL_THRESHOLD = 3			// If there's less than this value available in the FIFO, set the almost_full flag
 )
 (
     clock,
     data,
     rdreq,
     wrreq,
+	 almost_full,
     empty,
     full,
     q,
@@ -59,6 +61,7 @@ module  FIFO
     input  [DATA_WIDTH-1:0]  data;
     input    rdreq;
     input    wrreq;
+	 output   almost_full;
     output   empty;
     output   full;
     output [DATA_WIDTH-1:0]  q;
@@ -66,10 +69,12 @@ module  FIFO
 
     wire  sub_wire0;
     wire  sub_wire1;
+	 wire  sub_wire4;
     wire [DATA_WIDTH-1:0] sub_wire2;
     wire [FIFO_ADDR_WIDTH-1:0] sub_wire3;
     wire  empty = sub_wire0;
     wire  full = sub_wire1;
+	 wire  almost_full = sub_wire4;
     wire [DATA_WIDTH-1:0] q = sub_wire2[DATA_WIDTH-1:0];
     wire [FIFO_ADDR_WIDTH-1:0] usedw = sub_wire3[FIFO_ADDR_WIDTH-1:0];
 
@@ -84,11 +89,12 @@ module  FIFO
                 .usedw (sub_wire3),
                 .aclr (),
                 .almost_empty (),
-                .almost_full (),
+                .almost_full (sub_wire4),
                 .eccstatus (),
                 .sclr ());
     defparam
         scfifo_component.add_ram_output_register  = "OFF",
+		  scfifo_component.almost_full_value  = FIFO_DEPTH - ALMOST_FULL_THRESHOLD,
         scfifo_component.enable_ecc  = "FALSE",
         scfifo_component.intended_device_family  = "Stratix 10",
         scfifo_component.lpm_numwords  = FIFO_DEPTH,

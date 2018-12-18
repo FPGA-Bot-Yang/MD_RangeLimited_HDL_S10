@@ -98,6 +98,8 @@ module RL_LJ_Evaluation_OpenCL_Top
 	output [4*DATA_WIDTH-1:0] out_forceoutput
 );
 	
+	//// Dummy output
+	assign out_forceoutput[4*DATA_WIDTH-1:3*DATA_WIDTH] = 0;
 	wire [2*DATA_WIDTH-1:0] out_particle_id;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////

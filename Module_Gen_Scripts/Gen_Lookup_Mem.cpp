@@ -133,7 +133,7 @@ int Gen_Lookup_Mem(int order, int term, int bin_num, int seg_num, std::string* c
 	fout << "`elsif STX_2ND_PATH\n";
 	fout << "\t\taltera_syncram_component.init_file = \"/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/c"<< order <<"_"<< term <<".hex\"\n";
 	fout << "`elsif STX_OPENCL_LIB\n";
-	fout << "\t\taltera_syncram_component.init_file = \"/home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/OpenCL_HDL_Lib/c"<< order <<"_"<< term <<".hex\"\n";
+	fout << "\t\taltera_syncram_component.init_file = \"/home/cobell/Ethan_Dir/MD_RangeLimited_HDL_S10/OpenCL_HDL_Lib/c"<< order <<"_"<< term <<".hex\"\n";
 	fout << "`else\n";
 	fout << "\t\taltera_syncram_component.init_file = \""<< *common_path << "/c"<< order <<"_"<< term <<".hex\"\n";
 	fout << "`endif\n";
