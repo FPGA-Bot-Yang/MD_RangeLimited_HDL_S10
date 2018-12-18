@@ -100,7 +100,7 @@ module lut1_3
 `elsif STX_2ND_PATH
 		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/c1_3.hex"
 `elsif STX_OPENCL_LIB
-		altera_syncram_component.init_file = "/home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/OpenCL_HDL_Lib/c1_3.hex"
+		altera_syncram_component.init_file = "/home/cobell/Ethan_Dir/MD_RangeLimited_HDL_S10/OpenCL_HDL_Lib/c1_3.hex"
 `else
 		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/c1_3.hex"
 `endif
