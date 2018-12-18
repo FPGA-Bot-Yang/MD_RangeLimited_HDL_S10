@@ -2,7 +2,7 @@
   <!-- 'name' is how this function will be called from an OpenCL kernel.
                      'module' is the top-level HDL module name that implements the function. -->
   
-  <FUNCTION name="RL_LJ_Evaluation" module="RL_LJ_Evaluation">
+  <FUNCTION name="RL_LJ_Evaluation" module="RL_LJ_Evaluation_OpenCL_Top">
     <ATTRIBUTES>
       <IS_STALL_FREE value="no"/>
       <IS_FIXED_LATENCY value="no"/>
