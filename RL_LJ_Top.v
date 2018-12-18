@@ -100,8 +100,183 @@ module RL_LJ_Top
 	output [NUM_EVAL_UNIT*DATA_WIDTH-1:0] neighbor_LJ_Force_Z,
 	output [NUM_EVAL_UNIT-1:0] neighbor_forceoutput_valid,
 	// Done signal, when entire home cell is done processing, this will keep high until the next time 'start' signal turn high
-	output done
+	output done,
+	
+	// Dummy In&Out ports to keep the Force_Cache
+	input [3:0] in_sel,
+	input [CELL_ADDR_WIDTH-1:0] in_force_cache_read_address,
+	output reg [3*DATA_WIDTH-1:0] out_partial_force,
+	output reg [PARTICLE_ID_WIDTH-1:0] out_particle_id,
+	output reg out_partial_force_valid
 );
+
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// Dummy In&Out ports to keep the Force_Cache
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	reg [NUM_NEIGHBOR_CELLS:0] wire_input_to_cache_read_force_request;
+	always@(*)
+		begin
+		case(in_sel)
+			0:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000000000001;
+				end
+			1:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000000000010;
+				end
+			2:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000000000100;
+				end
+			3:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000000001000;
+				end
+			4:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000000010000;
+				end
+			5:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000000100000;
+				end
+			6:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000001000000;
+				end
+			7:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000010000000;
+				end
+			8:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000100000000;
+				end
+			9:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00001000000000;
+				end
+			10:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00010000000000;
+				end
+			11:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00100000000000;
+				end
+			12:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b01000000000000;
+				end
+			13:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b10000000000000;
+				end
+			default:
+				begin
+				wire_input_to_cache_read_force_request <= 14'b00000000000001;
+				end
+		endcase
+		end
+	wire [NUM_NEIGHBOR_CELLS:0] wire_cache_to_output_partial_force_valid;
+	wire [(NUM_NEIGHBOR_CELLS+1)*3*DATA_WIDTH-1:0] wire_cache_to_output_partial_force;
+	wire [(NUM_NEIGHBOR_CELLS+1)*PARTICLE_ID_WIDTH-1:0] wire_cache_to_output_particle_id;
+	always@(posedge clk)
+		begin
+		case(in_sel)
+			0:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[1*3*DATA_WIDTH-1:0*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[1*PARTICLE_ID_WIDTH-1:0*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[0];
+				end
+			1:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[2*3*DATA_WIDTH-1:1*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[1];
+				end
+			2:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[3*3*DATA_WIDTH-1:2*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[2];
+				end
+			3:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[4*3*DATA_WIDTH-1:3*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[3];
+				end
+			4:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[5*3*DATA_WIDTH-1:4*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[4];
+				end
+			5:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[6*3*DATA_WIDTH-1:5*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[5];
+				end
+			6:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[7*3*DATA_WIDTH-1:6*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[6];
+				end
+			7:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[8*3*DATA_WIDTH-1:7*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[7];
+				end
+			8:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[9*3*DATA_WIDTH-1:8*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[9*PARTICLE_ID_WIDTH-1:8*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[8];
+				end
+			9:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[10*3*DATA_WIDTH-1:9*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[10*PARTICLE_ID_WIDTH-1:9*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[9];
+				end
+			10:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[11*3*DATA_WIDTH-1:10*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[11*PARTICLE_ID_WIDTH-1:10*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[10];
+				end
+			11:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[12*3*DATA_WIDTH-1:11*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[12*PARTICLE_ID_WIDTH-1:11*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[11];
+				end
+			12:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[13*3*DATA_WIDTH-1:12*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[13*PARTICLE_ID_WIDTH-1:12*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[12];
+				end
+			13:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[14*3*DATA_WIDTH-1:13*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[14*PARTICLE_ID_WIDTH-1:13*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[13];
+				end
+			default:
+				begin
+				out_partial_force <= wire_cache_to_output_partial_force[1*3*DATA_WIDTH-1:0*3*DATA_WIDTH];
+				out_particle_id <= wire_cache_to_output_particle_id[1*PARTICLE_ID_WIDTH-1:0*PARTICLE_ID_WIDTH];
+				out_partial_force_valid <= wire_cache_to_output_partial_force_valid[0];
+				end
+		endcase
+		end
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Signals between Cell Module and FSM
@@ -508,11 +683,11 @@ module RL_LJ_Top
 		.in_particle_id(ref_particle_id),
 		.in_partial_force({ref_LJ_Force_Z, ref_LJ_Force_Y, ref_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[0]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[1*3*DATA_WIDTH-1:0*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[1*PARTICLE_ID_WIDTH-1:0*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[0])
 	);
 	
 	// Neighbor cell #1 (223)
@@ -538,11 +713,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[1]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[2*3*DATA_WIDTH-1:1*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[2*PARTICLE_ID_WIDTH-1:1*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[1])
 	);
 	
 	// Neighbor cell #2 (231)
@@ -568,11 +743,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[2]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[3*3*DATA_WIDTH-1:2*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[3*PARTICLE_ID_WIDTH-1:2*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[2])
 	);
 	
 	// Neighbor cell #3 (232)
@@ -598,11 +773,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[3]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[4*3*DATA_WIDTH-1:3*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[4*PARTICLE_ID_WIDTH-1:3*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[3])
 	);
 	
 	// Neighbor cell #4 (233)
@@ -628,11 +803,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[4]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[5*3*DATA_WIDTH-1:4*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[5*PARTICLE_ID_WIDTH-1:4*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[4])
 	);
 	
 	// Neighbor cell #5 (311)
@@ -658,11 +833,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[5]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[6*3*DATA_WIDTH-1:5*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[6*PARTICLE_ID_WIDTH-1:5*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[5])
 	);
 
 	// Neighbor cell #6 (312)
@@ -688,11 +863,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[6]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[7*3*DATA_WIDTH-1:6*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[7*PARTICLE_ID_WIDTH-1:6*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[6])
 	);
 	
 	// Neighbor cell #7 (313)
@@ -718,11 +893,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[7]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[8*3*DATA_WIDTH-1:7*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[8*PARTICLE_ID_WIDTH-1:7*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[7])
 	);
 	
 	// Neighbor cell #8 (321)
@@ -748,11 +923,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[8]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[9*3*DATA_WIDTH-1:8*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[9*PARTICLE_ID_WIDTH-1:8*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[8])
 	);
 	
 	// Neighbor cell #9 (322)
@@ -778,11 +953,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[9]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[10*3*DATA_WIDTH-1:9*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[10*PARTICLE_ID_WIDTH-1:9*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[9])
 	);
 	
 	// Neighbor cell #10 (323)
@@ -808,11 +983,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[10]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[11*3*DATA_WIDTH-1:10*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[11*PARTICLE_ID_WIDTH-1:10*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[10])
 	);
 	
 	// Neighbor cell #11 (331)
@@ -838,11 +1013,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[11]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[12*3*DATA_WIDTH-1:11*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[12*PARTICLE_ID_WIDTH-1:11*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[11])
 	);
 	
 	// Neighbor cell #12 (332)
@@ -868,11 +1043,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[12]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[13*3*DATA_WIDTH-1:12*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[13*PARTICLE_ID_WIDTH-1:12*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[12])
 	);
 
 	// Neighbor cell #13 (333)
@@ -898,11 +1073,11 @@ module RL_LJ_Top
 		.in_particle_id(neighbor_particle_id),
 		.in_partial_force({neighbor_LJ_Force_Z, neighbor_LJ_Force_Y, neighbor_LJ_Force_X}),
 		// Cache output force
-		.in_read_data_request(),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
-		.in_cache_read_address(),
-		.out_partial_force(),
-		.out_particle_id(),
-		.out_cache_readout_valid()
+		.in_read_data_request(wire_input_to_cache_read_force_request[13]),									// Enables read data from the force cache, if this signal is high, then no write operation is permitted
+		.in_cache_read_address(in_force_cache_read_address),
+		.out_partial_force(wire_cache_to_output_partial_force[14*3*DATA_WIDTH-1:13*3*DATA_WIDTH]),
+		.out_particle_id(wire_cache_to_output_particle_id[14*PARTICLE_ID_WIDTH-1:13*PARTICLE_ID_WIDTH]),
+		.out_cache_readout_valid(wire_cache_to_output_partial_force_valid[13])
 	);
 
 endmodule

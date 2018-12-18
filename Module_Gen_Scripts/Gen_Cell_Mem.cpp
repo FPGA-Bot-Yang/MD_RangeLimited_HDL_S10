@@ -35,10 +35,11 @@ int Gen_Cell_Mem(int cellx, int celly, int cellz, std::string* common_path){
 	fout << "//\t\t\t\tProviding particle position data for force evaluation and motion update\n";
 	fout << "//\n";
 	fout << "// Data Organization:\n";
+	fout << "//\t\t\t\tAddress 0 for each cell module: # of particles in the cell.\n";
 	fout << "//\t\t\t\tMSB-LSB: {posz, posy, posx}\n";
 	fout << "//\n";
 	fout << "// Used by:\n";
-	fout << "//\t\t\t\tRL_LJ_Top.v\n";
+	fout << "//\t\t\t\tPos_Cache_" << cellx <<  "_" << celly << "_" << cellz << ".v\n";
 	fout << "//\n";
 	fout << "// Dependency:\n";
 	fout << "//\t\t\t\tcell_ini_file_"<< cellx <<"_"<< celly <<"_"<< cellz <<".hex / cell_ini_file_"<< cellx <<"_"<< celly <<"_"<< cellz <<".mif\n";

@@ -317,6 +317,7 @@ module Force_Write_Back_Controller
 					end
 				// If the input is not valid, or the input is valid but requested particle is being processed, then process particle from the input buffer
 				else if(~input_buffer_out_particle_occupied && input_buffer_read_valid && (~delay_input_matching || (delay_input_matching && particle_occupied)))
+//				else if(~input_buffer_out_particle_occupied && input_buffer_read_valid && ~delay_input_matching)
 					begin
 					// Active particle id for data dependence detection
 					active_particle_address <= input_buffer_readout_data[CELL_ADDR_WIDTH+3*DATA_WIDTH-1:3*DATA_WIDTH];

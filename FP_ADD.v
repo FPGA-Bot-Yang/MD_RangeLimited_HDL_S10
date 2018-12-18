@@ -1,10 +1,24 @@
-module FP_ADD  (
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Module: FP_ADD.v
+//
+//	Function:
+//				Floating Point ADD on hard DSP unit
+//
+// Latency: 3 cycles
+//
+// Created by: Chen Yang 10/24/18
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+module FP_ADD
+#(parameter DATA_WIDTH = 32)
+(
     input  wire                          clk,
     input  wire                          ena,
     input  wire                          clr,
-    input  wire [31:0]                   ax,
-    input  wire [31:0]                   ay,
-    output wire [31:0]                   result
+    input  wire [DATA_WIDTH-1:0]                   ax,
+    input  wire [DATA_WIDTH-1:0]                   ay,
+    output wire [DATA_WIDTH-1:0]                   result
 	);
     wire [1-1:0] clk_vec;
     wire [1-1:0] ena_vec;

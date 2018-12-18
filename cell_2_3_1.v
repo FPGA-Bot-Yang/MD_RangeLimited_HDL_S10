@@ -8,10 +8,11 @@
 //				Providing particle position data for force evaluation and motion update
 //
 // Data Organization:
+//				Address 0 for each cell module: # of particles in the cell.
 //				MSB-LSB: {posz, posy, posx}
 //
 // Used by:
-//				RL_LJ_Top.v
+//				Pos_Cache_2_3_1.v
 //
 // Dependency:
 //				cell_ini_file_2_3_1.hex / cell_ini_file_2_3_1.mif

@@ -18,7 +18,6 @@ all: $(OBJ)
 	
 clean:
 	rm *.o
-	rm all
 	rm *.v
 	
 

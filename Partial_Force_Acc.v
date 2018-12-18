@@ -17,7 +17,7 @@
 //				Partial_Force_Acc_tb.v
 //
 // Timing: 
-//				TBD
+//				FP_ACC: 1 cycle
 //
 // Created by: Chen Yang 10/23/18
 //
