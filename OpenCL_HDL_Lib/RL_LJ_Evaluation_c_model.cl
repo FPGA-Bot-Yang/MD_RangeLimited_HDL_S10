@@ -22,7 +22,7 @@ float4 RL_LJ_Evaluation(int2 particle_id, float4 reference_pos, float4 neighbor_
 	
 	float4 LJ_Force_Components = (float4){LJ_Force_x, LJ_Force_y, LJ_Force_z,0.0f};
 	
-	//pritf("Evaluated force is %f, %f, %f\n", LJ_Force_x, LJ_Force_y, LJ_Force_z);
+	pritf("Evaluated force is %f, %f, %f\n", LJ_Force_x, LJ_Force_y, LJ_Force_z);
 	
 	return LJ_Force_Components;
 }
