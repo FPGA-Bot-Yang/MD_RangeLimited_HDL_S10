@@ -125,6 +125,19 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path){
 	fout << " vlog -vlog01compat -work work " << path << "cell_3_3_2.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "cell_3_3_3.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_2_2_2.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_2_2_3.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_2_3_1.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_2_3_2.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_2_3_3.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_1_1.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_1_2.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_1_3.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_2_1.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_2_2.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_2_3.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_3_1.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_3_2.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_3_3.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_2_2_2_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top_tb.v\n\n";
@@ -136,7 +149,7 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path){
 	/////////////////////////////////////////////////////////////////////////
 	// Set testbench
 	/////////////////////////////////////////////////////////////////////////
-	fout << " set TOP_LEVEL_NAME Pos_Cache_2_2_2_tb\n";
+	fout << " set TOP_LEVEL_NAME RL_LJ_Top_tb\n";
 	fout << "# #\n";
 	fout << "# # Set any elaboration options you require.\n";
 	fout << "# set USER_DEFINED_ELAB_OPTIONS <elaboration options>\n";

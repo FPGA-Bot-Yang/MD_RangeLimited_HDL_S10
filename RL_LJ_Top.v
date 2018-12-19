@@ -304,8 +304,18 @@ module RL_LJ_Top
 	wire [NUM_FILTER-1:0] ForceEval_to_FSM_backpressure;
 	wire ForceEval_to_FSM_all_buffer_empty;
 
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// Motion Update Signals
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	reg Motion_Update_enable;
+	reg [3*DATA_WIDTH-1:0] Motion_Update_data;
+	reg Motion_Update_data_valid;
+	reg [3*CELL_ID_WIDTH-1:0] Motion_Update_dst_cell;
 	
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////
 	// FSM for generating particle pairs
+	///////////////////////////////////////////////////////////////////////////////////////////////
 	Particle_Pair_Gen_HalfShell
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
@@ -415,241 +425,339 @@ module RL_LJ_Top
 	// Data orgainization in cell memory: (pos_z, pos_y, pos_x)
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Home cell (2,2,2)
-	cell_2_2_2
+	Pos_Cache_2_2_2
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(2),
+		.CELL_Y(2),
+		.CELL_Z(2)
 	)
 	cell_2_2_2
 	(
-		.address(FSM_to_Cell_read_addr[1*CELL_ADDR_WIDTH-1:0*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[1*3*DATA_WIDTH-1:0*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[1*CELL_ADDR_WIDTH-1:0*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[1*3*DATA_WIDTH-1:0*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #1 (2,2,3)
-	cell_2_2_3
+	Pos_Cache_2_2_3
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(2),
+		.CELL_Y(2),
+		.CELL_Z(3)
 	)
 	cell_2_2_3
 	(
-		.address(FSM_to_Cell_read_addr[2*CELL_ADDR_WIDTH-1:1*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[2*3*DATA_WIDTH-1:1*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[2*CELL_ADDR_WIDTH-1:1*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[2*3*DATA_WIDTH-1:1*3*DATA_WIDTH])
 	);
-		
+	
 	// Neighbor cell #2 (2,3,1)
-	cell_2_3_1
+	Pos_Cache_2_3_1
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(2),
+		.CELL_Y(3),
+		.CELL_Z(1)
 	)
 	cell_2_3_1
 	(
-		.address(FSM_to_Cell_read_addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[3*3*DATA_WIDTH-1:2*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[3*CELL_ADDR_WIDTH-1:2*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[3*3*DATA_WIDTH-1:2*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #3 (2,3,2)
-	cell_2_3_2
+	Pos_Cache_2_3_2
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(2),
+		.CELL_Y(3),
+		.CELL_Z(2)
 	)
 	cell_2_3_2
 	(
-		.address(FSM_to_Cell_read_addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[4*3*DATA_WIDTH-1:3*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[4*CELL_ADDR_WIDTH-1:3*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[4*3*DATA_WIDTH-1:3*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #4 (2,3,3)
-	cell_2_3_3
+	Pos_Cache_2_3_3
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(2),
+		.CELL_Y(3),
+		.CELL_Z(3)
 	)
 	cell_2_3_3
 	(
-		.address(FSM_to_Cell_read_addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[5*3*DATA_WIDTH-1:4*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[5*CELL_ADDR_WIDTH-1:4*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[5*3*DATA_WIDTH-1:4*3*DATA_WIDTH])
 	);
-
+	
 	// Neighbor cell #5 (3,1,1)
-	cell_3_1_1
+	Pos_Cache_3_1_1
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(1),
+		.CELL_Z(1)
 	)
 	cell_3_1_1
 	(
-		.address(FSM_to_Cell_read_addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[6*3*DATA_WIDTH-1:5*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[6*CELL_ADDR_WIDTH-1:5*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[6*3*DATA_WIDTH-1:5*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #6 (3,1,2)
-	cell_3_1_2
+	Pos_Cache_3_1_2
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(1),
+		.CELL_Z(2)
 	)
 	cell_3_1_2
 	(
-		.address(FSM_to_Cell_read_addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[7*3*DATA_WIDTH-1:6*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[7*CELL_ADDR_WIDTH-1:6*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[7*3*DATA_WIDTH-1:6*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #7 (3,1,3)
-	cell_3_1_3
+	Pos_Cache_3_1_3
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(1),
+		.CELL_Z(3)
 	)
 	cell_3_1_3
 	(
-		.address(FSM_to_Cell_read_addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[8*3*DATA_WIDTH-1:7*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[8*CELL_ADDR_WIDTH-1:7*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[8*3*DATA_WIDTH-1:7*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #8 (3,2,1)
-	cell_3_2_1
+	Pos_Cache_3_2_1
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(2),
+		.CELL_Z(1)
 	)
 	cell_3_2_1
 	(
-		.address(FSM_to_Cell_read_addr[9*CELL_ADDR_WIDTH-1:8*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[9*3*DATA_WIDTH-1:8*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[9*CELL_ADDR_WIDTH-1:8*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[9*3*DATA_WIDTH-1:8*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #9 (3,2,2)
-	cell_3_2_2
+	Pos_Cache_3_2_2
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(2),
+		.CELL_Z(2)
 	)
 	cell_3_2_2
 	(
-		.address(FSM_to_Cell_read_addr[10*CELL_ADDR_WIDTH-1:9*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[10*3*DATA_WIDTH-1:9*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[10*CELL_ADDR_WIDTH-1:9*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[10*3*DATA_WIDTH-1:9*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #10 (3,2,3)
-	cell_3_2_3
+	Pos_Cache_3_2_3
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(2),
+		.CELL_Z(3)
 	)
 	cell_3_2_3
 	(
-		.address(FSM_to_Cell_read_addr[11*CELL_ADDR_WIDTH-1:10*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[11*3*DATA_WIDTH-1:10*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[11*CELL_ADDR_WIDTH-1:10*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[11*3*DATA_WIDTH-1:10*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #11 (3,3,1)
-	cell_3_3_1
+	Pos_Cache_3_3_1
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(3),
+		.CELL_Z(1)
 	)
 	cell_3_3_1
 	(
-		.address(FSM_to_Cell_read_addr[12*CELL_ADDR_WIDTH-1:11*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[12*3*DATA_WIDTH-1:11*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[12*CELL_ADDR_WIDTH-1:11*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[12*3*DATA_WIDTH-1:11*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #12 (3,3,2)
-	cell_3_3_2
+	Pos_Cache_3_3_2
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(3),
+		.CELL_Z(2)
 	)
 	cell_3_3_2
 	(
-		.address(FSM_to_Cell_read_addr[13*CELL_ADDR_WIDTH-1:12*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[13*3*DATA_WIDTH-1:12*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[13*CELL_ADDR_WIDTH-1:12*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[13*3*DATA_WIDTH-1:12*3*DATA_WIDTH])
 	);
 	
 	// Neighbor cell #13 (3,3,3)
-	cell_3_3_3
+	Pos_Cache_3_3_3
 	#(
 		.DATA_WIDTH(DATA_WIDTH*3),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
-		.ADDR_WIDTH(CELL_ADDR_WIDTH)
+		.ADDR_WIDTH(CELL_ADDR_WIDTH),
+		.CELL_ID_WIDTH(CELL_ID_WIDTH),
+		.CELL_X(3),
+		.CELL_Y(3),
+		.CELL_Z(2)
 	)
 	cell_3_3_3
 	(
-		.address(FSM_to_Cell_read_addr[14*CELL_ADDR_WIDTH-1:13*CELL_ADDR_WIDTH]),
-		.clock(clk),
-		.data(),
-		.rden(rden),
-		.wren(1'b0),
-		.q(Cell_to_FSM_readout_particle_position[14*3*DATA_WIDTH-1:13*3*DATA_WIDTH])
+		.clk(clk),
+		.rst(rst),
+		.motion_update_enable(Motion_Update_enable),				// Keep this signal as high during the motion update process
+		.in_read_address(FSM_to_Cell_read_addr[14*CELL_ADDR_WIDTH-1:13*CELL_ADDR_WIDTH]),
+		.in_data(Motion_Update_data),
+		.in_data_dst_cell(Motion_Update_dst_cell),				// The destination cell for the incoming data
+		.in_data_valid(Motion_Update_valid),						// Signify if the new incoming data is valid
+		.in_rden(rden),
+		.out_particle_info(Cell_to_FSM_readout_particle_position[14*3*DATA_WIDTH-1:13*3*DATA_WIDTH])
 	);
 
 	
