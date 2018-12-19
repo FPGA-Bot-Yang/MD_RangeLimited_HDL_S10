@@ -51,6 +51,8 @@ scoped_array<cl_command_queue> queue; // num_devices elements
 cl_program program = NULL;
 scoped_array<cl_kernel> kernel; // num_devices elements
 #if USE_SVM_API == 0
+scoped_array<cl_mem> input_ref_id_buf;
+scoped_array<cl_mem> input_neighbor_id_buf; 
 scoped_array<cl_mem> input_ref_x_buf; // num_devices elements
 scoped_array<cl_mem> input_ref_y_buf; // num_devices elements
 scoped_array<cl_mem> input_ref_z_buf; // num_devices elements
@@ -63,9 +65,11 @@ scoped_array<cl_mem> output_buf; // num_devices elements
 // Problem data.
 unsigned N = 1000; // problem size
 #if USE_SVM_API == 0
+scoped_array<scoped_aligned_ptr<int> > ref_id, neighbor_id; // num_devices elements
 scoped_array<scoped_aligned_ptr<float> > ref_x, ref_y, ref_z, neighbor_x, neighbor_y, neighbor_z; // num_devices elements
 scoped_array<scoped_aligned_ptr<float> > Force_out; // num_devices elements
 #else
+scoped_array<scoped_SVM_aligned_ptr<int> > ref_id, neighbor_id; // num_devices elements
 scoped_array<scoped_SVM_aligned_ptr<float> > ref_x, ref_y, ref_z, neighbor_x, neighbor_y, neighbor_z; // num_devices elements
 scoped_array<scoped_SVM_aligned_ptr<float> > Force_out; // num_devices elements
 #endif /* USE_SVM_API == 0 */
@@ -157,6 +161,8 @@ bool init_opencl() {
   kernel.reset(num_devices);
   n_per_device.reset(num_devices);
 #if USE_SVM_API == 0
+  input_ref_id_buf.reset(num_devices);
+  input_neighbor_id_buf.reset(num_devices);
   input_ref_x_buf.reset(num_devices);
   input_ref_y_buf.reset(num_devices);
   input_ref_z_buf.reset(num_devices);
@@ -187,6 +193,12 @@ bool init_opencl() {
 
 #if USE_SVM_API == 0
     // Input buffers.
+	input_ref_id_buf[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, 
+        n_per_device[i] * sizeof(int), NULL, &status);
+		
+	input_neighbor_id_buf[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, 
+        n_per_device[i] * sizeof(int), NULL, &status);
+	
     input_ref_x_buf[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, 
         n_per_device[i] * sizeof(float), NULL, &status);
     checkError(status, "Failed to create buffer for input ref_x");
@@ -245,6 +257,8 @@ void init_problem() {
     checkError(-1, "No devices");
   }
 
+  ref_id.reset(num_devices);
+  neighbor_id.reset(num_devices);
   ref_x.reset(num_devices);
   ref_y.reset(num_devices);
   ref_z.reset(num_devices);
@@ -260,6 +274,8 @@ void init_problem() {
   // aligned buffer.
   for(unsigned i = 0; i < num_devices; ++i) {
 #if USE_SVM_API == 0
+	ref_id[i].reset(n_per_device[i]);
+	neighbor_id[i].reset(n_per_device[i]);
     ref_x[i].reset(n_per_device[i]);
     ref_y[i].reset(n_per_device[i]);
 	ref_z[i].reset(n_per_device[i]);
@@ -270,15 +286,19 @@ void init_problem() {
     ref_output[i].reset(n_per_device[i]);
 
     for(unsigned j = 0; j < n_per_device[i]; ++j) {
-      ref_x[i][j] = rand_float();
-	  ref_y[i][j] = rand_float();
-	  ref_z[i][j] = rand_float();
-      neighbor_x[i][j] = rand_float();
-      neighbor_y[i][j] = rand_float();
-      neighbor_z[i][j] = rand_float();
+	  ref_id[i][j] = j;
+	  neighbor_id[i][j] = j;
+      ref_x[i][j] = 14.410;
+	  ref_y[i][j] = 12.083;
+	  ref_z[i][j] = 14.591;
+      neighbor_x[i][j] = 15.099;
+      neighbor_y[i][j] = 12.267;
+      neighbor_z[i][j] = 25.249;
       ref_output[i][j] = ref_x[i][j] + neighbor_x[i][j];
     }
 #else
+	ref_id[i].reset(context, n_per_device[i]);
+	neighbor_id[i].reset(context, n_per_device[i]);
     ref_x[i].reset(context, n_per_device[i]);
 	ref_y[i].reset(context, n_per_device[i]);
 	ref_z[i].reset(context, n_per_device[i]);
@@ -291,34 +311,58 @@ void init_problem() {
     cl_int status;
 
     status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_WRITE,
-        (void *)input_a[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
-    checkError(status, "Failed to map input A");
+        (void *)ref_id[i], n_per_device[i] * sizeof(int), 0, NULL, NULL);
+    checkError(status, "Failed to map input: ref id");
+	status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_WRITE,
+        (void *)neighbor_id[i], n_per_device[i] * sizeof(int), 0, NULL, NULL);
+    checkError(status, "Failed to map input: neighbor id");
     status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_WRITE,
-        (void *)input_b[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
-    checkError(status, "Failed to map input B");
+        (void *)ref_x[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
+    checkError(status, "Failed to map input: ref_x");
+	status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_WRITE,
+        (void *)ref_y[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
+    checkError(status, "Failed to map input: ref_y");
+	status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_WRITE,
+        (void *)ref_z[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
+    checkError(status, "Failed to map input: ref_z");
+	status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_WRITE,
+        (void *)neighbor_x[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
+    checkError(status, "Failed to map input: neighbor_x");
+	status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_WRITE,
+        (void *)neighbor_y[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
+    checkError(status, "Failed to map input: neighbor_y");
+	status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_WRITE,
+        (void *)neighbor_z[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
+    checkError(status, "Failed to map input: neighbor_z");
 
     for(unsigned j = 0; j < n_per_device[i]; ++j) {
-      ref_x[i][j] = rand_float();
-	  ref_y[i][j] = rand_float();
-	  ref_z[i][j] = rand_float();
-      neighbor_x[i][j] = rand_float();
-	  neighbor_y[i][j] = rand_float();
-	  neighbor_z[i][j] = rand_float();
+	  ref_id[i][j] = j;
+	  neighbor_id[i][j] = j;
+      ref_x[i][j] = 14.410;
+	  ref_y[i][j] = 12.083;
+	  ref_z[i][j] = 14.591;
+      neighbor_x[i][j] = 15.099;
+      neighbor_y[i][j] = 12.267;
+      neighbor_z[i][j] = 25.249;
       ref_output[i][j] = input_a[i][j] + input_b[i][j];
     }
 
+	status = clEnqueueSVMUnmap(queue[i], (void *)ref_id[i], 0, NULL, NULL);
+    checkError(status, "Failed to unmap input ref_id");
+	status = clEnqueueSVMUnmap(queue[i], (void *)neighbor_id[i], 0, NULL, NULL);
+    checkError(status, "Failed to unmap input neighbor_id");
     status = clEnqueueSVMUnmap(queue[i], (void *)ref_x[i], 0, NULL, NULL);
-    checkError(status, "Failed to unmap input A");
+    checkError(status, "Failed to unmap input ref_x");
 	status = clEnqueueSVMUnmap(queue[i], (void *)ref_y[i], 0, NULL, NULL);
-    checkError(status, "Failed to unmap input A");
+    checkError(status, "Failed to unmap input ref_y");
 	status = clEnqueueSVMUnmap(queue[i], (void *)ref_z[i], 0, NULL, NULL);
-    checkError(status, "Failed to unmap input A");
+    checkError(status, "Failed to unmap input ref_z");
     status = clEnqueueSVMUnmap(queue[i], (void *)neighbor_x[i], 0, NULL, NULL);
-    checkError(status, "Failed to unmap input B");
+    checkError(status, "Failed to unmap input neighbor_x");
 	status = clEnqueueSVMUnmap(queue[i], (void *)neighbor_y[i], 0, NULL, NULL);
-    checkError(status, "Failed to unmap input B")
+    checkError(status, "Failed to unmap input neighbor_y")
 	status = clEnqueueSVMUnmap(queue[i], (void *)neighbor_z[i], 0, NULL, NULL);
-    checkError(status, "Failed to unmap input B");
+    checkError(status, "Failed to unmap input neighbor_z");
 #endif /* USE_SVM_API == 0 */
   }
 }
@@ -338,29 +382,37 @@ void run() {
     // Transfer inputs to each device. Each of the host buffers supplied to
     // clEnqueueWriteBuffer here is already aligned to ensure that DMA is used
     // for the host-to-device transfer.
-    cl_event write_event[2];
+    cl_event write_event[8];
+	status = clEnqueueWriteBuffer(queue[i], input_ref_id_buf[i], CL_FALSE,
+        0, n_per_device[i] * sizeof(int), ref_id[i], 0, NULL, &write_event[0]);
+    checkError(status, "Failed to transfer input ref_id");
+	
+	status = clEnqueueWriteBuffer(queue[i], input_neighbor_id_buf[i], CL_FALSE,
+        0, n_per_device[i] * sizeof(float), neighbor_id[i], 0, NULL, &write_event[1]);
+    checkError(status, "Failed to transfer input neighbor_id");
+	
     status = clEnqueueWriteBuffer(queue[i], input_ref_x_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), ref_x[i], 0, NULL, &write_event[0]);
+        0, n_per_device[i] * sizeof(float), ref_x[i], 0, NULL, &write_event[2]);
     checkError(status, "Failed to transfer input ref_x");
 	
 	status = clEnqueueWriteBuffer(queue[i], input_ref_y_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), ref_y[i], 0, NULL, &write_event[0]);
+        0, n_per_device[i] * sizeof(float), ref_y[i], 0, NULL, &write_event[3]);
     checkError(status, "Failed to transfer input ref_y");
 	
 	status = clEnqueueWriteBuffer(queue[i], input_ref_z_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), ref_z[i], 0, NULL, &write_event[0]);
+        0, n_per_device[i] * sizeof(float), ref_z[i], 0, NULL, &write_event[4]);
     checkError(status, "Failed to transfer input ref_z");
 
     status = clEnqueueWriteBuffer(queue[i], input_neighbor_x_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), neighbor_x[i], 0, NULL, &write_event[1]);
+        0, n_per_device[i] * sizeof(float), neighbor_x[i], 0, NULL, &write_event[5]);
     checkError(status, "Failed to transfer input neighbor_x");
 	
 	status = clEnqueueWriteBuffer(queue[i], input_neighbor_y_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), neighbor_y[i], 0, NULL, &write_event[1]);
+        0, n_per_device[i] * sizeof(float), neighbor_y[i], 0, NULL, &write_event[6]);
     checkError(status, "Failed to transfer input neighbor_y");
 	
 	status = clEnqueueWriteBuffer(queue[i], input_neighbor_z_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), neighbor_z[i], 0, NULL, &write_event[1]);
+        0, n_per_device[i] * sizeof(float), neighbor_z[i], 0, NULL, &write_event[7]);
     checkError(status, "Failed to transfer input neighbor_z");
 #endif /* USE_SVM_API == 0 */
 
@@ -368,7 +420,13 @@ void run() {
     unsigned argi = 0;
 
 #if USE_SVM_API == 0
-    status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &input_ref_x_buf[i]);
+	status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &input_ref_id_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &input_neighbor_id_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+    
+	status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &input_ref_x_buf[i]);
     checkError(status, "Failed to set argument %d", argi - 1);
 	
 	status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &input_ref_y_buf[i]);
@@ -414,7 +472,7 @@ void run() {
 
 #if USE_SVM_API == 0
     status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL,
-        &global_work_size, NULL, 2, write_event, &kernel_event[i]);
+        &global_work_size, NULL, 8, write_event, &kernel_event[i]);
 #else
     status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL,
         &global_work_size, NULL, 0, NULL, &kernel_event[i]);
