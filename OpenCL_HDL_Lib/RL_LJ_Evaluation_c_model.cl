@@ -16,17 +16,17 @@ float4 RL_LJ_Evaluation(int2 particle_id, float4 reference_pos, float4 neighbor_
 	float inv_r8 = inv_r4 * inv_r4;
 	float inv_r14 = inv_r8 * inv_r4 * inv_r2;
 	
-	printf("22\n");
-	
 	float LJ_Force = 48*inv_r14 - 24*inv_r8;
+	
+	printf("Total force is %e\n", LJ_Force);
 	
 	float LJ_Force_x = LJ_Force * dx;
 	float LJ_Force_y = LJ_Force * dy;
 	float LJ_Force_z = LJ_Force * dz;
-	printf("33\n");
+	
 	float4 LJ_Force_Components = (float4){LJ_Force_x, LJ_Force_y, LJ_Force_z,0.0f};
 	
-	printf("Evaluated force is %e, %e, %e\n", LJ_Force_x, LJ_Force_y, LJ_Force_z);
+	printf("Evaluated force components are %e, %e, %e\n", LJ_Force_x, LJ_Force_y, LJ_Force_z);
 	
 	return LJ_Force_Components;
 }
