@@ -522,11 +522,11 @@ void run() {
     //status = clEnqueueReadBuffer(queue[i], output_buf[i], CL_FALSE,
     //    0, n_per_device[i] * sizeof(float), Force_out, 1, &kernel_event[i], &finish_event[i]);
 	status = clEnqueueReadBuffer(queue[i], output_x_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), Force_out_x, 1, &kernel_event[i], &finish_event[i]);
+        0, n_per_device[i] * sizeof(float), Force_out_x[i], 1, &kernel_event[i], &finish_event[i]);
 	status = clEnqueueReadBuffer(queue[i], output_y_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), Force_out_y, 1, &kernel_event[i], &finish_event[i]);
+        0, n_per_device[i] * sizeof(float), Force_out_y[i], 1, &kernel_event[i], &finish_event[i]);
 	status = clEnqueueReadBuffer(queue[i], output_z_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), Force_out_z, 1, &kernel_event[i], &finish_event[i]);
+        0, n_per_device[i] * sizeof(float), Force_out_z[i], 1, &kernel_event[i], &finish_event[i]);
 
     // Release local events.
     clReleaseEvent(write_event[0]);
@@ -584,6 +584,13 @@ void run() {
   }
 #endif /* USE_SVM_API == 1 */
   //printf("\nVerification: %s\n", pass ? "PASS" : "FAIL");
+  
+  // Printf out results
+  printf("@@ Evaluation results report:\n");
+  for(unsigned i = 0; i < n_per_device[0]; i++){
+	  printf("Results[%d], %e, %e, %e\n", Force_out_x[0][i], Force_out_y[0][i], Force_out_z[0][i]);
+  }
+  printf("@@ Results report done!\n");
 }
 
 // Free the resources allocated during initialization
