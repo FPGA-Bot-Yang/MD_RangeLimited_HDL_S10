@@ -46,29 +46,28 @@ __kernel void LJ(
 			__global float *restrict Force_out_z
 			)
 {
-	#pragma unroll 1
-	
 	int2 particle_id;
 	float4 ref_pos, neighbor_pos;
 	float4 Force_out;
 	
+	#pragma unroll 1
 	for (int i = 0; i < WORKSIZE; ++i){
-		particle_id.x = ref_id;
-		particle_id.y = neighbor_id;
-		ref.x = ref_x;
-		ref.y = ref_y;
-		ref.z = ref_z;
+		particle_id.x = ref_id[i];
+		particle_id.y = neighbor_id[i];
+		ref.x = ref_x[i];
+		ref.y = ref_y[i];
+		ref.z = ref_z[i];
 		ref.w = 0;
-		neighbor.x = neighbor_x;
-		neighbor.y = neighbor_y;
-		neighbor.z = neighbor_z;
+		neighbor.x = neighbor_x[i];
+		neighbor.y = neighbor_y[i];
+		neighbor.z = neighbor_z[i];
 		neighbor.w = 0;
 		
 		Force_out = RL_LJ_Evaluation(particle_id, ref, neighbor);
 		
-		Force_out_x = Force_out.x;
-		Force_out_y = Force_out.y;
-		Force_out_z = Force_out.z;
+		Force_out_x[i] = Force_out.x;
+		Force_out_y[i] = Force_out.y;
+		Force_out_z[i] = Force_out.z;
 	}
 }
 
