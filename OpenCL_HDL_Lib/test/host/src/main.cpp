@@ -44,7 +44,7 @@ using namespace aocl_utils;
 
 // OpenCL runtime configuration
 cl_platform_id platform = NULL;
-unsigned num_devices = 0;
+unsigned num_devices = 1;
 scoped_array<cl_device_id> device; // num_devices elements
 cl_context context = NULL;
 scoped_array<cl_command_queue> queue; // num_devices elements
@@ -59,7 +59,10 @@ scoped_array<cl_mem> input_ref_z_buf; // num_devices elements
 scoped_array<cl_mem> input_neighbor_x_buf; // num_devices elements
 scoped_array<cl_mem> input_neighbor_y_buf; // num_devices elements
 scoped_array<cl_mem> input_neighbor_z_buf; // num_devices elements
-scoped_array<cl_mem> output_buf; // num_devices elements
+//scoped_array<cl_mem> output_buf; // num_devices elements
+scoped_array<cl_mem> output_x_buf; // num_devices elements
+scoped_array<cl_mem> output_y_buf; // num_devices elements
+scoped_array<cl_mem> output_z_buf; // num_devices elements
 #endif /* USE_SVM_API == 0 */
 
 // Problem data.
@@ -67,11 +70,18 @@ unsigned N = 1000; // problem size
 #if USE_SVM_API == 0
 scoped_array<scoped_aligned_ptr<int> > ref_id, neighbor_id; // num_devices elements
 scoped_array<scoped_aligned_ptr<float> > ref_x, ref_y, ref_z, neighbor_x, neighbor_y, neighbor_z; // num_devices elements
-scoped_array<scoped_aligned_ptr<float> > Force_out; // num_devices elements
+//scoped_array<scoped_aligned_ptr<float> > Force_out; // num_devices elements
+scoped_array<scoped_aligned_ptr<float> > Force_out_x; // num_devices elements
+scoped_array<scoped_aligned_ptr<float> > Force_out_y; // num_devices elements
+scoped_array<scoped_aligned_ptr<float> > Force_out_z; // num_devices elements
 #else
 scoped_array<scoped_SVM_aligned_ptr<int> > ref_id, neighbor_id; // num_devices elements
 scoped_array<scoped_SVM_aligned_ptr<float> > ref_x, ref_y, ref_z, neighbor_x, neighbor_y, neighbor_z; // num_devices elements
-scoped_array<scoped_SVM_aligned_ptr<float> > Force_out; // num_devices elements
+//scoped_array<scoped_SVM_aligned_ptr<float> > Force_out; // num_devices elements
+scoped_array<scoped_SVM_aligned_ptr<float> > Force_out_x; // num_devices elements
+scoped_array<scoped_SVM_aligned_ptr<float> > Force_out_y; // num_devices elements
+scoped_array<scoped_SVM_aligned_ptr<float> > Force_out_z; // num_devices elements
+
 #endif /* USE_SVM_API == 0 */
 scoped_array<scoped_array<float> > ref_output; // num_devices elements
 scoped_array<unsigned> n_per_device; // num_devices elements
@@ -169,7 +179,10 @@ bool init_opencl() {
   input_neighbor_x_buf.reset(num_devices);
   input_neighbor_y_buf.reset(num_devices);
   input_neighbor_z_buf.reset(num_devices);
-  output_buf.reset(num_devices);
+  //output_buf.reset(num_devices);
+  output_x_buf.reset(num_devices);
+  output_y_buf.reset(num_devices);
+  output_z_buf.reset(num_devices);
 #endif /* USE_SVM_API == 0 */
 
   for(unsigned i = 0; i < num_devices; ++i) {
@@ -224,7 +237,16 @@ bool init_opencl() {
     checkError(status, "Failed to create buffer for input neighbor_z");
 
     // Output buffer.
-    output_buf[i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 
+    //output_buf[i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 
+    //    n_per_device[i] * sizeof(float), NULL, &status);
+    //checkError(status, "Failed to create buffer for output");
+	output_x_buf[i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 
+        n_per_device[i] * sizeof(float), NULL, &status);
+    checkError(status, "Failed to create buffer for output");
+	output_y_buf[i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 
+        n_per_device[i] * sizeof(float), NULL, &status);
+    checkError(status, "Failed to create buffer for output");
+	output_z_buf[i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 
         n_per_device[i] * sizeof(float), NULL, &status);
     checkError(status, "Failed to create buffer for output");
 #else
@@ -265,7 +287,10 @@ void init_problem() {
   neighbor_x.reset(num_devices);
   neighbor_y.reset(num_devices);
   neighbor_z.reset(num_devices);
-  Force_out.reset(num_devices);
+  //Force_out.reset(num_devices);
+  Force_out_x.reset(num_devices);
+  Force_out_y.reset(num_devices);
+  Force_out_z.reset(num_devices);
   ref_output.reset(num_devices);
 
   // Generate input vectors A and B and the reference output consisting
@@ -282,7 +307,10 @@ void init_problem() {
 	neighbor_x[i].reset(n_per_device[i]);
 	neighbor_y[i].reset(n_per_device[i]);
 	neighbor_z[i].reset(n_per_device[i]);
-    Force_out[i].reset(n_per_device[i]);
+    //Force_out[i].reset(n_per_device[i]);
+	Force_out_x[i].reset(n_per_device[i]);
+	Force_out_y[i].reset(n_per_device[i]);
+	Force_out_z[i].reset(n_per_device[i]);
     ref_output[i].reset(n_per_device[i]);
 
     for(unsigned j = 0; j < n_per_device[i]; ++j) {
@@ -305,7 +333,10 @@ void init_problem() {
     neighbor_x[i].reset(context, n_per_device[i]);
 	neighbor_y[i].reset(context, n_per_device[i]);
 	neighbor_z[i].reset(context, n_per_device[i]);
-    Force_out[i].reset(context, n_per_device[i]);
+    //Force_out[i].reset(context, n_per_device[i]);
+	Force_out_x[i].reset(context, n_per_device[i]);
+	Force_out_y[i].reset(context, n_per_device[i]);
+	Force_out_z[i].reset(context, n_per_device[i]);
     ref_output[i].reset(n_per_device[i]);
 
     cl_int status;
@@ -444,8 +475,15 @@ void run() {
 	status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &input_neighbor_z_buf[i]);
     checkError(status, "Failed to set argument %d", argi - 1);
 
-    status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &output_buf[i]);
+    //status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &output_buf[i]);
+    //checkError(status, "Failed to set argument %d", argi - 1);
+	status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &output_x_buf[i]);
     checkError(status, "Failed to set argument %d", argi - 1);
+	status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &output_y_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	status = clSetKernelArg(kernel[i], argi++, sizeof(cl_mem), &output_z_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
 #else
     status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_a[i]);
     checkError(status, "Failed to set argument %d", argi - 1);
@@ -481,12 +519,24 @@ void run() {
 
 #if USE_SVM_API == 0
     // Read the result. This the final operation.
-    status = clEnqueueReadBuffer(queue[i], output_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), Force_out, 1, &kernel_event[i], &finish_event[i]);
+    //status = clEnqueueReadBuffer(queue[i], output_buf[i], CL_FALSE,
+    //    0, n_per_device[i] * sizeof(float), Force_out, 1, &kernel_event[i], &finish_event[i]);
+	status = clEnqueueReadBuffer(queue[i], output_x_buf[i], CL_FALSE,
+        0, n_per_device[i] * sizeof(float), Force_out_x, 1, &kernel_event[i], &finish_event[i]);
+	status = clEnqueueReadBuffer(queue[i], output_y_buf[i], CL_FALSE,
+        0, n_per_device[i] * sizeof(float), Force_out_y, 1, &kernel_event[i], &finish_event[i]);
+	status = clEnqueueReadBuffer(queue[i], output_z_buf[i], CL_FALSE,
+        0, n_per_device[i] * sizeof(float), Force_out_z, 1, &kernel_event[i], &finish_event[i]);
 
     // Release local events.
     clReleaseEvent(write_event[0]);
     clReleaseEvent(write_event[1]);
+	clReleaseEvent(write_event[2]);
+	clReleaseEvent(write_event[3]);
+	clReleaseEvent(write_event[4]);
+	clReleaseEvent(write_event[5]);
+	clReleaseEvent(write_event[6]);
+	clReleaseEvent(write_event[7]);
 #else
     status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_READ,
         (void *)output[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
@@ -546,6 +596,12 @@ void cleanup() {
       clReleaseCommandQueue(queue[i]);
     }
 #if USE_SVM_API == 0
+	if(input_ref_id_buf && input_ref_id_buf[i]) {
+      clReleaseMemObject(input_ref_id_buf[i]);
+    }
+	if(input_neighbor_id_buf && input_neighbor_id_buf[i]) {
+      clReleaseMemObject(input_neighbor_id_buf[i]);
+    }
     if(input_ref_x_buf && input_ref_x_buf[i]) {
       clReleaseMemObject(input_ref_x_buf[i]);
     }
@@ -564,9 +620,19 @@ void cleanup() {
 	if(input_neighbor_z_buf && input_neighbor_z_buf[i]) {
       clReleaseMemObject(input_neighbor_z_buf[i]);
     }
-    if(output_buf && output_buf[i]) {
-      clReleaseMemObject(output_buf[i]);
+    //if(output_buf && output_buf[i]) {
+    //  clReleaseMemObject(output_buf[i]);
+    //}
+	if(output_x_buf && output_x_buf[i]) {
+      clReleaseMemObject(output_x_buf[i]);
     }
+	if(output_y_buf && output_y_buf[i]) {
+      clReleaseMemObject(output_y_buf[i]);
+    }
+	if(output_z_buf && output_z_buf[i]) {
+      clReleaseMemObject(output_z_buf[i]);
+    }
+	
 #else
     if(input_a[i].get())
       input_a[i].reset();

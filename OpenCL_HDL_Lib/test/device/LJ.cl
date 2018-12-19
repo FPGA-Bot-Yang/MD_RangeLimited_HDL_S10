@@ -26,23 +26,49 @@
 
 #include "../../RL_LJ_Evaluation.h"
 
-#define WORKSIZE 2000
+#define WORKSIZE 1000
 
 __kernel void LJ(
-			//__global const float *restrict ref_x, 
-            		//__global const float *restrict ref_y, 
-            		//__global const float *restrict ref_z,
-					__global const int2 *restrict particle_id,
-            		__global const float4 *restrict ref,
-			//__global const float *restrict neighbor_x,
-			//__global const float *restrict neighbor_y,
-			//__global const float *restrict neighbor_z,
-			__global const float4 *restrict neighbor,
-			__global float4 *restrict Force_out)
+			__global const int *restrict ref_id,
+			__global const int *restrict neighbor_id, 
+			__global const float *restrict ref_x, 
+            __global const float *restrict ref_y, 
+            __global const float *restrict ref_z,
+			//__global const int2 *restrict particle_id,
+            //__global const float4 *restrict ref,
+			__global const float *restrict neighbor_x,
+			__global const float *restrict neighbor_y,
+			__global const float *restrict neighbor_z,
+			//__global const float4 *restrict neighbor,
+			//__global float4 *restrict Force_out,
+			__global float *restrict Force_out_x,
+			__global float *restrict Force_out_y,
+			__global float *restrict Force_out_z
+			)
 {
 	#pragma unroll 1
+	
+	int2 particle_id;
+	float4 ref_pos, neighbor_pos;
+	float4 Force_out;
+	
 	for (int i = 0; i < WORKSIZE; ++i){
-		Force_out[i] = RL_LJ_Evaluation(particle_id[i], ref[i], neighbor[i]);
+		particle_id.x = ref_id;
+		particle_id.y = neighbor_id;
+		ref.x = ref_x;
+		ref.y = ref_y;
+		ref.z = ref_z;
+		ref.w = 0;
+		neighbor.x = neighbor_x;
+		neighbor.y = neighbor_y;
+		neighbor.z = neighbor_z;
+		neighbor.w = 0;
+		
+		Force_out = RL_LJ_Evaluation(particle_id, ref, neighbor);
+		
+		Force_out_x = Force_out.x;
+		Force_out_y = Force_out.y;
+		Force_out_z = Force_out.z;
 	}
 }
 
