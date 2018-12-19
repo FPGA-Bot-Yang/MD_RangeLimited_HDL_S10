@@ -47,7 +47,7 @@ __kernel void LJ(
 			)
 {
 	int2 particle_id;
-	float4 ref_pos, neighbor_pos;
+	float4 ref, neighbor;
 	float4 Force_out;
 	
 	#pragma unroll 1
