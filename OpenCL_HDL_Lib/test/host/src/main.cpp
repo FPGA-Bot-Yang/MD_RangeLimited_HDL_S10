@@ -66,7 +66,7 @@ scoped_array<cl_mem> output_z_buf; // num_devices elements
 #endif /* USE_SVM_API == 0 */
 
 // Problem data.
-unsigned N = 1; // problem size
+unsigned N = 5; // problem size
 #if USE_SVM_API == 0
 scoped_array<scoped_aligned_ptr<int> > ref_id, neighbor_id; // num_devices elements
 scoped_array<scoped_aligned_ptr<float> > ref_x, ref_y, ref_z, neighbor_x, neighbor_y, neighbor_z; // num_devices elements
