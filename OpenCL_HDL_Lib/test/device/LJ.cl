@@ -26,7 +26,7 @@
 
 #include "../../RL_LJ_Evaluation.h"
 
-#define WORKSIZE 1000
+#define WORKSIZE 5
 
 __kernel void LJ(
 			__global const int *restrict ref_id,
