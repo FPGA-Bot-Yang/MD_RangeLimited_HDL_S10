@@ -8,18 +8,18 @@ float4 RL_LJ_Evaluation(int2 particle_id, float4 reference_pos, float4 neighbor_
 	float dy = reference_pos.y - neighbor_pos.y;
 	float dz = reference_pos.z - neighbor_pos.z;
 	float r2 = dx*dx + dy*dy + dz*dz;
-	
+	printf("11\n");
 	float inv_r2 = 1 / r2;
 	float inv_r4 = inv_r2 * inv_r2;
 	float inv_r8 = inv_r4 * inv_r4;
 	float inv_r14 = inv_r8 * inv_r4 * inv_r2;
-	
+	printf("22\n");
 	float LJ_Force = 48*inv_r14 - 24*inv_r8;
 	
 	float LJ_Force_x = LJ_Force * dx;
 	float LJ_Force_y = LJ_Force * dy;
 	float LJ_Force_z = LJ_Force * dz;
-	
+	printf("33\n");
 	float4 LJ_Force_Components = (float4){LJ_Force_x, LJ_Force_y, LJ_Force_z,0.0f};
 	
 	pritf("Evaluated force is %f, %f, %f\n", LJ_Force_x, LJ_Force_y, LJ_Force_z);
