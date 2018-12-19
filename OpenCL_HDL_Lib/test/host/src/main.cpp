@@ -485,13 +485,37 @@ void run() {
     checkError(status, "Failed to set argument %d", argi - 1);
 	
 #else
-    status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_a[i]);
+    status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_ref_id_buf[i]);
     checkError(status, "Failed to set argument %d", argi - 1);
 
-    status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_b[i]);
+    status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_neighbor_id_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_ref_x_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_ref_y_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_ref_z_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_neighbor_x_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_neighbor_y_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)input_neighbor_z_buf[i]);
     checkError(status, "Failed to set argument %d", argi - 1);
 
-    status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)output[i]);
+    status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)output_x_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)output_y_buf[i]);
+    checkError(status, "Failed to set argument %d", argi - 1);
+	
+	status = clSetKernelArgSVMPointer(kernel[i], argi++, (void*)output_z_buf[i]);
     checkError(status, "Failed to set argument %d", argi - 1);
 #endif /* USE_SVM_API == 0 */
 
@@ -588,7 +612,7 @@ void run() {
   // Printf out results
   printf("@@ Evaluation results report:\n");
   for(unsigned i = 0; i < n_per_device[0]; i++){
-	  printf("Results[%d], %e, %e, %e\n", Force_out_x[0][i], Force_out_y[0][i], Force_out_z[0][i]);
+	  printf("Results[%d], %e, %e, %e\n", i, Force_out_x[0][i], Force_out_y[0][i], Force_out_z[0][i]);
   }
   printf("@@ Results report done!\n");
 }
@@ -641,12 +665,28 @@ void cleanup() {
     }
 	
 #else
-    if(input_a[i].get())
-      input_a[i].reset();
-    if(input_b[i].get())
-      input_b[i].reset();
-    if(output[i].get())
-      output[i].reset();
+    if(input_ref_id_buf[i].get())
+      input_ref_id_buf[i].reset();
+    if(input_neighbor_id_buf[i].get())
+      input_neighbor_id_buf[i].reset();
+    if(input_ref_x_buf[i].get())
+      input_ref_x_buf[i].reset();
+    if(input_ref_y_buf[i].get())
+      input_ref_y_buf[i].reset();
+    if(input_ref_z_buf[i].get())
+      input_ref_z_buf[i].reset();
+    if(input_neighbor_x_buf[i].get())
+      input_neighbor_x_buf[i].reset();
+    if(input_neighbor_y_buf[i].get())
+      input_neighbor_y_buf[i].reset();
+    if(input_neighbor_z_buf[i].get())
+      input_neighbor_z_buf[i].reset();
+    if(output_x_buf[i].get())
+      output_x_buf[i].reset();
+    if(output_y_buf[i].get())
+      output_y_buf[i].reset();
+    if(output_z_buf[i].get())
+      output_z_buf[i].reset();
 #endif /* USE_SVM_API == 0 */
   }
 
