@@ -590,9 +590,11 @@ void run() {
 
   // Wait for all devices to finish.
   clWaitForEvents(num_devices, finish_event1);
+  printf("**** Read Event 1 finish!\n");
   clWaitForEvents(num_devices, finish_event2);
+  printf("**** Read Event 2 finish!\n");
   clWaitForEvents(num_devices, finish_event3);
-  printf("**** Read Event finish!\n");
+  printf("**** Read Event 3 finish!\n");
   
   const double end_time = getCurrentTimestamp();
 
