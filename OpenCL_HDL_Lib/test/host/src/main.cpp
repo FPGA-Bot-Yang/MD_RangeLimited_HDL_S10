@@ -563,13 +563,21 @@ void run() {
 		
     // Release local events.
     clReleaseEvent(write_event[0]);
+	printf("~~~~ Release write event 0!\n");
     clReleaseEvent(write_event[1]);
+	printf("~~~~ Release write event 1!\n");
 	clReleaseEvent(write_event[2]);
+	printf("~~~~ Release write event 2!\n");
 	clReleaseEvent(write_event[3]);
+	printf("~~~~ Release write event 3!\n");
 	clReleaseEvent(write_event[4]);
+	printf("~~~~ Release write event 4!\n");
 	clReleaseEvent(write_event[5]);
+	printf("~~~~ Release write event 5!\n");
 	clReleaseEvent(write_event[6]);
+	printf("~~~~ Release write event 6!\n");
 	clReleaseEvent(write_event[7]);
+	printf("~~~~ Release write event 7!\n");
 #else
     status = clEnqueueSVMMap(queue[i], CL_TRUE, CL_MAP_READ,
         (void *)output[i], n_per_device[i] * sizeof(float), 0, NULL, NULL);
