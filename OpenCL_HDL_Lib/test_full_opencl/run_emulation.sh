@@ -1,8 +1,8 @@
 # Compile library
-cd ..
-source gen_library.sh
-cd test
-echo "Library generated!"
+#cd ..
+#source gen_library.sh
+#cd test
+#echo "Library generated!"
 
 # Compile host
 make
