@@ -408,7 +408,9 @@ void run() {
 
   // Launch the problem for each device.
   scoped_array<cl_event> kernel_event(num_devices);
-  scoped_array<cl_event> finish_event(num_devices);
+  scoped_array<cl_event> finish_event1(num_devices);
+  scoped_array<cl_event> finish_event2(num_devices);
+  scoped_array<cl_event> finish_event3(num_devices);
 
   for(unsigned i = 0; i < num_devices; ++i) {
 
@@ -553,11 +555,11 @@ void run() {
     //status = clEnqueueReadBuffer(queue[i], output_buf[i], CL_FALSE,
     //    0, n_per_device[i] * sizeof(float), Force_out, 1, &kernel_event[i], &finish_event[i]);
 	status = clEnqueueReadBuffer(queue[i], output_x_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), Force_out_x[i], 1, &kernel_event[i], &finish_event[i]);
+        0, n_per_device[i] * sizeof(float), Force_out_x[i], 1, &kernel_event[i], &finish_event1[i]);
 	status = clEnqueueReadBuffer(queue[i], output_y_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), Force_out_y[i], 1, &kernel_event[i], &finish_event[i]);
+        0, n_per_device[i] * sizeof(float), Force_out_y[i], 1, &kernel_event[i], &finish_event2[i]);
 	status = clEnqueueReadBuffer(queue[i], output_z_buf[i], CL_FALSE,
-        0, n_per_device[i] * sizeof(float), Force_out_z[i], 1, &kernel_event[i], &finish_event[i]);
+        0, n_per_device[i] * sizeof(float), Force_out_z[i], 1, &kernel_event[i], &finish_event3[i]);
 
 	printf("!!!!!!!!!! Output buffer read finished!\n");
 		
@@ -587,7 +589,9 @@ void run() {
   }
 
   // Wait for all devices to finish.
-  clWaitForEvents(num_devices, finish_event);
+  clWaitForEvents(num_devices, finish_event1);
+  clWaitForEvents(num_devices, finish_event2);
+  clWaitForEvents(num_devices, finish_event3);
   printf("**** Read Event finish!\n");
   
   const double end_time = getCurrentTimestamp();
@@ -604,7 +608,9 @@ void run() {
   // Release all events.
   for(unsigned i = 0; i < num_devices; ++i) {
     clReleaseEvent(kernel_event[i]);
-    clReleaseEvent(finish_event[i]);
+    clReleaseEvent(finish_event1[i]);
+	clReleaseEvent(finish_event2[i]);
+	clReleaseEvent(finish_event3[i]);
   }
 
 /*   // Verify results.
