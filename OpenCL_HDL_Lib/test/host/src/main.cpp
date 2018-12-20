@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 
   // Initialize the problem data.
   // Requires the number of devices to be known.
-  printf("1, Problem initialization!\n")
+  printf("1, Problem initialization!\n");
   init_problem();
 
   // Run the kernel.
