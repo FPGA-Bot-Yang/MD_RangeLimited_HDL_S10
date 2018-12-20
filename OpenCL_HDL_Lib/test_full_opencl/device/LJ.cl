@@ -24,8 +24,6 @@
 //                         __global const float *y, 
 //                         __global float *restrict z)
 
-#include "../../RL_LJ_Evaluation.h"
-
 //#define WORKSIZE 5
 
 __kernel void LJ(
