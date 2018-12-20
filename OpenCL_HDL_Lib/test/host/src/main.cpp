@@ -588,7 +588,8 @@ void run() {
 
   // Wait for all devices to finish.
   clWaitForEvents(num_devices, finish_event);
-
+  printf("**** Read Event finish!\n");
+  
   const double end_time = getCurrentTimestamp();
 
   // Wall-clock time taken.
