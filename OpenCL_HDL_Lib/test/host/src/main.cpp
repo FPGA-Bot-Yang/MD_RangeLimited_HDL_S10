@@ -109,12 +109,15 @@ int main(int argc, char **argv) {
 
   // Initialize the problem data.
   // Requires the number of devices to be known.
+  printf("1, Problem initialization!\n")
   init_problem();
 
   // Run the kernel.
+  printf("2, Run the kernel!\n");
   run();
 
   // Free the resources allocated
+  printf("3, Cleanup the memory space!\n");
   cleanup();
 
   return 0;
@@ -532,6 +535,8 @@ void run() {
     const size_t global_work_size = n_per_device[i];
     printf("Launching for device %d (%zd elements)\n", i, global_work_size);
 
+	printf("************** Kernel enqueued!\n");
+	
 #if USE_SVM_API == 0
     status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL,
         &global_work_size, NULL, 8, write_event, &kernel_event[i]);
@@ -541,6 +546,8 @@ void run() {
 #endif /* USE_SVM_API == 0 */
     checkError(status, "Failed to launch kernel");
 
+	printf("************* Kernel enqueue finished!\n");
+	
 #if USE_SVM_API == 0
     // Read the result. This the final operation.
     //status = clEnqueueReadBuffer(queue[i], output_buf[i], CL_FALSE,
@@ -552,6 +559,8 @@ void run() {
 	status = clEnqueueReadBuffer(queue[i], output_z_buf[i], CL_FALSE,
         0, n_per_device[i] * sizeof(float), Force_out_z[i], 1, &kernel_event[i], &finish_event[i]);
 
+	printf("!!!!!!!!!! Output buffer read finished!\n");
+		
     // Release local events.
     clReleaseEvent(write_event[0]);
     clReleaseEvent(write_event[1]);

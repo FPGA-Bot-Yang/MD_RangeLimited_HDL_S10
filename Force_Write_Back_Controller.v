@@ -358,7 +358,7 @@ module Force_Write_Back_Controller
 	FP_ADD Force_X_Acc(
 		.clk(clk),
 		.ena(1'b1),
-		.clr(1'b0),
+		.clr(rst),
 		.ax(cache_readout_data[1*DATA_WIDTH-1:0*DATA_WIDTH]),
 		.ay(delay_partial_force_to_accumulator[1*DATA_WIDTH-1:0*DATA_WIDTH]),
 		.result(cache_write_data[1*DATA_WIDTH-1:0*DATA_WIDTH])
@@ -368,7 +368,7 @@ module Force_Write_Back_Controller
 	FP_ADD Force_Y_Acc(
 		.clk(clk),
 		.ena(1'b1),
-		.clr(1'b0),
+		.clr(rst),
 		.ax(cache_readout_data[2*DATA_WIDTH-1:1*DATA_WIDTH]),
 		.ay(delay_partial_force_to_accumulator[2*DATA_WIDTH-1:1*DATA_WIDTH]),
 		.result(cache_write_data[2*DATA_WIDTH-1:1*DATA_WIDTH])
@@ -378,7 +378,7 @@ module Force_Write_Back_Controller
 	FP_ADD Force_Z_Acc(
 		.clk(clk),
 		.ena(1'b1),
-		.clr(1'b0),
+		.clr(rst),
 		.ax(cache_readout_data[3*DATA_WIDTH-1:2*DATA_WIDTH]),
 		.ay(delay_partial_force_to_accumulator[3*DATA_WIDTH-1:2*DATA_WIDTH]),
 		.result(cache_write_data[3*DATA_WIDTH-1:2*DATA_WIDTH])
