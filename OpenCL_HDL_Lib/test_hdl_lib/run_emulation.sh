@@ -1,7 +1,7 @@
 # Compile library
 cd ..
 source gen_library.sh
-cd test
+cd test_hdl_lib
 echo "Library generated!"
 
 # Compile host
