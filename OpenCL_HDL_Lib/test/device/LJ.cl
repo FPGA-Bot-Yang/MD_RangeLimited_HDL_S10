@@ -65,11 +65,16 @@ __kernel void LJ(
 	neighbor.z = neighbor_z[i];
 	neighbor.w = 0;
 	
+	printf("PID %d: Ref Particle ID:%d, Neighbor Partciel ID: %d, Distance (%f,%f,%f) (%f,%f,%f)\n", i, particle_id.x, particle_id.y, ref.x, ref.y, ref.z, neighbor.x, neighbor.y, neighbor.z);
+	
 	Force_out = RL_LJ_Evaluation(particle_id, ref, neighbor);
 	
 	Force_out_x[i] = Force_out.x;
 	Force_out_y[i] = Force_out.y;
 	Force_out_z[i] = Force_out.z;
+	
+	printf("PID %d: Evaluated forces are %e, %e, %e!\n", Force_out.x, Force_out.y, Force_out.z);
+	
 //	}
 }
 
