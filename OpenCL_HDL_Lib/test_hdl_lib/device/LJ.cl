@@ -73,7 +73,7 @@ __kernel void LJ(
 	Force_out_y[i] = Force_out.y;
 	Force_out_z[i] = Force_out.z;
 	
-	printf("PID %d: Evaluated forces are %e, %e, %e!\n", Force_out.x, Force_out.y, Force_out.z);
+	printf("PID %d: Evaluated forces are %e, %e, %e!\n", i, Force_out.x, Force_out.y, Force_out.z);
 	
 //	}
 }
