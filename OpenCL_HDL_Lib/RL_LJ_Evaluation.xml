@@ -63,5 +63,12 @@
 	  <FILE name="c0_14.hex" />
 	  <FILE name="c1_14.hex" />
     </REQUIREMENTS>
+	<RESOURCES>
+	  <ALUTS value="904"/>
+	  <FFS value="2971"/>
+	  <RAMS value="38"/>
+	  <MLABS value="0"/>
+	  <DSPS value="12"/>
+	</RESOURCES>
   </FUNCTION>
 </RTL_SPEC>
