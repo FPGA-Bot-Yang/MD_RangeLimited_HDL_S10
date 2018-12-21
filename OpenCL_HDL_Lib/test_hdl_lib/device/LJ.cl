@@ -52,6 +52,8 @@ __kernel void LJ(
 	
 	unsigned i = get_global_id(0);
 	
+	printf("~~~~~~ Entering workitem %d ...\n", i);
+		
 //	#pragma unroll 1
 //	for (int i = 0; i < WORKSIZE; ++i){
 	particle_id.x = ref_id[i];
@@ -74,6 +76,8 @@ __kernel void LJ(
 	Force_out_z[i] = Force_out.z;
 	
 	printf("PID %d: Evaluated forces are %e, %e, %e!\n", i, Force_out.x, Force_out.y, Force_out.z);
+	
+	printf("****** Leaving workitem %d ...\n", i);
 	
 //	}
 }
