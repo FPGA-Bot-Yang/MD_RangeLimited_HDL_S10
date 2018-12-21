@@ -63,13 +63,13 @@ __kernel void LJ(
 	neighbor.z = neighbor_z[i];
 	neighbor.w = 0;
 	
-	printf("Ref Particle ID:%d, Neighbor Partciel ID: %d, Distance (%f,%f,%f) (%f,%f,%f)\n",particle_id.x, particle_id.y, ref.x, ref.y, ref.z, neighbor.x, neighbor.y, neighbor.z);
+	printf("PID %d: Ref Particle ID:%d, Neighbor Partciel ID: %d, Distance (%f,%f,%f) (%f,%f,%f)\n",i, particle_id.x, particle_id.y, ref.x, ref.y, ref.z, neighbor.x, neighbor.y, neighbor.z);
 	
 	float dx = ref.x - neighbor.x;
 	float dy = ref.y - neighbor.y;
 	float dz = ref.z - neighbor.z;
 	float r2 = dx*dx + dy*dy + dz*dz;
-	printf("Distance square is %f\n", r2);
+	printf("PID %d: Distance square is %f\n", i, r2);
 	
 	float inv_r2 = 1 / r2;
 	float inv_r4 = inv_r2 * inv_r2;
@@ -78,7 +78,7 @@ __kernel void LJ(
 	
 	float LJ_Force = 48*inv_r14 - 24*inv_r8;
 	
-	printf("Total force is %e\n", LJ_Force);
+	printf("PID %d: Total force is %e\n", i, LJ_Force);
 	
 	Force_out_x[i] = LJ_Force * dx;
 	Force_out_y[i] = LJ_Force * dy;
