@@ -28,12 +28,12 @@
 // Data Organization:
 //				in_partial_force: {Force_Z, Force_Y, Force_X}
 //				Force_Cache_Input_Buffer: {particle_address[CELL_ADDR_WIDTH-1:0], Force_Z, Force_Y, Force_X}
-//
-// Format:
 //				particle_id [PARTICLE_ID_WIDTH-1:0]:  {cell_x, cell_y, cell_z, particle_in_cell_rd_addr}
 //				ref_particle_position [3*DATA_WIDTH-1:0]: {refz, refy, refx}
 //				neighbor_particle_position [3*DATA_WIDTH-1:0]: {neighborz, neighbory, neighborx}
 //				LJ_Force [3*DATA_WIDTH-1:0]: {LJ_Force_Z, LJ_Force_Y, LJ_Force_X}
+//				out_partial_force [3*DATA_WIDTH-1:0]: {LJ_Force_Z, LJ_Force_Y, LJ_Force_X}
+//				out_particle_id [CELL_ADDR_WIDTH-1:0]: {cell_x, cell_y, cell_z, particle_in_cell_rd_addr}
 //
 // Timing:
 //				7 cycles: From the input of a valid result targeting this cell, till the accumulated value is successfully written into the force cache
@@ -69,7 +69,7 @@ module Force_Write_Back_Controller
 	parameter CELL_Y							= 2,
 	parameter CELL_Z							= 2,
 	// Force cache input buffer
-	parameter FORCE_CACHE_BUFFER_DEPTH	= 16,
+	parameter FORCE_CACHE_BUFFER_DEPTH	= 16,											// Force cache input buffer depth, for partial force accumulation
 	parameter FORCE_CACHE_BUFFER_ADDR_WIDTH = 4,										// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 	// Dataset defined parameters
 	parameter CELL_ID_WIDTH					= 4,

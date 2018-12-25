@@ -82,7 +82,10 @@ module RL_LJ_Top
 	parameter BIN_NUM							= 256,
 	parameter BIN_WIDTH						= 8,
 	parameter LOOKUP_NUM						= SEGMENT_NUM * BIN_NUM,				// SEGMENT_NUM * BIN_NUM
-	parameter LOOKUP_ADDR_WIDTH			= SEGMENT_WIDTH + BIN_WIDTH			// log LOOKUP_NUM / log 2
+	parameter LOOKUP_ADDR_WIDTH			= SEGMENT_WIDTH + BIN_WIDTH,			// log LOOKUP_NUM / log 2
+	// Force (accmulation) cache parameters
+	parameter FORCE_CACHE_BUFFER_DEPTH	= 16,											// Force cache input buffer depth, for partial force accumulation
+	parameter FORCE_CACHE_BUFFER_ADDR_WIDTH = 4										// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 )
 (
 	input  clk,
@@ -107,7 +110,13 @@ module RL_LJ_Top
 	input [CELL_ADDR_WIDTH-1:0] in_force_cache_read_address,
 	output reg [3*DATA_WIDTH-1:0] out_partial_force,
 	output reg [PARTICLE_ID_WIDTH-1:0] out_particle_id,
-	output reg out_partial_force_valid
+	output reg out_partial_force_valid,
+	
+	// Dummy input for motion update
+	input Motion_Update_enable,
+	input [3*DATA_WIDTH-1:0] Motion_Update_data,
+	input Motion_Update_data_valid,
+	input [3*CELL_ID_WIDTH-1:0] Motion_Update_dst_cell
 );
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,10 +316,10 @@ module RL_LJ_Top
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Motion Update Signals
 	///////////////////////////////////////////////////////////////////////////////////////////////
-	reg Motion_Update_enable;
-	reg [3*DATA_WIDTH-1:0] Motion_Update_data;
-	reg Motion_Update_data_valid;
-	reg [3*CELL_ID_WIDTH-1:0] Motion_Update_dst_cell;
+//	reg Motion_Update_enable;
+//	reg [3*DATA_WIDTH-1:0] Motion_Update_data;
+//	reg Motion_Update_data_valid;
+//	reg [3*CELL_ID_WIDTH-1:0] Motion_Update_dst_cell;
 	
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -776,6 +785,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -806,6 +818,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z+1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -836,6 +851,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z-1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -866,6 +884,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -896,6 +917,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z+1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -926,6 +950,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y-1'b1),
 		.CELL_Z(CELL_Z-1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -956,6 +983,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y-1'b1),
 		.CELL_Z(CELL_Z),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -986,6 +1016,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y-1'b1),
 		.CELL_Z(CELL_Z+1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -1016,6 +1049,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z-1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -1046,6 +1082,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -1076,6 +1115,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z+1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -1106,6 +1148,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z-1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -1136,6 +1181,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
@@ -1166,6 +1214,9 @@ module RL_LJ_Top
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z+1'b1),
+		// Force cache input buffer
+		.FORCE_CACHE_BUFFER_DEPTH(FORCE_CACHE_BUFFER_DEPTH),
+		.FORCE_CACHE_BUFFER_ADDR_WIDTH(FORCE_CACHE_BUFFER_ADDR_WIDTH),	// log(FORCE_CACHE_BUFFER_DEPTH) / log 2
 		// Dataset defined parameters
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
 		.MAX_CELL_PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),		// The maximum # of particles can be in a cell
