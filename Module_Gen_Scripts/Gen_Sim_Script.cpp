@@ -8,7 +8,10 @@
 
 using namespace std;
 
-int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path){
+int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, std::string* sim_top_module){
+
+//	// Set the simulation top module
+//	std::string sim_top_module = "Pos_Cache_2_2_2_tb";
 
 	// Setup Generating file
 	char filename[100];
@@ -149,7 +152,7 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path){
 	/////////////////////////////////////////////////////////////////////////
 	// Set testbench
 	/////////////////////////////////////////////////////////////////////////
-	fout << " set TOP_LEVEL_NAME RL_LJ_Top_tb\n";
+	fout << " set TOP_LEVEL_NAME " << *sim_top_module << "\n";
 	fout << "# #\n";
 	fout << "# # Set any elaboration options you require.\n";
 	fout << "# set USER_DEFINED_ELAB_OPTIONS <elaboration options>\n";

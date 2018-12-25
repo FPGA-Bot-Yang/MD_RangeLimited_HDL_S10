@@ -17,6 +17,9 @@ std::string common_path = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeli
 std::string sim_script_out_path = "/mentor";
 // The full path where the source code is organized
 std::string common_src_path = common_path + "/SourceCode";
+// The simualtion top module
+std::string sim_top_module = "Pos_Cache_2_2_2_tb";
+
 int BIN_NUM = 256;
 int SEG_NUM = 14;
 int HOME_CELL_X = 2;
@@ -70,9 +73,9 @@ int main(){
 	/////////////////////////////////////////////////////////////////////////
 	// Make a copy to simulation path
 	std::string tmp_script_path = "/SourceCode";
-	Gen_Sim_Script(&common_path, &tmp_script_path);
+	Gen_Sim_Script(&common_path, &tmp_script_path, &sim_top_module);
 	// Make a copy to SourceCode path
-	Gen_Sim_Script(&common_path, &sim_script_out_path);
+	Gen_Sim_Script(&common_path, &sim_script_out_path, &sim_top_module);
 
 	return 0;
 }

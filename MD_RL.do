@@ -121,7 +121,7 @@
 # # Set the top-level simulation or testbench module/entity name, which is
 # # used by the elab command to elaborate the top level.
 # #
- set TOP_LEVEL_NAME RL_LJ_Top_tb
+ set TOP_LEVEL_NAME Pos_Cache_2_2_2_tb
 # #
 # # Set any elaboration options you require.
 # set USER_DEFINED_ELAB_OPTIONS <elaboration options>
