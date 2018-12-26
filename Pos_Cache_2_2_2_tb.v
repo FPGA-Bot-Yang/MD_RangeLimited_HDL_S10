@@ -29,7 +29,7 @@
 
 module Pos_Cache_2_2_2_tb;
 
-	parameter DATA_WIDTH = 32*3;
+	parameter DATA_WIDTH = 32;
 	parameter PARTICLE_NUM = 220;
 	parameter ADDR_WIDTH = 8;
 	parameter CELL_ID_WIDTH = 4;

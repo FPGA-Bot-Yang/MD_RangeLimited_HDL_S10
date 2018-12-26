@@ -54,8 +54,13 @@
 //				RL_LJ_Top_tb.v: testing overall function
 //				Force_Write_Back_Controller_tb.v: testing the functionality when consequtive inputs are targeting the same particle
 //
+// Timing:
+//				Delay between read address assigned and value output: 2 cycles
+//				(In simulation Force_Write_Back_Controller_tb, the latency is 3 cycles, need to verify this in the full simulation)
+//
 // To do:
 //				0, Implement a buffer when there are more than 1 force evaluation units working at the same time. Cause each module may receive partial force from different evaluation units at the same time
+//				1, after motion update, there need to be a mechanism to clear all the force value in the cache
 //
 // Created by:
 //				Chen Yang 11/20/2018

@@ -142,7 +142,7 @@ module Particle_Pair_Gen_HalfShell
 	assign FSM_to_Cell_rden = rden;
 	reg [2:0] state;
 	// Counter that wait for the last pair to finish evaluation (17+14=31 cycles)
-	reg [4:0] wait_finish_counter;
+	reg [5:0] wait_finish_counter;
 	// Delay registers to record the previous backpressure input (since there are 2 cycles before the backpressure is here and the data actually stop generating)
 	// Use this sigal to determine whether the output particle pairs should be valid
 	reg [NUM_FILTER-1:0] ForceEval_to_FSM_backpressure_reg1;
@@ -732,7 +732,7 @@ module Particle_Pair_Gen_HalfShell
 					// There are 2 things have impact the output valid:
 					//		1, whether the filter has done processing all the cells it assigned
 					//		2, whether there is a backpressure: if so, the FSM will stop generating the pairs, and invalidate all the output
-					FSM_to_ForceEval_input_pair_valid <= (delay_ForceEval_to_FSM_backpressure == 0) ? ~delay_FSM_Filter_Done_Processing : 0;
+					FSM_to_ForceEval_input_pair_valid <= (delay_ForceEval_to_FSM_backpressure == 0) ? ~delay_FSM_Filter_Done_Processing : {(NUM_FILTER){1'b0}};
 					
 					//////////////////////////////////////////////////////////////////////////////////////////////
 					// Assign Next State

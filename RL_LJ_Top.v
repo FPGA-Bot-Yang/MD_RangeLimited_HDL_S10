@@ -116,7 +116,8 @@ module RL_LJ_Top
 	input Motion_Update_enable,
 	input [3*DATA_WIDTH-1:0] Motion_Update_data,
 	input Motion_Update_data_valid,
-	input [3*CELL_ID_WIDTH-1:0] Motion_Update_dst_cell
+	input [3*CELL_ID_WIDTH-1:0] Motion_Update_dst_cell,
+	input Motion_Update_valid
 );
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,6 +321,7 @@ module RL_LJ_Top
 //	reg [3*DATA_WIDTH-1:0] Motion_Update_data;
 //	reg Motion_Update_data_valid;
 //	reg [3*CELL_ID_WIDTH-1:0] Motion_Update_dst_cell;
+//	reg Motion_Update_valid;
 	
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,7 +438,7 @@ module RL_LJ_Top
 	// Home cell (2,2,2)
 	Pos_Cache_2_2_2
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -460,7 +462,7 @@ module RL_LJ_Top
 	// Neighbor cell #1 (2,2,3)
 	Pos_Cache_2_2_3
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -484,7 +486,7 @@ module RL_LJ_Top
 	// Neighbor cell #2 (2,3,1)
 	Pos_Cache_2_3_1
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -508,7 +510,7 @@ module RL_LJ_Top
 	// Neighbor cell #3 (2,3,2)
 	Pos_Cache_2_3_2
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -532,7 +534,7 @@ module RL_LJ_Top
 	// Neighbor cell #4 (2,3,3)
 	Pos_Cache_2_3_3
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -556,7 +558,7 @@ module RL_LJ_Top
 	// Neighbor cell #5 (3,1,1)
 	Pos_Cache_3_1_1
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -580,7 +582,7 @@ module RL_LJ_Top
 	// Neighbor cell #6 (3,1,2)
 	Pos_Cache_3_1_2
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -604,7 +606,7 @@ module RL_LJ_Top
 	// Neighbor cell #7 (3,1,3)
 	Pos_Cache_3_1_3
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -628,7 +630,7 @@ module RL_LJ_Top
 	// Neighbor cell #8 (3,2,1)
 	Pos_Cache_3_2_1
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -652,7 +654,7 @@ module RL_LJ_Top
 	// Neighbor cell #9 (3,2,2)
 	Pos_Cache_3_2_2
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -676,7 +678,7 @@ module RL_LJ_Top
 	// Neighbor cell #10 (3,2,3)
 	Pos_Cache_3_2_3
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -700,7 +702,7 @@ module RL_LJ_Top
 	// Neighbor cell #11 (3,3,1)
 	Pos_Cache_3_3_1
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -724,7 +726,7 @@ module RL_LJ_Top
 	// Neighbor cell #12 (3,3,2)
 	Pos_Cache_3_3_2
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),
@@ -748,7 +750,7 @@ module RL_LJ_Top
 	// Neighbor cell #13 (3,3,3)
 	Pos_Cache_3_3_3
 	#(
-		.DATA_WIDTH(DATA_WIDTH*3),
+		.DATA_WIDTH(DATA_WIDTH),
 		.PARTICLE_NUM(MAX_CELL_PARTICLE_NUM),
 		.ADDR_WIDTH(CELL_ADDR_WIDTH),
 		.CELL_ID_WIDTH(CELL_ID_WIDTH),

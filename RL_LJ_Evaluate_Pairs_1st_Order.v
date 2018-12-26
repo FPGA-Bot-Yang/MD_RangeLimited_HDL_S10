@@ -158,6 +158,8 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	
 	// Generate table lookup address
 	assign rdaddr = {segment_id, bin_id};							// asssign the table lookup address
+	wire [7:0] segment_id_temp;
+	assign segment_id_temp = r2[30:23] - 8'd121;
 	always@(*)
 		if(rst)
 			begin		
@@ -170,8 +172,8 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 				// assign bin_id
 				bin_id = r2[22:22-BIN_WIDTH+1];
 				// assign segment_id
-				if(r2[30:23] - 8'd121 < SEGMENT_NUM && r2[30:23] - 8'd121 >= 0)
-					segment_id = r2[30:23] - 8'd121;
+				if(segment_id_temp < SEGMENT_NUM && segment_id_temp >= 0)
+					segment_id = segment_id_temp[SEGMENT_WIDTH-1:0];
 				else
 					segment_id = 0;
 			end

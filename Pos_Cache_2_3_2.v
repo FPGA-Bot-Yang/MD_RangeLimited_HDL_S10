@@ -35,7 +35,7 @@
 
 module Pos_Cache_2_3_2
 #(
-	parameter DATA_WIDTH = 32*3,
+	parameter DATA_WIDTH = 32,
 	parameter PARTICLE_NUM = 220,
 	parameter ADDR_WIDTH = 8,
 	parameter CELL_ID_WIDTH = 4,
@@ -48,12 +48,12 @@ module Pos_Cache_2_3_2
 	input rst,
 	input motion_update_enable,										// Keep this signal as high during the motion update process
 	input [ADDR_WIDTH-1:0] in_read_address,
-	input [DATA_WIDTH-1:0] in_data,
+	input [3*DATA_WIDTH-1:0] in_data,
 	input [3*CELL_ID_WIDTH-1:0] in_data_dst_cell,				// The destination cell for the incoming data
 	input in_data_valid,													// Signify if the new incoming data is valid
 	input in_rden,
 	//input in_wren,
-	output [DATA_WIDTH-1:0] out_particle_info
+	output [3*DATA_WIDTH-1:0] out_particle_info
 );
 
 	//////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ module Pos_Cache_2_3_2
 	// Memory module control signal
 	reg cell_wr_en;
 	reg [ADDR_WIDTH-1:0] cell_wr_address;
-	reg [DATA_WIDTH-1:0] cell_wr_data;
+	reg [3*DATA_WIDTH-1:0] cell_wr_data;
 	// Assign the current cell ID
 	wire [CELL_ID_WIDTH-1:0] cur_cell_x, cur_cell_y, cur_cell_z;
 	assign cur_cell_x = CELL_X;
@@ -88,7 +88,7 @@ module Pos_Cache_2_3_2
 			new_particle_counter <= 1;								// Counter starts from 1, to avoid write to Address 0
 			cell_wr_en <= 1'b0;
 			cell_wr_address <= {(ADDR_WIDTH){1'b0}};
-			cell_wr_data <= {(DATA_WIDTH){1'b0}};
+			cell_wr_data <= {(3*DATA_WIDTH){1'b0}};
 			
 			state <= WAIT_FOR_MOTION_UPDATE_START;
 			end
@@ -124,7 +124,7 @@ module Pos_Cache_2_3_2
 						new_particle_counter <= 1;
 						cell_wr_en <= 1'b0;
 						cell_wr_address <= {(ADDR_WIDTH){1'b0}};
-						cell_wr_data <= {(DATA_WIDTH){1'b0}};
+						cell_wr_data <= {(3*DATA_WIDTH){1'b0}};
 						state <= WAIT_FOR_MOTION_UPDATE_START;
 						end
 					end
@@ -195,7 +195,7 @@ module Pos_Cache_2_3_2
 	assign input_to_cell_addr_0 = (active_cell) ? cell_wr_address : in_read_address;
 	assign input_to_cell_addr_1 = (active_cell) ? in_read_address : cell_wr_address;
 	// Assign the write data
-	wire [DATA_WIDTH-1:0] input_to_cell_new_position_data_0, input_to_cell_new_position_data_1;
+	wire [3*DATA_WIDTH-1:0] input_to_cell_new_position_data_0, input_to_cell_new_position_data_1;
 	assign input_to_cell_new_position_data_0 = (active_cell) ? cell_wr_data : 0;
 	assign input_to_cell_new_position_data_1 = (active_cell) ? 0 : cell_wr_data;
 	// Assign the read enable
@@ -207,7 +207,7 @@ module Pos_Cache_2_3_2
 	assign input_to_cell_wren_0 = (active_cell) ? cell_wr_en : 1'b0;
 	assign input_to_cell_wren_1 = (active_cell) ? 1'b0 : cell_wr_en;
 	// Assign the read out data to output
-	wire [DATA_WIDTH-1:0] cell_to_output_position_readout_0, cell_to_output_position_readout_1;
+	wire [3*DATA_WIDTH-1:0] cell_to_output_position_readout_0, cell_to_output_position_readout_1;
 	assign out_particle_info = (active_cell) ? cell_to_output_position_readout_1 : cell_to_output_position_readout_0;
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ module Pos_Cache_2_3_2
 	// Original Cell with initial value
 	cell_2_3_2
 	#(
-		.DATA_WIDTH(DATA_WIDTH),
+		.DATA_WIDTH(3*DATA_WIDTH),
 		.PARTICLE_NUM(PARTICLE_NUM),
 		.ADDR_WIDTH(ADDR_WIDTH)
 	)
@@ -233,7 +233,7 @@ module Pos_Cache_2_3_2
 	// Alternative cell
 	cell_empty
 	#(
-		.DATA_WIDTH(DATA_WIDTH),
+		.DATA_WIDTH(3*DATA_WIDTH),
 		.PARTICLE_NUM(PARTICLE_NUM),
 		.ADDR_WIDTH(ADDR_WIDTH)
 	)
