@@ -58,10 +58,10 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << "# # Add commands to compile all design files and testbench files, including\n";
 	fout << "# # the top level. (These are all the files required for simulation other\n";
 	fout << "# # than the files compiled by the Quartus-generated IP simulation script)\n";
-	fout << "# #\n";
-	fout << " vlog -vlog01compat -work work " << path << "define.v\n\n";
+	fout << "# #\n\n";
 	
 	// Generate Top Modules
+	fout << " vlog -vlog01compat -work work " << path << "define.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Pipeline_1st_Order_no_filter.v\n";
@@ -145,11 +145,13 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " vlog -vlog01compat -work work " << path << "Velocity_Cache_2_2_2.v\n";
 	// OpenCL Related Modules
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top_tb.v\n\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top_tb.v\n";
 	// Testing Modules
+	fout << "# # Testing Modules\n";
 	fout << " vlog -vlog01compat -work work " << path << "fp_accumulation_test.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "fp_accumulation_test_tb.v\n\n";
+	fout << " vlog -vlog01compat -work work " << path << "fp_accumulation_test_tb.v\n";
 	// Depricated Modules
+	fout << "# # Depricated Modules\n";
 	fout << " vlog -vlog01compat -work work " << path << "ram_ref_x.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "ram_ref_y.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "ram_ref_z.v\n";
