@@ -61,57 +61,55 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << "# #\n";
 	fout << " vlog -vlog01compat -work work " << path << "define.v\n\n";
 	
-	fout << " vlog -vlog01compat -work work " << path << "fp_accumulation_test.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "fp_accumulation_test_tb.v\n\n";
-
+	// Generate Top Modules
+	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Pipeline_1st_Order_no_filter.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Pipeline_1st_Order_no_filter_tb.v\n";
 	fout << " #vlog -vlog01compat -work work " << path << "RL_Pipeline_1st_Order.v\n";
 	fout << " #vlog -vlog01compat -work work " << path << "RL_Pipeline_1st_Order_tb.v\n";
 	fout << " #vlog -vlog01compat -work work " << path << "RL_Evaluate_Pairs_1st_Order.v\n";
 	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing.v\n";
 	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Force_Write_Back_Controller.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Force_Write_Back_Controller_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Force_Cache_Input_Buffer.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Particle_Pair_Gen_HalfShell.v\n";
+	// Generate Force Evaluation Units
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_Unit.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Force_Evaluation_Unit.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Partial_Force_Acc.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Partial_Force_Acc_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Filter_Arbiter.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Filter_Arbiter_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Filter_Bank.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Filter_Logic.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Filter_Buffer.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "Filter_Buffer_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "FIFO.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Pipeline_1st_Order_no_filter.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Pipeline_1st_Order_no_filter_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Particle_Pair_Gen_HalfShell.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluate_Pairs_1st_Order.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluate_Pairs_1st_Order_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Filter_Bank.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Filter_Arbiter.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Filter_Arbiter_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Filter_Logic.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "r2_compute.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "r2_compute_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "force_cache.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "force_cache_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "FP_ADD.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "FP_ACC.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "FP_MUL.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "FP_MUL_ADD.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "FP_SUB.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "FP_SUB_tb.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "ram_ref_x.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "ram_ref_y.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "ram_ref_z.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "ram_neighbor_x.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "ram_neighbor_y.v\n";
-	fout << " vlog -vlog01compat -work work " << path << "ram_neighbor_z.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Filter_Buffer.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Filter_Buffer_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "lut0_14.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "lut1_14.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "lut0_8.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "lut1_8.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "lut0_3.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "lut1_3.v\n";
+	// Generate Accumulation Units
+	fout << " vlog -vlog01compat -work work " << path << "Force_Write_Back_Controller.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Force_Write_Back_Controller_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "force_cache.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "force_cache_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Force_Cache_Input_Buffer.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Partial_Force_Acc.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Partial_Force_Acc_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "FIFO.v\n";
+	// Generate Motion Update Units
+	fout << " vlog -vlog01compat -work work " << path << "Motion_Update.v\n";
+	// DSP Units
+	fout << " vlog -vlog01compat -work work " << path << "FP_ADD.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "FP_ACC.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "FP_MUL.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "FP_MUL_ADD.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "FP_SUB.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "FP_SUB_tb.v\n";
+	// Position Cache
 	fout << " vlog -vlog01compat -work work " << path << "cell_empty.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "cell_2_2_2.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "cell_2_2_3.v\n";
@@ -142,8 +140,22 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_3_2.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_3_3.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_2_2_2_tb.v\n";
+	// Velocity Cache
+	fout << " vlog -vlog01compat -work work " << path << "velocity_2_2_2.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Velocity_Cache_2_2_2.v\n";
+	// OpenCL Related Modules
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top_tb.v\n\n";
+	// Testing Modules
+	fout << " vlog -vlog01compat -work work " << path << "fp_accumulation_test.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "fp_accumulation_test_tb.v\n\n";
+	// Depricated Modules
+	fout << " vlog -vlog01compat -work work " << path << "ram_ref_x.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "ram_ref_y.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "ram_ref_z.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "ram_neighbor_x.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "ram_neighbor_y.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "ram_neighbor_z.v\n";
 
 	fout << "# #\n";
 	fout << "# # Set the top-level simulation or testbench module/entity name, which is\n";
