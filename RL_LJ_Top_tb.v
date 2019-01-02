@@ -45,6 +45,7 @@ module RL_LJ_Top_tb;
 	wire [NUM_EVAL_UNIT*DATA_WIDTH-1:0] neighbor_LJ_Force_X, neighbor_LJ_Force_Y, neighbor_LJ_Force_Z;
 	wire [NUM_EVAL_UNIT-1:0] ref_forceoutput_valid, neighbor_forceoutput_valid;
 	wire done;
+	wire [3*CELL_ID_WIDTH-1:0] out_Motion_Update_cur_cell;
 	
 	always #1 clk <= ~clk;
 	
@@ -105,7 +106,8 @@ module RL_LJ_Top_tb;
 		.neighbor_LJ_Force_Z(neighbor_LJ_Force_Z),
 		.neighbor_forceoutput_valid(neighbor_forceoutput_valid),
 		// Done signal, when entire home cell is done processing, this will keep high until the next time 'start' signal turn high
-		.done(done)
+		.out_home_cell_evaluation_done(done),
+		.out_Motion_Update_cur_cell(out_Motion_Update_cur_cell)
 	);
 	
 endmodule

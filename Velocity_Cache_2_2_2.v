@@ -1,39 +1,41 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: Pos_Cache_2_2_2.v
+// Module: Velocity_Cache_2_2_2.v (This module is almost identical to Pos_Cache_2_2_2.v, share the same testbench)
 //
 //	Function:
-//				Position cache with double buffering for motion update
+//				Velocity cache with double buffering for motion update
+//				Holds the velocity value from previous motion update
+//				Update the value after each motion update process
 //
 //	Purpose:
-//				Providing particle position data for force evaluation and motion update
+//				Providing particle velocity information for motion update
 //				Have a secondary buffer to hold the new data after motion update process
 //				During motion update process, the motion update module will broadcast the valid data and destination cell to all cells
 //				Upon receiving valid particle data, first determine if this is the target destination cell
 //
 // Data Organization:
 //				Address 0 for each cell module: # of particles in the cell
-//				Position data: MSB-LSB: {posz, posy, posx}
+//				Velocity data: MSB-LSB: {vz, vy, vx}
 //				Cell address: MSB-LSB: {cell_x, cell_y, cell_z}
 //
 // Used by:
 //				RL_LJ_Top.v
 //
 // Dependency:
-//				cell_x_y_z.v
+//				velocity_x_y_z.v
 //				cell_empty.v
 //
 // Testbench:
-//				Pos_Cache_2_2_2_tb.v			(testing the swap function during motion update)
+//				Refere to Pos_Cache_2_2_2_tb.v			(testing the swap function during motion update)
 //				RL_LJ_Top_tb.v					(testing the correctness of read & write)
 //
 // Timing:
 //				2 cycles reading delay from input address and output data.
 //
 // Created by:
-//				Chen Yang  12/17/2018
+//				Chen Yang  12/27/2018
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module Pos_Cache_2_2_2
+module Velocity_Cache_2_2_2
 #(
 	parameter DATA_WIDTH = 32,
 	parameter PARTICLE_NUM = 220,
@@ -214,13 +216,13 @@ module Pos_Cache_2_2_2
 	// Memory Modules
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	// Original Cell with initial value
-	cell_2_2_2
+	velocity_2_2_2
 	#(
 		.DATA_WIDTH(3*DATA_WIDTH),
 		.PARTICLE_NUM(PARTICLE_NUM),
 		.ADDR_WIDTH(ADDR_WIDTH)
 	)
-	cell_0
+	velocity_cell_0
 	(
 		.address(input_to_cell_addr_0),
 		.clock(clk),
@@ -237,7 +239,7 @@ module Pos_Cache_2_2_2
 		.PARTICLE_NUM(PARTICLE_NUM),
 		.ADDR_WIDTH(ADDR_WIDTH)
 	)
-	cell_1
+	velocity_cell_1
 	(
 		.address(input_to_cell_addr_1),
 		.clock(clk),

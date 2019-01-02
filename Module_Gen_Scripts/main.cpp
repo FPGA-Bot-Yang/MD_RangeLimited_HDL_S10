@@ -8,6 +8,7 @@
 
 #include "homecell.h"
 #include "Gen_Cell_Mem.h"
+#include "Gen_Boundary_Mem.h"
 #include "Gen_Lookup_Mem.h"
 #include "Gen_Sim_Script.h"
 
@@ -48,6 +49,11 @@ int main(){
 	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z-1, &common_src_path);
 	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z, &common_src_path);
 	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z+1, &common_src_path);
+
+	/////////////////////////////////////////////////////////////////////////
+	// Generate Cell Boundary Memory module
+	/////////////////////////////////////////////////////////////////////////
+	Gen_Boundary_Mem(&common_src_path);
 	
 	/////////////////////////////////////////////////////////////////////////
 	// Generate Interpolation Memory module

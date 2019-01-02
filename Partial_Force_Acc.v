@@ -128,7 +128,7 @@ module Partial_Force_Acc
 	)
 	FP_ACC_X (
 		.clk(clk),
-		.clr(rst),
+		.clr(1'b0),
 		.ena(acc_enable),
 		.ax(partial_force_x_in_wire),
 		.ay(acc_force_x_in_wire),
@@ -142,7 +142,7 @@ module Partial_Force_Acc
 	)
 	FP_ACC_Y (
 		.clk(clk),
-		.clr(rst),
+		.clr(1'b0),
 		.ena(acc_enable),
 		.ax(partial_force_y_in_wire),
 		.ay(acc_force_y_in_wire),
@@ -156,7 +156,7 @@ module Partial_Force_Acc
 	)
 	FP_ACC_Z (
 		.clk(clk),
-		.clr(rst),
+		.clr(1'b0),
 		.ena(acc_enable),
 		.ax(partial_force_z_in_wire),
 		.ay(acc_force_z_in_wire),

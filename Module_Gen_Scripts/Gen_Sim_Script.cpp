@@ -61,6 +61,7 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << "# #\n\n";
 	
 	// Generate Top Modules
+	fout << "# # Top Modules\n";
 	fout << " vlog -vlog01compat -work work " << path << "define.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top_tb.v\n";
@@ -72,6 +73,7 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing.v\n";
 	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing_tb.v\n";
 	// Generate Force Evaluation Units
+	fout << "# # Force Evaluation Units\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_Unit.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Force_Evaluation_Unit.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Particle_Pair_Gen_HalfShell.v\n";
@@ -92,6 +94,7 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " vlog -vlog01compat -work work " << path << "lut0_3.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "lut1_3.v\n";
 	// Generate Accumulation Units
+	fout << "# # Accumulation Units\n";
 	fout << " vlog -vlog01compat -work work " << path << "Force_Write_Back_Controller.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Force_Write_Back_Controller_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "force_cache.v\n";
@@ -101,15 +104,21 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " vlog -vlog01compat -work work " << path << "Partial_Force_Acc_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "FIFO.v\n";
 	// Generate Motion Update Units
+	fout << "# # Motion Update Units\n";
 	fout << " vlog -vlog01compat -work work " << path << "Motion_Update.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Motion_Update_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "cell_boundary_mem.v\n";
 	// DSP Units
+	fout << "# # DSP Units\n";
 	fout << " vlog -vlog01compat -work work " << path << "FP_ADD.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "FP_ACC.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "FP_MUL.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "FP_MUL_ADD.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "FP_SUB.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "FP_SUB_tb.v\n";
-	// Position Cache
+	fout << " vlog -vlog01compat -work work " << path << "FP_Comparator_Latency_tb.v\n";
+	// Position Caches
+	fout << "# # Position Caches\n";
 	fout << " vlog -vlog01compat -work work " << path << "cell_empty.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "cell_2_2_2.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "cell_2_2_3.v\n";
@@ -140,10 +149,12 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_3_2.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_3_3_3.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Pos_Cache_2_2_2_tb.v\n";
-	// Velocity Cache
+	// Velocity Caches
+	fout << "# # Velocity Caches\n";
 	fout << " vlog -vlog01compat -work work " << path << "velocity_2_2_2.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Velocity_Cache_2_2_2.v\n";
 	// OpenCL Related Modules
+	fout << "# # OpenCL Related Modules\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_OpenCL_Top_tb.v\n";
 	// Testing Modules

@@ -3,11 +3,11 @@
 //
 //	Function:
 //				IEEE single prcecision subtraction
-//				result = ay-ax
+//				result = ay - ax
 //				clr reset the result to 0 immediately when high
 //				when ena drops to low, the results remain the same as the previous evaluation result
 //
-//	Latency: 2 cycle
+//	Latency: 3 cycle
 //
 // Created by:
 //				Chen Yang 11/16/18

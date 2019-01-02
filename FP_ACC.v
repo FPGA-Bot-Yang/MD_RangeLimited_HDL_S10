@@ -7,6 +7,9 @@
 //				Connect the output to one of the inputs, then form an accumulator
 //				Fmax ~ 360MHz
 //
+// Used by:
+//				Partial_Force_Acc.v
+//
 // Latency: 1 cycle
 //
 // Created by: Chen Yang 10/24/18
