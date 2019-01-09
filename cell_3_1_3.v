@@ -21,7 +21,7 @@
 //				RL_LJ_Top_tb.v
 //
 // Timing:
-//				1 cycle reading delay from input address and output data.
+//				2 cycles reading delay from input address and output data.
 //
 // Created by:
 //				Chen Yang's Script (Gen_Cell_Mem.cpp), based on Single Port RAM IP core

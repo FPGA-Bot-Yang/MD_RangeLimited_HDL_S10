@@ -107,7 +107,8 @@ module RL_LJ_Top_tb;
 		.neighbor_forceoutput_valid(neighbor_forceoutput_valid),
 		// Done signal, when entire home cell is done processing, this will keep high until the next time 'start' signal turn high
 		.out_home_cell_evaluation_done(done),
-		.out_Motion_Update_cur_cell(out_Motion_Update_cur_cell)
+		.out_Motion_Update_cur_cell(out_Motion_Update_cur_cell),
+		.in_sel(4'b0)
 	);
 	
 endmodule

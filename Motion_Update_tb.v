@@ -18,7 +18,12 @@
 //				Motion_Update.v
 //
 // Timing:
-//				Read in data: 2 cycles delay: after read address is assigned, there are 2 cycles delay from the upstream cache module
+//				Total of 17 cycles: from the read address is address to the output valid
+//				Plus in the beginning, there is 1 extra cycle to read in how many particles are in the current cell
+//				Read in data: total of 3 cycles
+//						From Pos Cache & Velocity Cache: 2 cycles delay: after read address is assigned, there are 2 cycles delay from the upstream cache module
+//						From Force Cache: 3 cycles delay: 1 cycle for registering the input read address, 1 cycle to readout data, 1 cycle to register the output
+//						In order to conpensate the 1 cycle extra read delay from force cache, delay the input from Velocity cache by one cycle
 //				Data processing latency: 				total of 11 cycles
 //						Evaluate Speed: 					5 cycles
 //						Evaluate Position:				5 cycles
@@ -61,6 +66,7 @@ module Motion_Update_tb;
 	wire [CELL_ADDR_WIDTH-1:0] out_position_cache_rd_addr;
 	// Read from Force Cache
 	reg [3*DATA_WIDTH-1:0] in_force_data;
+	reg [3*DATA_WIDTH-1:0] delay_in_force_data;				// Create the extra cycle delay to read from force cache
 	wire out_force_cache_rd_en;
 	wire [CELL_ADDR_WIDTH-1:0] out_force_cache_rd_addr;
 	// Read from Velocity Cache
@@ -103,11 +109,15 @@ module Motion_Update_tb;
 			motion_update_start <= 1'b0;
 			in_position_data <= 0;
 			in_force_data <= 0;
+			delay_in_force_data <= 0;
 			in_velocity_data <= 0;
 			state <= WAIT_FOR_START;
 			end
 		else
 			begin
+			// Assign the delayed force value
+			delay_in_force_data <= in_force_data;
+			// FSM
 			case(state)
 				WAIT_FOR_START:
 					begin
@@ -275,7 +285,7 @@ module Motion_Update_tb;
 		.out_position_cache_rd_en(out_position_cache_rd_en),
 		.out_position_cache_rd_addr(out_position_cache_rd_addr),
 		// Read from Force Cache
-		.in_force_data(in_force_data),
+		.in_force_data(delay_in_force_data),
 		.out_force_cache_rd_en(out_force_cache_rd_en),
 		.out_force_cache_rd_addr(out_force_cache_rd_addr),
 		// Read from Velocity Cache

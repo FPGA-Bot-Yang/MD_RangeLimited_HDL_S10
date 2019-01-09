@@ -95,6 +95,10 @@ module Particle_Pair_Gen_HalfShell
 	output reg [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_to_ForceEval_ref_particle_id,					// {cell_z, cell_y, cell_x, ref_particle_rd_addr}
 	output reg [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] FSM_to_ForceEval_neighbor_particle_id,			// {cell_z, cell_y, cell_x, neighbor_particle_rd_addr}
 	output reg [NUM_FILTER-1:0] FSM_to_ForceEval_input_pair_valid,		// Signify the valid of input particle data, this signal should have 1 cycle delay of the rden signal, thus wait for the data read out from BRAM
+	//** This signal is specifically added for handling the last reference particle **//
+	// When the last reference particle finish its evaluation, since there's no valid particle comming in, the reference particle accumulator won't detect the change of particle id, thus won't create the output valid for the last reference particle's accumulated force
+	// This signal will only set as high for one cycle for the entire home cell evaluation. When this signal is high, assign the 'ref_forceoutput_valid' as high
+	output reg FSM_almost_done_generation,
 	// Ports to top level modules
 	// done signal, when entire home cell is done processing, this will keep high until the next time 'start' signal turn high
 	output done
@@ -280,6 +284,8 @@ module Particle_Pair_Gen_HalfShell
 			begin
 			rden <= 1'b0;
 			wait_finish_counter <= 0;
+			// Special signal to handle the output valid for the last reference particle
+			FSM_almost_done_generation <= 1'b0;
 			// FSM control registers
 			FSM_Cell_Particle_Num <= 0;
 			FSM_Filter_Sel_Cell <= 0;
@@ -307,6 +313,8 @@ module Particle_Pair_Gen_HalfShell
 				WAIT_FOR_START:
 					begin
 					wait_finish_counter <= 0;
+					// Special signal to handle the output valid for the last reference particle
+					FSM_almost_done_generation <= 1'b0;
 					// FSM to Output
 					// Maintain the previous done signal while waiting for the next start signal, thus to keep the done signal high
 					FSM_to_Output_homecell_done <= FSM_to_Output_homecell_done;
@@ -323,6 +331,7 @@ module Particle_Pair_Gen_HalfShell
 					FSM_to_ForceEval_ref_particle_id <= 0;
 					FSM_to_ForceEval_neighbor_particle_id <= 0;
 					FSM_to_ForceEval_input_pair_valid <= 0;
+					
 					// State control
 					if(start)
 						begin
@@ -343,6 +352,8 @@ module Particle_Pair_Gen_HalfShell
 				READ_CELL_INFO:
 					begin
 					wait_finish_counter <= 0;
+					// Special signal to handle the output valid for the last reference particle
+					FSM_almost_done_generation <= 1'b0;
 					// FSM to Output
 					FSM_to_Output_homecell_done <= 1'b0;
 					// FSM control registers
@@ -357,6 +368,7 @@ module Particle_Pair_Gen_HalfShell
 					FSM_to_ForceEval_ref_particle_id <= 0;
 					FSM_to_ForceEval_neighbor_particle_id <= 0;
 					FSM_to_ForceEval_input_pair_valid <= 0;
+					
 					// State control
 					state <= READ_REF_PARTICLE;
 					
@@ -383,6 +395,8 @@ module Particle_Pair_Gen_HalfShell
 				READ_REF_PARTICLE:
 					begin
 					wait_finish_counter <= wait_finish_counter + 1'b1;
+					// Special signal to handle the output valid for the last reference particle
+					FSM_almost_done_generation <= 1'b0;
 					// FSM to Output
 					FSM_to_Output_homecell_done <= 1'b0;
 					// FSM control registers
@@ -443,6 +457,8 @@ module Particle_Pair_Gen_HalfShell
 				RECORD_REF_PARTICLE:
 					begin
 					wait_finish_counter <= 0;
+					// Special signal to handle the output valid for the last reference particle
+					FSM_almost_done_generation <= 1'b0;
 					// FSM to Output
 					FSM_to_Output_homecell_done <= 1'b0;
 					// FSM control registers
@@ -456,6 +472,7 @@ module Particle_Pair_Gen_HalfShell
 					FSM_to_ForceEval_ref_particle_id <= 0;
 					FSM_to_ForceEval_neighbor_particle_id <= 0;
 					FSM_to_ForceEval_input_pair_valid <= 0;
+					
 					// Assign state
 					state <= EVALUATION;
 					
@@ -485,7 +502,8 @@ module Particle_Pair_Gen_HalfShell
 					FSM_Cell_Particle_Num <= FSM_Cell_Particle_Num;					// Keep the Cell_Particle_Num during the entire process
 					FSM_Ref_Particle_Addr <= FSM_Ref_Particle_Addr;					// Keep the current Ref_Particle_Addr
 					FSM_Ref_Particle_Position <= FSM_Ref_Particle_Position;		// Keep the current Ref_Particle_Position
-
+					// Special signal to handle the output valid for the last reference particle
+					FSM_almost_done_generation <= 1'b0;
 					//////////////////////////////////////////////////////////////////////////////////////////////
 					// Process Filter Read Address
 					//////////////////////////////////////////////////////////////////////////////////////////////
@@ -752,6 +770,8 @@ module Particle_Pair_Gen_HalfShell
 				CHECK_HOME_CELL_DONE:
 					begin
 					wait_finish_counter <= 0;
+					// Special signal to handle the output valid for the last reference particle
+					FSM_almost_done_generation <= 1'b0;
 					// FSM to Output
 					FSM_to_Output_homecell_done <= 1'b0;
 					// FSM control registers					
@@ -802,7 +822,16 @@ module Particle_Pair_Gen_HalfShell
 					FSM_to_ForceEval_ref_particle_id <= 0;
 					FSM_to_ForceEval_neighbor_particle_id <= 0;
 					FSM_to_ForceEval_input_pair_valid <= 0;
-					
+				
+					// Special signal to handle the output valid for the last reference particle
+					// Set the almost done a few cycles before the wait process ends, thus give it more time to let the force cache to write in the value
+					// After entering the next state, the motion update will start and new value can no longer write in the force cache
+					// The value 35 here is depending on the wait cycle below, always make it 5 less than the threshold below
+					if(wait_finish_counter == 35)
+						FSM_almost_done_generation <= 1'b1;
+					else
+						FSM_almost_done_generation <= 1'b0;
+				
 					// Assgin the next state
 					// !!!!! The wait cycle 40 is given arbitraily, may need for some adjustments
 					if(wait_finish_counter < 40)
@@ -815,6 +844,8 @@ module Particle_Pair_Gen_HalfShell
 				DONE:
 					begin
 					wait_finish_counter <= 0;
+					// Special signal to handle the output valid for the last reference particle
+					FSM_almost_done_generation <= 1'b0;
 					// FSM to Output
 					FSM_to_Output_homecell_done <= 1'b1;
 					// FSM control registers					

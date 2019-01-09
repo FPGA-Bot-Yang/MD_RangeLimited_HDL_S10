@@ -48,7 +48,7 @@ int Gen_Cell_Mem(int cellx, int celly, int cellz, std::string* common_path){
 	fout << "//\t\t\t\tRL_LJ_Top_tb.v\n";
 	fout << "//\n";
 	fout << "// Timing:\n";
-	fout << "//\t\t\t\t1 cycle reading delay from input address and output data.\n";
+	fout << "//\t\t\t\t2 cycles reading delay from input address and output data.\n";
 	fout << "//\n";
 	fout << "// Created by:\n";
 	fout << "//\t\t\t\tChen Yang's Script (Gen_Cell_Mem.cpp), based on Single Port RAM IP core\n";

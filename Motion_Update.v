@@ -35,7 +35,12 @@
 //				Motion_Update_tb.v
 //
 // Timing:
-//				Read in data: 2 cycles delay: after read address is assigned, there are 2 cycles delay from the upstream cache module
+//				Total of 17 cycles: from the read address is address to the output valid
+//				Plus in the beginning, there is 1 extra cycle to read in how many particles are in the current cell
+//				Read in data: total of 3 cycles
+//						From Pos Cache & Velocity Cache: 2 cycles delay: after read address is assigned, there are 2 cycles delay from the upstream cache module
+//						From Force Cache: 3 cycles delay: 1 cycle for registering the input read address, 1 cycle to readout data, 1 cycle to register the output
+//						In order to conpensate the 1 cycle extra read delay from force cache, delay the input from Velocity cache by one cycle
 //				Data processing latency: 				total of 14 cycles
 //						Evaluate Speed: 					5 cycles
 //						Evaluate Position:				5 cycles
@@ -146,8 +151,12 @@ module Motion_Update
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// Delay registers
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	// Delay the incoming valid signal to generate the output valid signal (13 cycles for the entire datapath)
-	// Full datapath has 14 cycles, but the initial incoming_valid signal is assigned in FSM, already including 1 cycle delay
+	// Delay the incoming velocity data by 1 cycle to wait for force data arrive
+	reg [3*DATA_WIDTH-1:0] delay_in_velocity_data;
+	// Delay the incoming valid signal to generate the output valid signal (14 cycles for the entire datapath)
+	// Full datapath has 14 cycles, but the initial incoming_valid signal is assigned in FSM, already including 1 cycle delay, should delay for 13 cycles
+	// However there is an extra delay for conpensate for the force cache's 3 cycle read delay instead of 2 from other caches
+	// Thus a total of 14 cycles delay
 	reg incoming_data_valid_reg1;
 	reg incoming_data_valid_reg2;
 	reg incoming_data_valid_reg3;
@@ -160,12 +169,16 @@ module Motion_Update
 	reg incoming_data_valid_reg10;
 	reg incoming_data_valid_reg11;
 	reg incoming_data_valid_reg12;
+	reg incoming_data_valid_reg13;
 	reg delay_incoming_data_valid;
-	// Delay registers conpensating the 5 cycle delay between position data arrival and evaluating velocity finish
+	// Delay registers conpensating the 6 cycle delay between position data arrival and evaluating velocity finish
+	// 5 cycles for velocity evaluation
+	// 1 cycle for conpensating the 1 more cycle read delay from force cache
 	reg [3*DATA_WIDTH-1:0] in_position_data_reg1;
 	reg [3*DATA_WIDTH-1:0] in_position_data_reg2;
 	reg [3*DATA_WIDTH-1:0] in_position_data_reg3;
 	reg [3*DATA_WIDTH-1:0] in_position_data_reg4;
+	reg [3*DATA_WIDTH-1:0] in_position_data_reg5;
 	reg [3*DATA_WIDTH-1:0] delay_in_position_data;
 	// Delay registers to propogate the evaluated velocity data to meet the target cell information (9 cycles from speed evaluation to output)
 	reg [3*DATA_WIDTH-1:0] evaluated_velocity_reg1;
@@ -486,7 +499,7 @@ module Motion_Update
 					begin
 					delay_counter <= 0;											// Reset the delay counter
 					particle_num <= particle_num;								// Keep the particle_num
-					rd_addr <= rd_addr + 1'b1;									// Keep incrementing the read address
+					//rd_addr <= rd_addr + 1'b1;									// Keep incrementing the read address
 					rd_enable <= 1'b1;											// Keep the read enable as high
 					incoming_data_valid <= 1'b1;								// The data read out are valid from now on
 					out_motion_update_enable <= 1'b1;						// Motion update remain high during the entire process
@@ -494,10 +507,12 @@ module Motion_Update
 					// Wait for one more cycle here to let the particle num read out
 					if(rd_addr < particle_num)
 						begin
+						rd_addr <= rd_addr + 1'b1;								// Keep incrementing the read address
 						state <= READ_PARTICLE_INFO;
 						end
 					else
 						begin
+						rd_addr <= 0;												// After read is done, reset the read address
 						state <= WAIT_FOR_FINISH;
 						end
 					end
@@ -516,6 +531,7 @@ module Motion_Update
 					else
 						incoming_data_valid <= 1'b0;
 					// Keep read-enable high for one more cycle to let read finish
+					// But is this necessary??
 					if(delay_counter < 1)
 						rd_enable <= 1'b1;										
 					else
@@ -554,6 +570,8 @@ module Motion_Update
 		begin
 		if(rst)
 			begin
+			// Delay the incoming velocity data by 1 cycle to wait for force data arrive
+			delay_in_velocity_data <= 0;
 			// Delay the incoming valid signal to generate the output valid signal
 			incoming_data_valid_reg1 <= 1'b0;
 			incoming_data_valid_reg2 <= 1'b0;
@@ -567,12 +585,14 @@ module Motion_Update
 			incoming_data_valid_reg10 <= 1'b0;
 			incoming_data_valid_reg11 <= 1'b0;
 			incoming_data_valid_reg12 <= 1'b0;
+			incoming_data_valid_reg13 <= 1'b0;
 			delay_incoming_data_valid <= 1'b0;
 			// Delay position data
 			in_position_data_reg1 <= 0;
 			in_position_data_reg2 <= 0;
 			in_position_data_reg3 <= 0;
 			in_position_data_reg4 <= 0;
+			in_position_data_reg5 <= 0;
 			delay_in_position_data <= 0;
 			// Delay registers to propogate the evaluated velocity data to meet the target cell information
 			evaluated_velocity_reg1 <= 0;
@@ -592,6 +612,8 @@ module Motion_Update
 			end
 		else
 			begin
+			// Delay the incoming velocity data by 1 cycle to wait for force data arrive
+			delay_in_velocity_data <= in_velocity_data;
 			// Delay the incoming valid signal to generate the output valid signal
 			incoming_data_valid_reg1 <= incoming_data_valid;
 			incoming_data_valid_reg2 <= incoming_data_valid_reg1;
@@ -605,13 +627,15 @@ module Motion_Update
 			incoming_data_valid_reg10 <= incoming_data_valid_reg9;
 			incoming_data_valid_reg11 <= incoming_data_valid_reg10;
 			incoming_data_valid_reg12 <= incoming_data_valid_reg11;
-			delay_incoming_data_valid <= incoming_data_valid_reg12;
+			incoming_data_valid_reg13 <= incoming_data_valid_reg12;
+			delay_incoming_data_valid <= incoming_data_valid_reg13;
 			// Delay position data
 			in_position_data_reg1 <= in_position_data;
 			in_position_data_reg2 <= in_position_data_reg1;
 			in_position_data_reg3 <= in_position_data_reg2;
 			in_position_data_reg4 <= in_position_data_reg3;
-			delay_in_position_data <= in_position_data_reg4;
+			in_position_data_reg5 <= in_position_data_reg4;
+			delay_in_position_data <= in_position_data_reg5;
 			// Delay registers to propogate the evaluated velocity data to meet the target cell information
 			evaluated_velocity_reg1 <= wire_evaluated_velocity;
 			evaluated_velocity_reg2 <= evaluated_velocity_reg1;
@@ -659,7 +683,7 @@ module Motion_Update
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// Evaluate vx
 	FP_MUL_ADD Eval_vx (
-		.ax     (in_velocity_data[1*DATA_WIDTH-1:0*DATA_WIDTH]),
+		.ax     (delay_in_velocity_data[1*DATA_WIDTH-1:0*DATA_WIDTH]),
 		.ay     (in_force_data[1*DATA_WIDTH-1:0*DATA_WIDTH]),
 		.az     (time_step), 
 		.clk    (clk),
@@ -670,7 +694,7 @@ module Motion_Update
 	
 	// Evaluate vy
 	FP_MUL_ADD Eval_vy (
-		.ax     (in_velocity_data[2*DATA_WIDTH-1:1*DATA_WIDTH]),
+		.ax     (delay_in_velocity_data[2*DATA_WIDTH-1:1*DATA_WIDTH]),
 		.ay     (in_force_data[2*DATA_WIDTH-1:1*DATA_WIDTH]),
 		.az     (time_step), 
 		.clk    (clk),
@@ -681,7 +705,7 @@ module Motion_Update
 	
 	// Evaluate vz
 	FP_MUL_ADD Eval_vz (
-		.ax     (in_velocity_data[3*DATA_WIDTH-1:2*DATA_WIDTH]),
+		.ax     (delay_in_velocity_data[3*DATA_WIDTH-1:2*DATA_WIDTH]),
 		.ay     (in_force_data[3*DATA_WIDTH-1:2*DATA_WIDTH]),
 		.az     (time_step), 
 		.clk    (clk),

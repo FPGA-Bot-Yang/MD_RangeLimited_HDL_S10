@@ -36,12 +36,17 @@
 //				out_particle_id [CELL_ADDR_WIDTH-1:0]: {cell_x, cell_y, cell_z, particle_in_cell_rd_addr}
 //
 // Timing:
-//				7 cycles: From the input of a valid result targeting this cell, till the accumulated value is successfully written into the force cache
-//				Cycle 1: register input & read from input FIFO (This may not necessary);
-//				Cycle 2: select from input or input FIFO;
-//				Cycle 3: read out previous force & delay the selected input force by one cycle to meet the previous force;
-//				Cycle 4-6: accumulation (1 cycle read in the signals, then 2 more cycles for actual evaluation);
-//				Cycle 7: write back force
+//				Force Update: 7 cycles: From the input of a valid result targeting this cell, till the accumulated value is successfully written into the force cache
+//					Cycle 1: register input & read from input FIFO (This may not necessary);
+//					Cycle 2: select from input or input FIFO;
+//					Cycle 3: read out previous force & delay the selected input force by one cycle to meet the previous force;
+//					Cycle 4-6: accumulation (1 cycle read in the signals, then 2 more cycles for actual evaluation);
+//					Cycle 7: write back force
+//				Force Readout: 3 cycles from 'in_cache_read_address' to 'out_partial_force'
+//					Cycle 1: At the end of this cycle, passed read address to register that connected to force cache
+//					Cycle 2: At the end of this cycle, data readout from memory
+//					Cycle 3: At the end of this cycle, the read out data is assigned to the registered output 'out_partial_force'
+//					
 //
 // Used by:
 //				RL_LJ_Top.v

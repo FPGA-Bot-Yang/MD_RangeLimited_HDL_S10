@@ -3,7 +3,8 @@
 % Input dataset is ApoA1
 %
 % Function:
-%       Generate the input particle pairs based on the cell list
+%       Generate on-chip RAM initialization file (*.mif)
+%       Generate simulation verification file
 %
 % Cell Mapping: ApoA1, follow the HDL design (cell id starts from 1 in each dimension)
 %       Filter 0: 222(home)
@@ -19,6 +20,7 @@
 %       1, posx; 2, posy; 3, posz
 %
 % Process:
+%       0, Run LJ_no_smooth_poly_interpolation_accuracy, to generate the interpolation file
 %       1, import the raw ApoA1 data, and pre-processing
 %       2, mapping the ApoA1 data into cells
 %
@@ -38,7 +40,8 @@ clear all;
 %% Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Verfication Control Parameter
-GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 0;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
+GEN_INPUT_MIF_FILE = 1;                             % Generate the memory initialization file for on-chip ram (.mif)
+GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 1;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
 GEN_PAIRWISE_FORCE_VALUE = 1;                       % Generate VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt
 GEN_PAIRWISE_NEIGHBOR_ACC_FORCE = 1;                % Generate VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt (if this one need to be generated, GEN_PAIRWISE_FORCE_VALUE has to be 1)
 %% General Simulation Parameters
@@ -78,6 +81,11 @@ filter_input_particle_num = zeros(NUM_FILTER,3);                                
 HOME_CELL_X = 2;                                    % Home cell coordiante
 HOME_CELL_Y = 2;
 HOME_CELL_Z = 2;
+% The subset of cell initalization file need to generate (the cell number starting from 1)
+% Cell numbering mechanism: cell_id = (cell_x-1)*CELL_COUNT_Y*CELL_COUNT_Z + (cell_y-1)*CELL_COUNT_Z + cell_z;
+GEN_CELL_RANGE_X = [1 2 3];
+GEN_CELL_RANGE_Y = [1 2 3];
+GEN_CELL_RANGE_Z = [1 2 3];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Preprocessing the Raw Input data
@@ -153,6 +161,76 @@ for i = 1:TOTAL_PARTICLE
     end
 end
 fprintf('Particles mapping to cells finished! Total of %d particles falling out of the range.\n', out_range_particle_counter);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Write the ApoA1 data to Memeory initialization file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if GEN_INPUT_MIF_FILE == 1
+    fprintf('Starting write Mem init file...\n');
+    tmp_pos_x = single(0);
+    tmp_pos_y = single(0);
+    tmp_pos_z = single(0);
+    for x_ptr = 1:size(GEN_CELL_RANGE_X,2)
+        cell_id_x = GEN_CELL_RANGE_X(x_ptr);
+        for y_ptr = 1:size(GEN_CELL_RANGE_Y,2)
+            cell_id_y = GEN_CELL_RANGE_Y(y_ptr);
+            for z_ptr = 1:size(GEN_CELL_RANGE_Z,2)
+                cell_id_z = GEN_CELL_RANGE_Z(z_ptr);
+                % Get the cell id
+                cell_id = (cell_id_x-1)*CELL_COUNT_Y*CELL_COUNT_Z + (cell_id_y-1)*CELL_COUNT_Z + cell_id_z;
+                % Get the number of particles in the cell
+                cell_particle_num = particle_in_cell_counter(cell_id_x, cell_id_y, cell_id_z);
+                % Generate the initialization file name (cell_ini_file_1_2_3.mif)
+                cell_ini_file_name = strcat('cell_ini_file_',num2str(cell_id_x),'_',num2str(cell_id_y),'_',num2str(cell_id_z),'.mif');
+                % Generate the decimal reference file name (cell_ini_file_1_2_3.txt)
+                cell_ref_file_name = strcat('cell_ini_file_',num2str(cell_id_x),'_',num2str(cell_id_y),'_',num2str(cell_id_z),'.txt');
+                % Create the mif file
+                fileID = fopen(cell_ini_file_name, 'wt');
+                % Create the reference file
+                ref_fileID = fopen(cell_ref_file_name, 'wt');
+
+                % Write mif file header
+                fprintf(fileID,'DEPTH = %d;\n', CELL_PARTICLE_MAX);
+                fprintf(fileID,'WIDTH = %d;\n', MEM_DATA_WIDTH);
+                fprintf(fileID,'ADDRESS_RADIX = DEC;\n');
+                fprintf(fileID,'DATA_RADIX = HEX;\n');
+                fprintf(fileID,'CONTENT\n');
+                fprintf(fileID,'BEGIN\n');
+                % Write the reference file headline
+                fprintf(ref_fileID,'Memory Address: PosZ\tPosY\tPosX\n');
+
+                % Write the first data in the ram: The number of particles in the current cell (in decimal format)
+                % Format: {32'd0, 32'd0, 24'd0, NUM_PARTICLE}
+                fprintf(fileID,'0 : %tX%tX000000%X;\n', single(0),single(0),uint32(cell_particle_num));
+                fprintf(ref_fileID,'Num Particles In the Cell : %d\n', uint32(cell_particle_num));
+                % Write the position data (in IEEE format)
+                for entry_num = 1:cell_particle_num
+                    tmp_pos_x = single(cell_particle(cell_id,entry_num,1));
+                    tmp_pos_y = single(cell_particle(cell_id,entry_num,2));
+                    tmp_pos_z = single(cell_particle(cell_id,entry_num,3));
+                    fprintf(fileID,'%d : %tX%tX%tX;\n',entry_num, tmp_pos_z, tmp_pos_y, tmp_pos_x);
+                    fprintf(ref_fileID,'HEX %d : %tX\t%tX\t%tX\t\n',entry_num, tmp_pos_z, tmp_pos_y, tmp_pos_x);
+                    fprintf(ref_fileID,'DEC %d : %f\t%f\t%f\t\n',entry_num, tmp_pos_z, tmp_pos_y, tmp_pos_x);
+                end
+                % Fill the rest memory data with 0
+                if cell_particle_num+1 < CELL_PARTICLE_MAX
+                    for entry_num = (cell_particle_num+1):(CELL_PARTICLE_MAX-1)
+                        fprintf(fileID,'%d : %tX%tX%tX;\n',entry_num, single(0), single(0), single(0));
+                        fprintf(ref_fileID,'%d : %f\t%f\t%f\t\n',entry_num, single(0), single(0), single(0));
+                    end
+                end
+
+                % Write the end of mif file
+                fprintf(fileID,'END;\n');
+
+                % Close file
+                fclose(fileID);
+                fclose(ref_fileID);
+            end
+        end
+    end
+    fprintf('Mem init file generation finished!\n');
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Genearating input particle pairs
