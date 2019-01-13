@@ -14,12 +14,27 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all;
 
+% output_scale_index: the output value can be out the scope of single-precision floating point, thus use this value to scale the output result back
+% eps: eps of the particles, Unit J
+% sigma: sigma value of the particles, Unit meter
 % interpolation_order: interpolation order
 % segment_num: # of large sections we have
 % bin_num: # of bins per segment
 % precision: # of datapoints for each interpolation
 % min, max : range of distance
 
+% Input & Output Scale Parameters
+INPUT_SCALE_INDEX = 1;             % the readin position data is in the unit of meter, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
+OUTPUT_SCALE_INDEX = 1;            % The scale value for the results of r14 & r8 term
+
+% Dataset Paraemeters
+DATASET_NAME = 'ApoA1';
+% Ar
+kb = 1.380e-23;         % Boltzmann constant (J/K)
+eps = 1; %kb * 120;     % Unit J
+sigma = 1; %3.4e-10;    % Unit meter
+
+% Interpolation parameters
 interpolation_order = 1;                % interpolation order, no larger than 3
 segment_num = 14;                       % # of segment
 bin_num = 256;                          % # of bins per segment
@@ -47,6 +62,12 @@ inv_r6 = zeros(length(r2),1);
 inv_r12 = zeros(length(r2),1);
 inv_r8 = zeros(length(r2),1);
 inv_r14 = zeros(length(r2),1);
+% The golden result for LJ term
+vdw14_real = zeros(length(r2),1);
+vdw8_real = zeros(length(r2),1);
+vdw6_real = zeros(length(r2),1);
+vdw12_real = zeros(length(r2),1);
+
 s = zeros(length(r2),1);
 ds = zeros(length(r2),1);
 Fvdw_real = zeros(length(r2),1);
@@ -65,18 +86,21 @@ for i = 1:size(r2,2)
     inv_r6(i)  = inv_r2(i) * inv_r4(i);
     inv_r12(i) = inv_r6(i) * inv_r6(i);
 
-    inv_r14(i) = 48 * inv_r12(i) * inv_r2(i);
-    inv_r8(i)  = 24 * inv_r6(i)  * inv_r2(i);
+    inv_r14(i) = inv_r12(i) * inv_r2(i);
+    inv_r8(i)  = inv_r6(i)  * inv_r2(i);
+
+    vdw14_real(i) = OUTPUT_SCALE_INDEX * 48 * eps * sigma ^ 12 * inv_r14(i);
+    vdw8_real(i)  = OUTPUT_SCALE_INDEX * 24 * eps * sigma ^ 6  * inv_r8(i);
    
-    inv_r6(i)  = 4 * inv_r6(i);
-    inv_r12(i) = 4 * inv_r12(i);
+    vdw6_real(i)  = OUTPUT_SCALE_INDEX * 4 * eps * sigma ^ 6  * inv_r6(i);
+    vdw12_real(i) = OUTPUT_SCALE_INDEX * 4 * eps * sigma ^ 12  * inv_r12(i);
     
     % calculate the VDW force
-    Fvdw_real(i) = inv_r14(i) - inv_r8(i);
+    Fvdw_real(i) = vdw14_real(i) - vdw8_real(i);
 end
 
 %% Generate the interpolation table (only need to run this once if the interpolation parameter remains)
-LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_num, bin_num,precision,min_range,max_range,cutoff,switchon);
+LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_num, bin_num,precision,min_range,max_range,cutoff,switchon,OUTPUT_SCALE_INDEX,eps,sigma);
 
 %% Evaluate the interpolation result
 % Load in the index data
@@ -189,7 +213,6 @@ for i = 1:size(r2,2)
     Fvdw_poly(i) = vdw14 - vdw8;
 end
 
-
 %% Evaluate the Error rate
 diff_rate = zeros(size(r2,2),1);
 for i = 1:size(r2,2)
@@ -198,3 +221,18 @@ for i = 1:size(r2,2)
 end
 
 average_error_rate = sum(diff_rate) / size(r2,2);
+
+
+%% Profiling
+profiling_output_file_name = strcat(DATASET_NAME,'_PreEvaluation_Profiling_Data.txt');
+fileID = fopen(profiling_output_file_name, 'wt');
+fprintf(fileID, 'Dataset: %s\n', DATASET_NAME);
+fprintf(fileID, '\tr2 range is: (%e, %e)\n', min(r2), max(r2));
+fprintf(fileID, '\tvdw14_real range is: (%e, %e)\n', min(abs(vdw14_real)), max(vdw14_real));
+fprintf(fileID, '\tvdw8_real range is: (%e, %e)\n', min(abs(vdw8_real)), max(vdw8_real));
+fprintf(fileID, '\tvdw12_real range is: (%e, %e)\n', min(abs(vdw12_real)), max(vdw12_real));
+fprintf(fileID, '\tvdw6_real range is: (%e, %e)\n', min(abs(vdw6_real)), max(vdw6_real));
+fprintf(fileID, '\tFvdw_real range is: (%e, %e)\n', min(abs(Fvdw_real)), max(Fvdw_real));
+fprintf(fileID, '\tFvdw_poly range is: (%e, %e)\n', min(abs(Fvdw_poly)), max(Fvdw_poly));
+fprintf(fileID, '\tAverage error rate is: %f%%\n', average_error_rate * 100);
+fclose(fileID);

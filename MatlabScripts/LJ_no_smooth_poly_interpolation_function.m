@@ -22,17 +22,26 @@
 % f=x^-7
 % poly_interpolation_coef_real(3,16,2^-4,2^-3,'a.txt')
 
-
+% output_scale_index: the output value can be out the scope of single-precision floating point, thus use this value to scale the output result back
+% eps: eps of the particles, Unit J
+% sigma: sigma value of the particles, Unit meter
 % interpolation_order: interpolation order
 % bin_num: # of bins per segment
 % precision: # of datapoints for each interpolation
 % min, max: range of distance
 % cutoff: cut-off radius
 % switchon: switch on distance
-function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_num,bin_num,precision,min,max,cutoff,switchon)
+function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_num,bin_num,precision,min,max,cutoff,switchon,output_scale_index,eps,sigma)
 % interpolation_order is the order of interpolation. i.e, interpolation_order=1 produces ax+b
 % the results are from lower order to higher order, i.e coef(0,0) is the coefficient of constant term for first bin.
-	if nargin < 6 
+	
+    % Paraemeters
+    % Ar
+%    kb = 1.380e-23;         % Boltzmann constant (J/K)
+%    eps = kb * 120;         % Unit J
+%    sigma = 3.4e-10;        % Unit meter
+
+    if nargin < 6 
         error('LJ_poly_interpolation_function(interpolation_order,segment_num,bin_num,precision,min,max,cutoff,switchon)');
     end
     
@@ -213,11 +222,11 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
                 inv_r6(i)  = inv_r2 * inv_r4;
                 inv_r12(i) = inv_r6(i) * inv_r6(i);
                 
-                inv_r14(i) = 48 * inv_r12(i) * inv_r2;
-                inv_r8(i)  = 24 * inv_r6(i)  * inv_r2;
+                inv_r14(i) = output_scale_index * 48 * eps * sigma ^ 12 * inv_r12(i) * inv_r2;
+                inv_r8(i)  = output_scale_index * 24 * eps * sigma ^ 6  * inv_r6(i)  * inv_r2;
                 
-                inv_r6(i)  = 4 * inv_r6(i);
-                inv_r12(i) = 4 * inv_r12(i);
+                inv_r6(i)  = output_scale_index * 4 * eps * sigma ^ 6  * inv_r6(i);
+                inv_r12(i) = output_scale_index * 4 * eps * sigma ^ 12 * inv_r12(i);
             end
 
             r14_func = polyfit(x,inv_r14,interpolation_order);

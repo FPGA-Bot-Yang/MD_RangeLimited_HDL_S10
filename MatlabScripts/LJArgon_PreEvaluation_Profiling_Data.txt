@@ -1,0 +1,9 @@
+Dataset: LJArgon
+	r2 range is: (1.525879e-05, 5.850727e+03)
+	vdw14_real range is: (2.045373e-30, 2.492302e+30)
+	vdw8_real range is: (2.048198e-19, 4.427219e+15)
+	vdw12_real range is: (9.972433e-28, 3.169127e+24)
+	vdw6_real range is: (1.997241e-16, 1.125900e+10)
+	Fvdw_real range is: (2.048198e-19, 2.492302e+30)
+	Fvdw_poly range is: (2.046184e-19, 2.491848e+30)
+	Average error rate is: 0.012559%
