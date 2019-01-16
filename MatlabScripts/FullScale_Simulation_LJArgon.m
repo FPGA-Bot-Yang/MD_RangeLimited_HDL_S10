@@ -69,11 +69,12 @@ SIMULATION_TIME_STEP = 2E-15;                 % 2 femtosecond
 CUTOFF_RADIUS = single(7.65);                 % Unit Angstrom, Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS^2;            % Cutoff distance square
 % LJArgon min r2 is 2.242475 ang^2
-RAW_R2_MIN = 0.1;%2.242475;
+% Here we choose a interpolation range that is consistant with ApoA1
+RAW_R2_MIN = 2^-6;%2.242475;
 SCALED_R2_MIN = RAW_R2_MIN * INPUT_SCALE_INDEX^2;
 MIN_LOG_INDEX = floor(log(SCALED_R2_MIN)/log(2));
 MIN_RANGE = 2^MIN_LOG_INDEX;                  % minimal range for the evaluation
-MAX_LOG_INDEX = ceil(log(CUTOFF_RADIUS_2)/log(2));
+MAX_LOG_INDEX = ceil(log(14^2)/log(2));
 MAX_RANGE = 2^MAX_LOG_INDEX;                  % maximum range for the evaluation (currently this is the cutoff radius)
 %% Interpolation Parameters
 INTERPOLATION_ORDER = 1;

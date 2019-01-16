@@ -44,12 +44,13 @@ cutoff2 = cutoff * cutoff;
 switchon = single(0.1);
 
 % LJArgon min r2 is 2.242475 ang^2
-raw_r2_min = 0.1;%2.242475;
+% Here we keep in consistant with ApoA1
+raw_r2_min = 2^-6;%2.242475;
 scaled_r2_min = raw_r2_min * INPUT_SCALE_INDEX^2;
 min_log_index = floor(log(scaled_r2_min)/log(2));
 % Choose a min_range of 2^-15
 min_range = 2^min_log_index;    % minimal range for the evaluation
-max_log_index = ceil(log(cutoff2)/log(2));
+max_log_index = ceil(log(14^2)/log(2));
 % Based on cutoff and min_range to determine the # of segments
 % Max range of cutoff is 
 max_range = 2^max_log_index;  % maximum range for the evaluation (currently this is the cutoff radius)

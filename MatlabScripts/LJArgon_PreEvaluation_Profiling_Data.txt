@@ -1,20 +1,15 @@
 Dataset: LJArgon
-	r2 range is: (6.250000e-02, 5.851416e+01)
-	vdw14_real range is: (1.160749e-05, 7.318214e+15)
-	vdw14_poly range is: (1.160745e-05, 7.317877e+15)
-	vdw8_real range is: (7.526926e-04, 5.782846e+08)
-	vdw8_poly range is: (7.526916e-04, 5.782751e+08)
-	vdw12_real range is: (5.660019e-05, 3.811570e+13)
-	vdw12_poly range is: (5.660005e-05, 3.811436e+13)
-	vdw6_real range is: (7.340530e-03, 6.023798e+06)
-	vdw6_poly range is: (7.340524e-03, 6.023738e+06)
-	Fvdw_real range is: (4.694816e-05, 7.318213e+15)
-	Fvdw_poly range is: (4.559755e-05, 7.317876e+15)
-	Evdw_real range is: (3.799752e-04, 3.811569e+13)
-	Evdw_poly range is: (3.688335e-04, 3.811436e+13)
-	Average error rate is: Force 0.001653%, Energy 0.001351%
-
-The targeted verification particle is Cell(3,3,3), particle ID 3, (18.775122,16.947981,15.622027)
-The Evaluated LJ force result is 2.419207e+04,3.784033e+04,-2.222033e+05, num particle is 609
-The Verification LJ force result is 1.230456e+04,3.802811e+03,-3.521888e+04, num particle is 609
-LJ Force Error rate is 96.610619%, 895.062073%, 530.921021%
+	r2 range is: (1.562500e-02, 5.848246e+01)
+	vdw14_real range is: (1.165161e-05, 1.199016e+20)
+	vdw14_poly range is: (1.165146e-05, 1.198961e+20)
+	vdw8_real range is: (7.543265e-04, 1.480409e+11)
+	vdw8_poly range is: (7.543229e-04, 1.480384e+11)
+	vdw12_real range is: (5.678458e-05, 1.561219e+17)
+	vdw12_poly range is: (5.678402e-05, 1.561164e+17)
+	vdw6_real range is: (7.352477e-03, 3.855231e+08)
+	vdw6_poly range is: (7.352458e-03, 3.855192e+08)
+	Fvdw_real range is: (3.709788e-04, 1.199016e+20)
+	Fvdw_poly range is: (3.704429e-04, 1.198961e+20)
+	Evdw_real range is: (1.284059e-04, 1.561219e+17)
+	Evdw_poly range is: (1.459122e-04, 1.561164e+17)
+	Average error rate is: Force 0.001322%, Energy 0.006814%
