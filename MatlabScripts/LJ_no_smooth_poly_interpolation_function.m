@@ -80,31 +80,31 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
         fileID_mif_7 = fopen('c3_8.mif', 'wt');
     end
     
-%     fileID_8  = fopen('c0_12.txt', 'wt');
-%     fileID_9  = fopen('c1_12.txt', 'wt');
-%     fileID_mif_8 = fopen('c0_12.mif', 'wt');
-%     fileID_mif_9 = fopen('c1_12.mif', 'wt');
-%     if(interpolation_order > 1)
-%         fileID_10 = fopen('c2_12.txt', 'wt');
-%         fileID_mif_10 = fopen('c2_12.mif', 'wt');
-%     end
-%     if(interpolation_order > 2)
-%         fileID_11 = fopen('c3_12.txt', 'wt');
-%         fileID_mif_11 = fopen('c3_12.mif', 'wt');
-%     end
-%     
-%     fileID_12 = fopen('c0_6.txt', 'wt');
-%     fileID_13 = fopen('c1_6.txt', 'wt');
-%     fileID_mif_12 = fopen('c0_6.mif', 'wt');
-%     fileID_mif_13 = fopen('c1_6.mif', 'wt');
-%     if(interpolation_order > 1)
-%         fileID_14 = fopen('c2_6.txt', 'wt');
-%         fileID_mif_14 = fopen('c2_6.mif', 'wt');
-%     end
-%     if(interpolation_order > 2)
-%         fileID_15 = fopen('c3_6.txt', 'wt');
-%         fileID_mif_15 = fopen('c3_6.mif', 'wt');
-%     end
+    fileID_8  = fopen('c0_12.txt', 'wt');
+    fileID_9  = fopen('c1_12.txt', 'wt');
+    fileID_mif_8 = fopen('c0_12.mif', 'wt');
+    fileID_mif_9 = fopen('c1_12.mif', 'wt');
+    if(interpolation_order > 1)
+        fileID_10 = fopen('c2_12.txt', 'wt');
+        fileID_mif_10 = fopen('c2_12.mif', 'wt');
+    end
+    if(interpolation_order > 2)
+        fileID_11 = fopen('c3_12.txt', 'wt');
+        fileID_mif_11 = fopen('c3_12.mif', 'wt');
+    end
+    
+    fileID_12 = fopen('c0_6.txt', 'wt');
+    fileID_13 = fopen('c1_6.txt', 'wt');
+    fileID_mif_12 = fopen('c0_6.mif', 'wt');
+    fileID_mif_13 = fopen('c1_6.mif', 'wt');
+    if(interpolation_order > 1)
+        fileID_14 = fopen('c2_6.txt', 'wt');
+        fileID_mif_14 = fopen('c2_6.mif', 'wt');
+    end
+    if(interpolation_order > 2)
+        fileID_15 = fopen('c3_6.txt', 'wt');
+        fileID_mif_15 = fopen('c3_6.mif', 'wt');
+    end
     
     count = 0;
     
@@ -225,8 +225,14 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
                 inv_r14(i) = output_scale_index * 48 * eps * sigma ^ 12 * inv_r12(i) * inv_r2;
                 inv_r8(i)  = output_scale_index * 24 * eps * sigma ^ 6  * inv_r6(i)  * inv_r2;
                 
-                inv_r6(i)  = output_scale_index * 4 * eps * sigma ^ 6  * inv_r6(i);
                 inv_r12(i) = output_scale_index * 4 * eps * sigma ^ 12 * inv_r12(i);
+                inv_r6(i)  = output_scale_index * 4 * eps * sigma ^ 6  * inv_r6(i);
+                
+                %inv_r14(i) = output_scale_index * inv_r12(i) * inv_r2;
+                %inv_r8(i)  = output_scale_index * inv_r6(i)  * inv_r2;
+                
+                %inv_r12(i) = output_scale_index * inv_r12(i) * inv_r2;
+                %inv_r6(i)  = output_scale_index * inv_r6(i)  * inv_r2;
             end
 
             r14_func = polyfit(x,inv_r14,interpolation_order);
@@ -245,11 +251,11 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
                     fprintf(fileID_4,'%15.25f\n',r8_func(2));
                     fprintf(fileID_5,'%15.25f\n',r8_func(1));
 
-%                     fprintf(fileID_8, '%15.25f\n',r12_func(2));
-%                     fprintf(fileID_9, '%15.25f\n',r12_func(1));
-% 
-%                     fprintf(fileID_12,'%15.25f\n',r6_func(2));
-%                     fprintf(fileID_13,'%15.25f\n',r6_func(1));
+                    fprintf(fileID_8, '%15.25f\n',r12_func(2));
+                    fprintf(fileID_9, '%15.25f\n',r12_func(1));
+
+                    fprintf(fileID_12,'%15.25f\n',r6_func(2));
+                    fprintf(fileID_13,'%15.25f\n',r6_func(1));
                     
                     % write to file for mif
                     fprintf(fileID_mif_0,'%d : %tX;\n',count, r14_func(2));
@@ -258,11 +264,11 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
                     fprintf(fileID_mif_4,'%d : %tX;\n',count, r8_func(2));
                     fprintf(fileID_mif_5,'%d : %tX;\n',count, r8_func(1));
 
-%                     fprintf(fileID_mif_8,'%d : %tX;\n',count, r12_func(2));
-%                     fprintf(fileID_mif_9,'%d : %tX;\n',count, r12_func(1));
-% 
-%                     fprintf(fileID_mif_12,'%d : %tX;\n',count, r6_func(2));
-%                     fprintf(fileID_mif_13,'%d : %tX;\n',count, r6_func(1));
+                    fprintf(fileID_mif_8,'%d : %tX;\n',count, r12_func(2));
+                    fprintf(fileID_mif_9,'%d : %tX;\n',count, r12_func(1));
+
+                    fprintf(fileID_mif_12,'%d : %tX;\n',count, r6_func(2));
+                    fprintf(fileID_mif_13,'%d : %tX;\n',count, r6_func(1));
                     
                 case 2
                     % write to file for verification
@@ -274,13 +280,13 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
                     fprintf(fileID_5,'%15.25f\n',r8_func(2));
                     fprintf(fileID_6,'%15.25f\n',r8_func(1));
 
-%                     fprintf(fileID_8, '%15.25f\n',r12_func(3));
-%                     fprintf(fileID_9, '%15.25f\n',r12_func(2));
-%                     fprintf(fileID_10,'%15.25f\n',r12_func(1)); 
-% 
-%                     fprintf(fileID_12,'%15.25f\n',r6_func(3));
-%                     fprintf(fileID_13,'%15.25f\n',r6_func(2));
-%                     fprintf(fileID_14,'%15.25f\n',r6_func(1));
+                    fprintf(fileID_8, '%15.25f\n',r12_func(3));
+                    fprintf(fileID_9, '%15.25f\n',r12_func(2));
+                    fprintf(fileID_10,'%15.25f\n',r12_func(1)); 
+
+                    fprintf(fileID_12,'%15.25f\n',r6_func(3));
+                    fprintf(fileID_13,'%15.25f\n',r6_func(2));
+                    fprintf(fileID_14,'%15.25f\n',r6_func(1));
                     
                     % write to file for mif
                     fprintf(fileID_mif_0,'%d : %tX;\n',count, r14_func(3));
@@ -291,13 +297,13 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
                     fprintf(fileID_mif_5,'%d : %tX;\n',count, r8_func(2));
                     fprintf(fileID_mif_6,'%d : %tX;\n',count, r8_func(1));
 
-%                     fprintf(fileID_mif_8,'%d : %tX;\n',count, r12_func(3));
-%                     fprintf(fileID_mif_9,'%d : %tX;\n',count, r12_func(2));
-%                     fprintf(fileID_mif_10,'%d : %tX;\n',count, r12_func(1));
-% 
-%                     fprintf(fileID_mif_12,'%d : %tX;\n',count, r6_func(3));
-%                     fprintf(fileID_mif_13,'%d : %tX;\n',count, r6_func(2));
-%                     fprintf(fileID_mif_14,'%d : %tX;\n',count, r6_func(1));
+                    fprintf(fileID_mif_8,'%d : %tX;\n',count, r12_func(3));
+                    fprintf(fileID_mif_9,'%d : %tX;\n',count, r12_func(2));
+                    fprintf(fileID_mif_10,'%d : %tX;\n',count, r12_func(1));
+
+                    fprintf(fileID_mif_12,'%d : %tX;\n',count, r6_func(3));
+                    fprintf(fileID_mif_13,'%d : %tX;\n',count, r6_func(2));
+                    fprintf(fileID_mif_14,'%d : %tX;\n',count, r6_func(1));
                     
                 case 3
                     % write to file for verification
@@ -311,15 +317,15 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
                     fprintf(fileID_6,'%15.25f\n',r8_func(2));
                     fprintf(fileID_7,'%15.25f\n',r8_func(1));
 
-%                     fprintf(fileID_8, '%15.25f\n',r12_func(4));
-%                     fprintf(fileID_9, '%15.25f\n',r12_func(3));
-%                     fprintf(fileID_10,'%15.25f\n',r12_func(2)); 
-%                     fprintf(fileID_11,'%15.25f\n',r12_func(1));
-% 
-%                     fprintf(fileID_12,'%15.25f\n',r6_func(4));
-%                     fprintf(fileID_13,'%15.25f\n',r6_func(3));
-%                     fprintf(fileID_14,'%15.25f\n',r6_func(2));
-%                     fprintf(fileID_15,'%15.25f\n',r6_func(1));
+                    fprintf(fileID_8, '%15.25f\n',r12_func(4));
+                    fprintf(fileID_9, '%15.25f\n',r12_func(3));
+                    fprintf(fileID_10,'%15.25f\n',r12_func(2)); 
+                    fprintf(fileID_11,'%15.25f\n',r12_func(1));
+
+                    fprintf(fileID_12,'%15.25f\n',r6_func(4));
+                    fprintf(fileID_13,'%15.25f\n',r6_func(3));
+                    fprintf(fileID_14,'%15.25f\n',r6_func(2));
+                    fprintf(fileID_15,'%15.25f\n',r6_func(1));
                     
                     % write to file for mif
                     fprintf(fileID_mif_0,'%d : %tX;\n',count, r14_func(4));
@@ -332,15 +338,15 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
                     fprintf(fileID_mif_6,'%d : %tX;\n',count, r8_func(2));
                     fprintf(fileID_mif_7,'%d : %tX;\n',count, r8_func(1));
 
-%                     fprintf(fileID_mif_8,'%d : %tX;\n',count, r12_func(4));
-%                     fprintf(fileID_mif_9,'%d : %tX;\n',count, r12_func(3));
-%                     fprintf(fileID_mif_10,'%d : %tX;\n',count, r12_func(2));
-%                     fprintf(fileID_mif_11,'%d : %tX;\n',count, r12_func(1));
-% 
-%                     fprintf(fileID_mif_12,'%d : %tX;\n',count, r6_func(4));
-%                     fprintf(fileID_mif_13,'%d : %tX;\n',count, r6_func(3));
-%                     fprintf(fileID_mif_14,'%d : %tX;\n',count, r6_func(2));
-%                     fprintf(fileID_mif_15,'%d : %tX;\n',count, r6_func(1));
+                    fprintf(fileID_mif_8,'%d : %tX;\n',count, r12_func(4));
+                    fprintf(fileID_mif_9,'%d : %tX;\n',count, r12_func(3));
+                    fprintf(fileID_mif_10,'%d : %tX;\n',count, r12_func(2));
+                    fprintf(fileID_mif_11,'%d : %tX;\n',count, r12_func(1));
+
+                    fprintf(fileID_mif_12,'%d : %tX;\n',count, r6_func(4));
+                    fprintf(fileID_mif_13,'%d : %tX;\n',count, r6_func(3));
+                    fprintf(fileID_mif_14,'%d : %tX;\n',count, r6_func(2));
+                    fprintf(fileID_mif_15,'%d : %tX;\n',count, r6_func(1));
             end
             
             %fprintf(fileID_0,'%d\t:\t%tx;\n', count, r14_func(4));
@@ -391,41 +397,41 @@ function  LJ_no_smooth_poly_interpolation_function(interpolation_order,segment_n
     fclose(fileID_1);
     fclose(fileID_4);
     fclose(fileID_5);
-%     fclose(fileID_8);
-%     fclose(fileID_9);
-%     fclose(fileID_12);
-%     fclose(fileID_13);
+    fclose(fileID_8);
+    fclose(fileID_9);
+    fclose(fileID_12);
+    fclose(fileID_13);
     
     fclose(fileID_mif_0);
     fclose(fileID_mif_1);
     fclose(fileID_mif_4);
     fclose(fileID_mif_5);
-%     fclose(fileID_mif_8);
-%     fclose(fileID_mif_9);
-%     fclose(fileID_mif_12);
-%     fclose(fileID_mif_13);
+    fclose(fileID_mif_8);
+    fclose(fileID_mif_9);
+    fclose(fileID_mif_12);
+    fclose(fileID_mif_13);
 
     if interpolation_order > 1
         fclose(fileID_2);
         fclose(fileID_6);
-%         fclose(fileID_10);
-%         fclose(fileID_14);
+        fclose(fileID_10);
+        fclose(fileID_14);
         
         fclose(fileID_mif_2);
         fclose(fileID_mif_6);
-%         fclose(fileID_mif_10);
-%         fclose(fileID_mif_14);
+        fclose(fileID_mif_10);
+        fclose(fileID_mif_14);
     end
     
     if interpolation_order > 2
         fclose(fileID_3);
         fclose(fileID_7);
-%         fclose(fileID_11);
-%         fclose(fileID_15);
+        fclose(fileID_11);
+        fclose(fileID_15);
         
         fclose(fileID_mif_3);
         fclose(fileID_mif_7);
-%         fclose(fileID_mif_11);
-%         fclose(fileID_mif_15);
+        fclose(fileID_mif_11);
+        fclose(fileID_mif_15);
     end
     

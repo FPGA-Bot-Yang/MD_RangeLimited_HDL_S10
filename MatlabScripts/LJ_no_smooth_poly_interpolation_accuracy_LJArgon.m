@@ -29,34 +29,36 @@ clear all;
 % min, max : range of distance
 
 % Input & Output Scale Parameters
-INPUT_SCALE_INDEX = 10^11;%50;                              % the readin position data is in the unit of meter, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
-OUTPUT_SCALE_INDEX = 10^-5;%10^100;                                % The scale value for the results of r14 & r8 term
+INPUT_SCALE_INDEX = 1;                     % the readin position data is in the unit of angstrom
+OUTPUT_SCALE_INDEX = 1;                    % The scale value for the results of r14 & r8 term
 
 % Dataset Paraemeters
 DATASET_NAME = 'LJArgon';
 % Ar
-kb = 1.380e-23;         % Boltzmann constant (J/K)
-eps = 1;%kb * 120;         % Unit J
-sigma = 1;%3.4e-10;        % Unit meter
+kb = 1.380e-23;                            % Boltzmann constant (J/K)
+eps = 0.238;                               % kcal/mol;                   %kb * 120;  % Unit J
+sigma = 3.4;                               % Unit Angstrom, this one should unified with the the distance unit
 
-cutoff = single(7.65e-10 * INPUT_SCALE_INDEX);             % Cut-off radius
+cutoff = single(7.65 * INPUT_SCALE_INDEX);             % Cut-off radius, unit Angstrom
 cutoff2 = cutoff * cutoff;
 switchon = single(0.1);
 
-interpolation_order = 1;                % interpolation order, no larger than 3
-segment_num = 29;                       % # of segment
-bin_num = 128;                          % # of bins per segment
-precision = 8;                          % # of datepoints when generating the polynomial index 
-% LJArgon min r2 is 2.272326e-7, after 100x scale the min r2 is 2.272326e-3
-% LJArgon raw r2 range is 2.272326e-27 ~ 3.401961e-17 (unit meter)
-raw_r2_min = 2.272326e-27;
+% LJArgon min r2 is 2.242475 ang^2
+raw_r2_min = 0.1;%2.242475;
 scaled_r2_min = raw_r2_min * INPUT_SCALE_INDEX^2;
 min_log_index = floor(log(scaled_r2_min)/log(2));
 % Choose a min_range of 2^-15
 min_range = 2^min_log_index;    % minimal range for the evaluation
+max_log_index = ceil(log(cutoff2)/log(2));
 % Based on cutoff and min_range to determine the # of segments
 % Max range of cutoff is 
-max_range = min_range * 2^segment_num;  % maximum range for the evaluation (currently this is the cutoff radius)
+max_range = 2^max_log_index;  % maximum range for the evaluation (currently this is the cutoff radius)
+
+% Interpolation parameters
+interpolation_order = 1;                % interpolation order, no larger than 3
+segment_num = max_log_index-min_log_index;                       % # of segment
+bin_num = 256;                          % # of bins per segment
+precision = 8;                          % # of datepoints when generating the polynomial index 
 
 verification_datapoints = 10000;
 verification_step_width = (max_range-min_range)/verification_datapoints;
@@ -74,17 +76,28 @@ vdw14_real = zeros(length(r2),1);
 vdw8_real = zeros(length(r2),1);
 vdw6_real = zeros(length(r2),1);
 vdw12_real = zeros(length(r2),1);
+% The interpolated result for LJ term
+vdw14_poly = zeros(length(r2),1);
+vdw8_poly = zeros(length(r2),1);
+vdw6_poly = zeros(length(r2),1);
+vdw12_poly = zeros(length(r2),1);
 
 s = zeros(length(r2),1);
 ds = zeros(length(r2),1);
 Fvdw_real = zeros(length(r2),1);
 Fvdw_poly = zeros(size(r2,2),1);
+Evdw_real = zeros(length(r2),1);
+Evdw_poly = zeros(length(r2),1);
 
 % Coefficient gen (random number), independent of r
-% Not used here
-Aij = 8;
-Bij = 6;
-
+%A_energy = OUTPUT_SCALE_INDEX * 4 * eps * sigma ^ 12;             % Multiply with the r12 term
+%B_energy = OUTPUT_SCALE_INDEX * 4 * eps * sigma ^ 6;              % Multiply with the r6 term
+%A_force  = OUTPUT_SCALE_INDEX * 48 * eps * sigma ^ 12;            % Multiply with the r14 term
+%B_force  = OUTPUT_SCALE_INDEX * 24 * eps * sigma ^ 6;             % Multiply with the r8 term
+A_energy = 4 * eps * sigma ^ 12;             % Multiply with the r12 term
+B_energy = 4 * eps * sigma ^ 6;              % Multiply with the r6 term
+A_force  = 48 * eps * sigma ^ 12;            % Multiply with the r14 term
+B_force  = 24 * eps * sigma ^ 6;             % Multiply with the r8 term
 %% Evaluate the real result in single precision (in double precision)
 for i = 1:size(r2,2)
     % calculate the real value
@@ -103,8 +116,10 @@ for i = 1:size(r2,2)
     vdw6_real(i)  = OUTPUT_SCALE_INDEX * 4 * eps * sigma ^ 6  * inv_r6(i);
     vdw12_real(i) = OUTPUT_SCALE_INDEX * 4 * eps * sigma ^ 12  * inv_r12(i);
     
-    % calculate the VDW force
+    % Calculate the VDW force
     Fvdw_real(i) = vdw14_real(i) - vdw8_real(i);
+    % Calculate the VDW energy
+    Evdw_real(i) = vdw12_real(i) - vdw6_real(i);
 end
 
 %% Generate the interpolation table (only need to run this once if the interpolation parameter remains)
@@ -130,6 +145,24 @@ if interpolation_order > 2
     fileID_7  = fopen('c3_8.txt', 'r');
 end
 
+fileID_8  = fopen('c0_12.txt', 'r');
+fileID_9  = fopen('c1_12.txt', 'r');
+if interpolation_order > 1
+    fileID_10  = fopen('c2_12.txt', 'r');
+end
+if interpolation_order > 2
+    fileID_11  = fopen('c3_12.txt', 'r');
+end
+
+fileID_12  = fopen('c0_6.txt', 'r');
+fileID_13  = fopen('c1_6.txt', 'r');
+if interpolation_order > 1
+    fileID_14  = fopen('c2_6.txt', 'r');
+end
+if interpolation_order > 2
+    fileID_15  = fopen('c3_6.txt', 'r');
+end
+
 % Fetch the index for the polynomials
 read_in_c0_vdw14 = textscan(fileID_0, '%f');
 read_in_c1_vdw14 = textscan(fileID_1, '%f');
@@ -146,6 +179,22 @@ if interpolation_order > 1
 end
 if interpolation_order > 2
     read_in_c3_vdw8 = textscan(fileID_7, '%f');
+end
+read_in_c0_vdw12 = textscan(fileID_8, '%f');
+read_in_c1_vdw12 = textscan(fileID_9, '%f');
+if interpolation_order > 1
+    read_in_c2_vdw12 = textscan(fileID_10, '%f');
+end
+if interpolation_order > 2
+    read_in_c3_vdw12 = textscan(fileID_11, '%f');
+end
+read_in_c0_vdw6 = textscan(fileID_12, '%f');
+read_in_c1_vdw6 = textscan(fileID_13, '%f');
+if interpolation_order > 1
+    read_in_c2_vdw6 = textscan(fileID_14, '%f');
+end
+if interpolation_order > 2
+    read_in_c3_vdw6 = textscan(fileID_15, '%f');
 end
 
 % close file
@@ -164,6 +213,22 @@ if interpolation_order > 1
 end
 if interpolation_order > 2
     fclose(fileID_7);
+end
+fclose(fileID_8);
+fclose(fileID_9);
+if interpolation_order > 1
+    fclose(fileID_10);
+end
+if interpolation_order > 2
+    fclose(fileID_11);
+end
+fclose(fileID_12);
+fclose(fileID_13);
+if interpolation_order > 1
+    fclose(fileID_14);
+end
+if interpolation_order > 2
+    fclose(fileID_15);
 end
 
 % Start evaluation
@@ -204,33 +269,72 @@ for i = 1:size(r2,2)
     if interpolation_order > 2
         c3_vdw8 = single(read_in_c3_vdw8{1}(lut_index));
     end
+    c0_vdw12 = single(read_in_c0_vdw12{1}(lut_index));
+    c1_vdw12 = single(read_in_c1_vdw12{1}(lut_index));
+    if interpolation_order > 1
+        c2_vdw12 = single(read_in_c2_vdw12{1}(lut_index));
+    end
+    if interpolation_order > 2
+        c3_vdw12 = single(read_in_c3_vdw12{1}(lut_index));
+    end
+    c0_vdw6 = single(read_in_c0_vdw6{1}(lut_index));
+    c1_vdw6 = single(read_in_c1_vdw6{1}(lut_index));
+    if interpolation_order > 1
+        c2_vdw6 = single(read_in_c2_vdw6{1}(lut_index));
+    end
+    if interpolation_order > 2
+        c3_vdw6 = single(read_in_c3_vdw6{1}(lut_index));
+    end
     
     % Calculate the poly value
     switch(interpolation_order)
         case 1
             vdw14 = polyval([c1_vdw14 c0_vdw14], r2(i));
             vdw8 = polyval([c1_vdw8 c0_vdw8], r2(i));
+            vdw12 = polyval([c1_vdw12 c0_vdw12], r2(i));
+            vdw6 = polyval([c1_vdw6 c0_vdw6], r2(i));
         case 2
             vdw14 = polyval([c2_vdw14 c1_vdw14 c0_vdw14], r2(i));
             vdw8 = polyval([c2_vdw8 c1_vdw8 c0_vdw8], r2(i));
+            vdw12 = polyval([c2_vdw12 c1_vdw12 c0_vdw12], r2(i));
+            vdw6 = polyval([c2_vdw6 c1_vdw6 c0_vdw6], r2(i));
         case 3
             vdw14 = polyval([c3_vdw14 c2_vdw14 c1_vdw14 c0_vdw14], r2(i));
             vdw8 = polyval([c3_vdw8 c2_vdw8 c1_vdw8 c0_vdw8], r2(i));
+            vdw12 = polyval([c3_vdw12 c2_vdw12 c1_vdw12 c0_vdw12], r2(i));
+            vdw6 = polyval([c3_vdw6 c2_vdw6 c1_vdw6 c0_vdw6], r2(i));
     end
+    
+    %vdw14_poly(i) = A_force * vdw14;
+    %vdw8_poly(i) = B_force * vdw8;
+    %vdw12_poly(i) = A_energy * vdw12;
+    %vdw6_poly(i) = B_energy * vdw6;
+    vdw14_poly(i) = vdw14;
+    vdw8_poly(i) = vdw8;
+    vdw12_poly(i) = vdw12;
+    vdw6_poly(i) = vdw6;
+    
     % Calculate the force
-    Fvdw_poly(i) = vdw14 - vdw8;
+    Fvdw_poly(i) = vdw14_poly(i) - vdw8_poly(i);
+    % Calculate the energy
+    Evdw_poly(i) = vdw12_poly(i) - vdw6_poly(i);
 end
 
 
 %% Evaluate the Error rate
-diff_rate = zeros(size(r2,2),1);
+f_diff_rate = zeros(size(r2,2),1);
+e_diff_rate = zeros(size(r2,2),1);
 for i = 1:size(r2,2)
     difference = Fvdw_poly(i) - Fvdw_real(i);
-    diff_rate(i) = abs(difference / Fvdw_real(i));
+    f_diff_rate(i) = abs(difference / Fvdw_real(i));
+    difference = Evdw_poly(i) - Evdw_real(i);
+    e_diff_rate(i) = abs(difference / Evdw_real(i));
 end
 
-average_error_rate = sum(diff_rate) / size(r2,2);
-fprintf('The average error rate is %f\n', average_error_rate);
+f_average_error_rate = sum(f_diff_rate) / size(r2,2);
+e_average_error_rate = sum(e_diff_rate) / size(r2,2);
+fprintf('The average error rate is: force %f, energy %f\n', f_average_error_rate, e_average_error_rate);
+
 
 %% Profiling
 profiling_output_file_name = strcat(DATASET_NAME,'_PreEvaluation_Profiling_Data.txt');
@@ -238,10 +342,16 @@ fileID = fopen(profiling_output_file_name, 'wt');
 fprintf(fileID, 'Dataset: %s\n', DATASET_NAME);
 fprintf(fileID, '\tr2 range is: (%e, %e)\n', min(r2), max(r2));
 fprintf(fileID, '\tvdw14_real range is: (%e, %e)\n', min(abs(vdw14_real)), max(vdw14_real));
+fprintf(fileID, '\tvdw14_poly range is: (%e, %e)\n', min(abs(vdw14_poly)), max(vdw14_poly));
 fprintf(fileID, '\tvdw8_real range is: (%e, %e)\n', min(abs(vdw8_real)), max(vdw8_real));
+fprintf(fileID, '\tvdw8_poly range is: (%e, %e)\n', min(abs(vdw8_poly)), max(vdw8_poly));
 fprintf(fileID, '\tvdw12_real range is: (%e, %e)\n', min(abs(vdw12_real)), max(vdw12_real));
+fprintf(fileID, '\tvdw12_poly range is: (%e, %e)\n', min(abs(vdw12_poly)), max(vdw12_poly));
 fprintf(fileID, '\tvdw6_real range is: (%e, %e)\n', min(abs(vdw6_real)), max(vdw6_real));
+fprintf(fileID, '\tvdw6_poly range is: (%e, %e)\n', min(abs(vdw6_poly)), max(vdw6_poly));
 fprintf(fileID, '\tFvdw_real range is: (%e, %e)\n', min(abs(Fvdw_real)), max(Fvdw_real));
 fprintf(fileID, '\tFvdw_poly range is: (%e, %e)\n', min(abs(Fvdw_poly)), max(Fvdw_poly));
-fprintf(fileID, '\tAverage error rate is: %f%%\n', average_error_rate * 100);
+fprintf(fileID, '\tEvdw_real range is: (%e, %e)\n', min(abs(Evdw_real)), max(Evdw_real));
+fprintf(fileID, '\tEvdw_poly range is: (%e, %e)\n', min(abs(Evdw_poly)), max(Evdw_poly));
+fprintf(fileID, '\tAverage error rate is: Force %f%%, Energy %f%%\n', f_average_error_rate * 100, e_average_error_rate * 100);
 fclose(fileID);

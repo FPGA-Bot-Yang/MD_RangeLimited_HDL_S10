@@ -16,7 +16,7 @@ clear all;
 %% Variables
 EVALUATE_ALL = 1;
 SCALE_INDEX = 1;%100 * 10^10;                              % the readin position data suppose to in the unit of A, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14
-TOTAL_PARTICLE_NUM = 19008;
+TOTAL_PARTICLE_NUM = 19000;%19008;
 CUT_OFF = 7.65 * SCALE_INDEX;
 CUTOFF_2 = CUT_OFF * CUT_OFF;
 DEPTH = 100;
