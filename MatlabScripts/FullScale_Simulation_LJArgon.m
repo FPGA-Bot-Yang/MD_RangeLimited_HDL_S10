@@ -45,7 +45,7 @@ START_TIME = cputime;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Simulation Control Parameter
 ENABLE_INTERPOLATION = 1;                            % Choose to use direct computation or interpolation to evaluat the force and energy
-ENABLE_VERIFICATION = 1;                             % Enable verification for a certain reference particle
+ENABLE_VERIFICATION = 0;                             % Enable verification for a certain reference particle
 ENABLE_SCATTER_PLOTTING = 0;                         % Ploting out the particle positions after each iteration ends
 ENABLE_PRINT_DETAIL_MESSAGE = 0;                     % Print out detailed message showing which step the program is working on
 %ENABLE_ENERGY_EVALUATION = 1;                       % Enable the generation of LJ potential
@@ -53,7 +53,7 @@ ENABLE_PRINT_DETAIL_MESSAGE = 0;                     % Print out detailed messag
 %GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 0;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
 %GEN_PAIRWISE_FORCE_VALUE = 1;                       % Generate VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt
 %GEN_PAIRWISE_NEIGHBOR_ACC_FORCE = 1;                % Generate VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt (if this one need to be generated, GEN_PAIRWISE_FORCE_VALUE has to be 1)
-SIMULATION_TIMESTEP = 1;                           % Total timesteps to simulate
+SIMULATION_TIMESTEP = 100;                           % Total timesteps to simulate
 ENERGY_EVALUATION_STEPS = 1;                         % Every few iterations, evaluate energy once
 %% Dataset Parameters
 % Input & Output Scale Parameters (Determined by the LJ_no_smooth_poly_interpolation_accuracy.m)
@@ -65,8 +65,8 @@ DATASET_NAME = 'LJArgon';
 kb = 1.380e-23;                               % Boltzmann constant (J/K)
 Nav = 6.022e23;                               % Avogadro constant, # of atoms per mol
 Ar_weight = 39.95;                            % g/mol value of Argon atom
-EPS = 0.996;                                  % Unit: kJ      %0.238; % Unit kcal/mol                %kb * 120;  % Unit J
-SIGMA = 3.35;%3.4;                            % Unit Angstrom                %3.4e-10;            % Unit meter, the unit should be in consistant with position value
+EPS = 1.995996 * 1.995996;                    % Extracted from OpenMM, unit kJ      %0.996;% Unit: kJ	%0.238;% Unit kcal/mol	%kb * 120;% Unit J
+SIGMA = 0.1675*2;                             % Extracted from OpenMM, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
 MASS = Ar_weight / Nav / 10^3;                % Unit kg
 SIMULATION_TIME_STEP = 2E-15;                 % 2 femtosecond
 CUTOFF_RADIUS = single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
@@ -1000,9 +1000,9 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
             end
         end
         % Record the energy value
-        energy_data_history(energy_evaluation_counter,1) = potential_energy_acc;
+        energy_data_history(energy_evaluation_counter,1) = potential_energy_acc / 2;
         energy_data_history(energy_evaluation_counter,2) = kinetic_energy_acc;
-        energy_data_history(energy_evaluation_counter,3) = potential_energy_acc + kinetic_energy_acc; 
+        energy_data_history(energy_evaluation_counter,3) = potential_energy_acc / 2 + kinetic_energy_acc; 
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

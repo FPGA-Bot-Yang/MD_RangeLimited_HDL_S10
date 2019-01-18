@@ -36,9 +36,8 @@ OUTPUT_SCALE_INDEX = 1;                    % The scale value for the results of 
 DATASET_NAME = 'LJArgon';
 % Ar
 kb = 1.380e-23;                            % Boltzmann constant (J/K)
-eps = 0.996; % kJ       %0.238;                               % kcal/mol;                   %kb * 120;  % Unit J
-sigma = 3.35;%3.4;                               % Unit Angstrom, this one should unified with the the distance unit
-
+eps = 1.995996 * 1.995996;                 % Extracted from OpenMM, unit kJ      %0.996;% Unit: kJ	%0.238;% Unit kcal/mol	%kb * 120;% Unit J
+sigma = 0.1675*2;                          % Extracted from OpenMM, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
 cutoff = single(8 * INPUT_SCALE_INDEX);%single(7.65 * INPUT_SCALE_INDEX);             % Cut-off radius, unit Angstrom
 cutoff2 = cutoff * cutoff;
 EXCLUSION = single(2^-1);
