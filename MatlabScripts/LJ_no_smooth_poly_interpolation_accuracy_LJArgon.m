@@ -36,21 +36,23 @@ OUTPUT_SCALE_INDEX = 1;                    % The scale value for the results of 
 DATASET_NAME = 'LJArgon';
 % Ar
 kb = 1.380e-23;                            % Boltzmann constant (J/K)
-eps = 0.238;                               % kcal/mol;                   %kb * 120;  % Unit J
-sigma = 3.4;                               % Unit Angstrom, this one should unified with the the distance unit
+eps = 0.996; % kJ       %0.238;                               % kcal/mol;                   %kb * 120;  % Unit J
+sigma = 3.35;%3.4;                               % Unit Angstrom, this one should unified with the the distance unit
 
-cutoff = single(7.65 * INPUT_SCALE_INDEX);             % Cut-off radius, unit Angstrom
+cutoff = single(8 * INPUT_SCALE_INDEX);%single(7.65 * INPUT_SCALE_INDEX);             % Cut-off radius, unit Angstrom
 cutoff2 = cutoff * cutoff;
+EXCLUSION = single(2^-1);
+EXCLUSION_2 = EXCLUSION ^ 2;
 switchon = single(0.1);
 
 % LJArgon min r2 is 2.242475 ang^2
 % Here we keep in consistant with ApoA1
-raw_r2_min = 2^-6;%2.242475;
+raw_r2_min = 2^-12;%2.242475;
 scaled_r2_min = raw_r2_min * INPUT_SCALE_INDEX^2;
-min_log_index = floor(log(scaled_r2_min)/log(2));
+min_log_index = floor(log(EXCLUSION_2)/log(2));
 % Choose a min_range of 2^-15
 min_range = 2^min_log_index;    % minimal range for the evaluation
-max_log_index = ceil(log(14^2)/log(2));
+max_log_index = ceil(log(cutoff2)/log(2));
 % Based on cutoff and min_range to determine the # of segments
 % Max range of cutoff is 
 max_range = 2^max_log_index;  % maximum range for the evaluation (currently this is the cutoff radius)

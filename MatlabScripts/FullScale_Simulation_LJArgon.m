@@ -32,7 +32,7 @@
 %       VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt (RL_LJ_Top.v)             % Verify the accumulated neighbor particle force after each reference particle
 %
 % By: Chen Yang
-% 10/29/2018
+% 01/10/2019
 % Boston University, CAAD Lab
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -44,17 +44,20 @@ START_TIME = cputime;
 %% Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Simulation Control Parameter
-ENABLE_VERIFICATION = 0;                             % Enable verification for a certain reference particle
+ENABLE_INTERPOLATION = 1;                            % Choose to use direct computation or interpolation to evaluat the force and energy
+ENABLE_VERIFICATION = 1;                             % Enable verification for a certain reference particle
+ENABLE_SCATTER_PLOTTING = 0;                         % Ploting out the particle positions after each iteration ends
+ENABLE_PRINT_DETAIL_MESSAGE = 0;                     % Print out detailed message showing which step the program is working on
 %ENABLE_ENERGY_EVALUATION = 1;                       % Enable the generation of LJ potential
 %GEN_INPUT_MIF_FILE = 1;                             % Generate the memory initialization file for on-chip ram (.mif)
 %GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 0;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
 %GEN_PAIRWISE_FORCE_VALUE = 1;                       % Generate VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt
 %GEN_PAIRWISE_NEIGHBOR_ACC_FORCE = 1;                % Generate VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt (if this one need to be generated, GEN_PAIRWISE_FORCE_VALUE has to be 1)
-SIMULATION_TIMESTEP = 100;                           % Total timesteps to simulate
-ENERGY_EVALUATION_STEPS = 10;                        % Every few iterations, evaluate energy once
+SIMULATION_TIMESTEP = 1;                           % Total timesteps to simulate
+ENERGY_EVALUATION_STEPS = 1;                         % Every few iterations, evaluate energy once
 %% Dataset Parameters
 % Input & Output Scale Parameters (Determined by the LJ_no_smooth_poly_interpolation_accuracy.m)
-INPUT_SCALE_INDEX = 1;                        % if the readin position data is in the unit of meter, it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
+INPUT_SCALE_INDEX = 1;                    % if the readin position data is in the unit of meter, it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
 OUTPUT_SCALE_INDEX = 1;                       % The scale value for the results of r14 & r8 term
 % Dataset Paraemeters
 DATASET_NAME = 'LJArgon';
@@ -62,36 +65,39 @@ DATASET_NAME = 'LJArgon';
 kb = 1.380e-23;                               % Boltzmann constant (J/K)
 Nav = 6.022e23;                               % Avogadro constant, # of atoms per mol
 Ar_weight = 39.95;                            % g/mol value of Argon atom
-EPS = 0.238;                                  % Unit kcal/mol                %kb * 120;           % Unit J
-SIGMA = 3.4;                                  % Unit Angstrom                %3.4e-10;            % Unit meter, the unit should be in consistant with position value
-MASS = Ar_weight / Nav / 10^-3;               % Unit kg
+EPS = 0.996;                                  % Unit: kJ      %0.238; % Unit kcal/mol                %kb * 120;  % Unit J
+SIGMA = 3.35;%3.4;                            % Unit Angstrom                %3.4e-10;            % Unit meter, the unit should be in consistant with position value
+MASS = Ar_weight / Nav / 10^3;                % Unit kg
 SIMULATION_TIME_STEP = 2E-15;                 % 2 femtosecond
-CUTOFF_RADIUS = single(7.65);                 % Unit Angstrom, Cutoff Radius
+CUTOFF_RADIUS = single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS^2;            % Cutoff distance square
+EXCLUSION = single(2^-1);                     % Unit Angstrom, If the particle pairs has closers distance than this value, then don't evaluate
+EXCLUSION_2 = EXCLUSION ^ 2;                  % Exclusion distance square
 % LJArgon min r2 is 2.242475 ang^2
 % Here we choose a interpolation range that is consistant with ApoA1
-RAW_R2_MIN = 2^-6;%2.242475;
+RAW_R2_MIN = 2^-12;%2.242475;                 % Currently this value is not used
 SCALED_R2_MIN = RAW_R2_MIN * INPUT_SCALE_INDEX^2;
-MIN_LOG_INDEX = floor(log(SCALED_R2_MIN)/log(2));
+MIN_LOG_INDEX = floor(log(EXCLUSION_2)/log(2));
 MIN_RANGE = 2^MIN_LOG_INDEX;                  % minimal range for the evaluation
-MAX_LOG_INDEX = ceil(log(14^2)/log(2));
+MAX_LOG_INDEX = ceil(log(CUTOFF_RADIUS_2)/log(2));
 MAX_RANGE = 2^MAX_LOG_INDEX;                  % maximum range for the evaluation (currently this is the cutoff radius)
 %% Interpolation Parameters
 INTERPOLATION_ORDER = 1;
 SEGMENT_NUM = MAX_LOG_INDEX-MIN_LOG_INDEX;    % # of segment
 BIN_NUM = 256;                                % # of bins per segment
 %% Benmarck Related Parameters (related with CUTOFF_RADIUS)
-CELL_COUNT_X = 5;
-CELL_COUNT_Y = 5;
-CELL_COUNT_Z = 5;
-BOUNDING_BOX_SIZE_X = CELL_COUNT_X * CUTOFF_RADIUS;
-BOUNDING_BOX_SIZE_Y = CELL_COUNT_Y * CUTOFF_RADIUS;
-BOUNDING_BOX_SIZE_Z = CELL_COUNT_Z * CUTOFF_RADIUS;
+CELL_COUNT_X = 3;%5;
+CELL_COUNT_Y = 3;%5;
+CELL_COUNT_Z = 3;%5;
+BOUNDING_BOX_SIZE_X = double(CELL_COUNT_X * CUTOFF_RADIUS);
+BOUNDING_BOX_SIZE_Y = double(CELL_COUNT_Y * CUTOFF_RADIUS);
+BOUNDING_BOX_SIZE_Z = double(CELL_COUNT_Z * CUTOFF_RADIUS);
 CELL_PARTICLE_MAX = 200;                            % The maximum possible particle count in each cell
-TOTAL_PARTICLE = 19000;                             % particle count in benchmark
+TOTAL_PARTICLE = 500;%864;%19000;                   % particle count in benchmark
 MEM_DATA_WIDTH = 32*3;                              % Memory Data Width (3*32 for position)
-COMMON_PATH = '';
-INPUT_FILE_NAME = 'input_positions_ljargon.txt';
+COMMON_PATH = "";
+INPUT_FILE_FORMAT = "pdb";%"txt";                   % The input file format, can be "txt" or "pdb"
+INPUT_FILE_NAME = "ar_gas.pdb";%"input_positions_ljargon_864.txt";%"input_positions_ljargon.txt";
 %% HDL design parameters
 NUM_FILTER = 8;                                     % Number of filters in the pipeline
 FILTER_BUFFER_DEPTH = 32;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
@@ -119,9 +125,9 @@ filter_input_particle_num = zeros(NUM_FILTER,3);                                
 %HOME_CELL_X = 2;                                    % Home cell coordiante
 %HOME_CELL_Y = 2;
 %HOME_CELL_Z = 2;
-HOME_CELL_X_RANGE = 1:5;                                    % Home cell coordiante
-HOME_CELL_Y_RANGE = 1:5;
-HOME_CELL_Z_RANGE = 1:5;
+HOME_CELL_X_RANGE = 1:3;%1:5;                                    % Home cell coordiante
+HOME_CELL_Y_RANGE = 1:3;%1:5;
+HOME_CELL_Z_RANGE = 1:3;%1:5;
 % The subset of cell initalization file need to generate (the cell number starting from 1)
 % Cell numbering mechanism: cell_id = (cell_x-1)*CELL_COUNT_Y*CELL_COUNT_Z + (cell_y-1)*CELL_COUNT_Z + cell_z;
 %GEN_CELL_RANGE_X = [1 2 3];
@@ -137,38 +143,60 @@ fprintf('*** Start reading data from input file %s ***\n', input_file_path);
 % Open File
 fp = fopen(input_file_path);
 if fp == -1
-        fprintf('failed to open %s\n',filename);
+        fprintf('failed to open %s\n',input_file_path);
 end
 % Read in line by line
 line_counter = 1;
-while ~feof(fp)
+% Read txt input file
+if INPUT_FILE_FORMAT == "txt"
+    while ~feof(fp)
+        tline = fgets(fp);
+        line_elements = textscan(tline,'%s %f64 %f64 %f64');
+        raw_position_data(line_counter,1) = line_elements{2} * INPUT_SCALE_INDEX;
+        raw_position_data(line_counter,2) = line_elements{3} * INPUT_SCALE_INDEX;
+        raw_position_data(line_counter,3) = line_elements{4} * INPUT_SCALE_INDEX;
+        line_counter = line_counter + 1;
+    end
+% Read pdb input file
+elseif INPUT_FILE_FORMAT == "pdb"
+    % Readout the top 5 lines, contains no data information
     tline = fgets(fp);
-    line_elements = textscan(tline,'%s %f64 %f64 %f64');
-    raw_position_data(line_counter,1) = line_elements{2} * INPUT_SCALE_INDEX;
-    raw_position_data(line_counter,2) = line_elements{3} * INPUT_SCALE_INDEX;
-    raw_position_data(line_counter,3) = line_elements{4} * INPUT_SCALE_INDEX;
-    line_counter = line_counter + 1;
+    tline = fgets(fp);
+    tline = fgets(fp);
+    tline = fgets(fp);
+    tline = fgets(fp);
+    while line_counter <= TOTAL_PARTICLE
+        tline = fgets(fp);
+        line_elements = textscan(tline,'%s %s %s %s %s %s %f64 %f64 %f64 %s %s %s');
+        raw_position_data(line_counter,1) = line_elements{7} * INPUT_SCALE_INDEX;
+        raw_position_data(line_counter,2) = line_elements{8} * INPUT_SCALE_INDEX;
+        raw_position_data(line_counter,3) = line_elements{9} * INPUT_SCALE_INDEX;
+        line_counter = line_counter + 1;
+    end
 end
 % Close File
 fclose(fp);
 fprintf('Particle data loading finished!\n');
 
 %% Find the min, max of raw data in each dimension
-min_x  = min(raw_position_data(:,1));
-max_x  = max(raw_position_data(:,1));
-min_y  = min(raw_position_data(:,2));
-max_y  = max(raw_position_data(:,2));
-min_z  = min(raw_position_data(:,3));
-max_z  = max(raw_position_data(:,3));
+min_x  = min(raw_position_data(1:TOTAL_PARTICLE,1));
+max_x  = max(raw_position_data(1:TOTAL_PARTICLE,1));
+min_y  = min(raw_position_data(1:TOTAL_PARTICLE,2));
+max_y  = max(raw_position_data(1:TOTAL_PARTICLE,2));
+min_z  = min(raw_position_data(1:TOTAL_PARTICLE,3));
+max_z  = max(raw_position_data(1:TOTAL_PARTICLE,3));
 % Original range is (0.0011,347.7858), (4.5239e-04,347.7855), (3.1431e-04,347.7841)
 % shift all the data to positive
-position_data(:,1) = raw_position_data(:,1)-min_x;          % range: 0 ~ 347.7847
-position_data(:,2) = raw_position_data(:,2)-min_y;          % range: 0 ~ 347.7851
-position_data(:,3) = raw_position_data(:,3)-min_z;          % range: 0 ~ 347.7838
+position_data(1:TOTAL_PARTICLE,1) = raw_position_data(1:TOTAL_PARTICLE,1)-min_x;          % range: 0 ~ 347.7847
+position_data(1:TOTAL_PARTICLE,2) = raw_position_data(1:TOTAL_PARTICLE,2)-min_y;          % range: 0 ~ 347.7851
+position_data(1:TOTAL_PARTICLE,3) = raw_position_data(1:TOTAL_PARTICLE,3)-min_z;          % range: 0 ~ 347.7838
 fprintf('All particles shifted to align on (0,0,0)\n');
-% Print out the initial particle location
-clf;
-scatter3(position_data(:,1),position_data(:,2),position_data(:,3));
+if ENABLE_SCATTER_PLOTTING
+    % Print out the initial particle location
+    clf;
+    scatter3(position_data(:,1),position_data(:,2),position_data(:,3));
+    title('Initial Position');
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Mapping the initial particles to cell list
@@ -712,8 +740,10 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                             end
                     end
                 end
-                fprintf('Iteration %d, Homecell(%d,%d,%d): Mapping cell particles to filters done!\n', sim_iteration, HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z);
-
+                if ENABLE_PRINT_DETAIL_MESSAGE
+                    fprintf('Iteration %d, Homecell(%d,%d,%d): Mapping cell particles to filters done!\n', sim_iteration, HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z);
+                end
+                
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %% Evaluate Force with data from 8 filters (currently the order of data from filters is not guaranteed)
                 %% Including arbitration
@@ -755,59 +785,66 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                                 dy = ref_pos_y - neighbor_pos_y;
                                 dz = ref_pos_z - neighbor_pos_z;
                                 % Apply periodic boundary condition
-                                dx = dx - round(dx/BOUNDING_BOX_SIZE_X);
-                                dy = dy - round(dy/BOUNDING_BOX_SIZE_Y);
-                                dz = dz - round(dz/BOUNDING_BOX_SIZE_Z);
+                                dx = dx - BOUNDING_BOX_SIZE_X * round(dx/BOUNDING_BOX_SIZE_X);
+                                dy = dy - BOUNDING_BOX_SIZE_Y * round(dy/BOUNDING_BOX_SIZE_Y);
+                                dz = dz - BOUNDING_BOX_SIZE_Z * round(dz/BOUNDING_BOX_SIZE_Z);
                                 % Evaluated R2
                                 r2 = dx*dx + dy*dy + dz*dz;
                                 % Pass the filter
-                                if r2 ~= 0 &&  r2 < CUTOFF_RADIUS_2
+                                if r2 >= EXCLUSION_2 &&  r2 < CUTOFF_RADIUS_2
                                     tmp_counter_particles_within_cutoff = tmp_counter_particles_within_cutoff + 1;
                                     %% Force Evaluation
-                                    % Table lookup
-                                    seg_ptr = 0;        % The first segment will be #0, second will be #1, etc....
-                                    while(r2 >= MIN_RANGE * 2^(seg_ptr+1))
-                                        seg_ptr = seg_ptr + 1;
-                                    end
-                                    if(seg_ptr >= SEGMENT_NUM)      % if the segment pointer is larger than the maximum number of segment, then error out
-                                        disp('Error occur: could not locate the segment for the input r2');
-                                        return;
-                                    end
-                                    % Locate the bin in the current segment
-                                    segment_min = single(MIN_RANGE * 2^seg_ptr);
-                                    segment_max = single(segment_min * 2);
-                                    segment_step = single((segment_max - segment_min) / BIN_NUM);
-                                    bin_ptr = floor((r2 - segment_min)/segment_step) + 1;            % the bin_ptr will give which bin it locate
-                                    % Calculate the index for table lookup
-                                    lut_index = seg_ptr * BIN_NUM + bin_ptr;
-                                    % Fetch the index for the polynomials
-                                    c0_vdw14 = single(read_in_c0_vdw14{1}(lut_index));
-                                    c1_vdw14 = single(read_in_c1_vdw14{1}(lut_index));
-                                    if INTERPOLATION_ORDER > 1
-                                        c2_vdw14 = single(read_in_c2_vdw14{1}(lut_index));
-                                    end
-                                    if INTERPOLATION_ORDER > 2
-                                        c3_vdw14 = single(read_in_c3_vdw14{1}(lut_index));
-                                    end
-                                    c0_vdw8 = single(read_in_c0_vdw8{1}(lut_index));
-                                    c1_vdw8 = single(read_in_c1_vdw8{1}(lut_index));
-                                    if INTERPOLATION_ORDER > 1
-                                        c2_vdw8 = single(read_in_c2_vdw8{1}(lut_index));
-                                    end
-                                    if INTERPOLATION_ORDER > 2
-                                        c3_vdw8 = single(read_in_c3_vdw8{1}(lut_index));
-                                    end
-                                    % Calculate the poly value
-                                    switch(INTERPOLATION_ORDER)
-                                        case 1
-                                            vdw14 = polyval([c1_vdw14 c0_vdw14], r2);
-                                            vdw8 = polyval([c1_vdw8 c0_vdw8], r2);
-                                        case 2
-                                            vdw14 = polyval([c2_vdw14 c1_vdw14 c0_vdw14], r2);
-                                            vdw8 = polyval([c2_vdw8 c1_vdw8 c0_vdw8], r2);
-                                        case 3
-                                            vdw14 = polyval([c3_vdw14 c2_vdw14 c1_vdw14 c0_vdw14], r2);
-                                            vdw8 = polyval([c3_vdw8 c2_vdw8 c1_vdw8 c0_vdw8], r2);
+                                    % Using Table lookup for evaluation
+                                    if ENABLE_INTERPOLATION
+                                        seg_ptr = 0;        % The first segment will be #0, second will be #1, etc....
+                                        while(r2 >= MIN_RANGE * 2^(seg_ptr+1))
+                                            seg_ptr = seg_ptr + 1;
+                                        end
+                                        if(seg_ptr >= SEGMENT_NUM)      % if the segment pointer is larger than the maximum number of segment, then error out
+                                            disp('Error occur: could not locate the segment for the input r2');
+                                            return;
+                                        end
+                                        % Locate the bin in the current segment
+                                        segment_min = single(MIN_RANGE * 2^seg_ptr);
+                                        segment_max = single(segment_min * 2);
+                                        segment_step = single((segment_max - segment_min) / BIN_NUM);
+                                        bin_ptr = floor((r2 - segment_min)/segment_step) + 1;            % the bin_ptr will give which bin it locate
+                                        % Calculate the index for table lookup
+                                        lut_index = seg_ptr * BIN_NUM + bin_ptr;
+                                        % Fetch the index for the polynomials
+                                        c0_vdw14 = single(read_in_c0_vdw14{1}(lut_index));
+                                        c1_vdw14 = single(read_in_c1_vdw14{1}(lut_index));
+                                        if INTERPOLATION_ORDER > 1
+                                            c2_vdw14 = single(read_in_c2_vdw14{1}(lut_index));
+                                        end
+                                        if INTERPOLATION_ORDER > 2
+                                            c3_vdw14 = single(read_in_c3_vdw14{1}(lut_index));
+                                        end
+                                        c0_vdw8 = single(read_in_c0_vdw8{1}(lut_index));
+                                        c1_vdw8 = single(read_in_c1_vdw8{1}(lut_index));
+                                        if INTERPOLATION_ORDER > 1
+                                            c2_vdw8 = single(read_in_c2_vdw8{1}(lut_index));
+                                        end
+                                        if INTERPOLATION_ORDER > 2
+                                            c3_vdw8 = single(read_in_c3_vdw8{1}(lut_index));
+                                        end
+                                        % Calculate the poly value
+                                        switch(INTERPOLATION_ORDER)
+                                            case 1
+                                                vdw14 = polyval([c1_vdw14 c0_vdw14], r2);
+                                                vdw8 = polyval([c1_vdw8 c0_vdw8], r2);
+                                            case 2
+                                                vdw14 = polyval([c2_vdw14 c1_vdw14 c0_vdw14], r2);
+                                                vdw8 = polyval([c2_vdw8 c1_vdw8 c0_vdw8], r2);
+                                            case 3
+                                                vdw14 = polyval([c3_vdw14 c2_vdw14 c1_vdw14 c0_vdw14], r2);
+                                                vdw8 = polyval([c3_vdw8 c2_vdw8 c1_vdw8 c0_vdw8], r2);
+                                        end
+                                    % Direct Evaluation
+                                    else
+                                        inv_r2 = 1 / r2;
+                                        vdw14 = OUTPUT_SCALE_INDEX * 48 * EPS * SIGMA ^ 12 * inv_r2^7;
+                                        vdw8  = OUTPUT_SCALE_INDEX * 24 * EPS * SIGMA ^ 6  * inv_r2^4;
                                     end
                                     % Calculate the total force
                                     F_LJ = single(vdw14) - single(vdw8);
@@ -842,53 +879,60 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                                         tmp_neighbor_force_z = tmp_neighbor_force_z + neg_F_LJ_z;
                                         % Write back accumulated force
                                         cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,4:6) = [tmp_neighbor_force_x, tmp_neighbor_force_y, tmp_neighbor_force_z];
-                                        cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,12) = cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,12) + 1;
+                                        cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,12) = cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,12) + 1;                                
                                     % End of accumulating force to neighbor particles
                                     end
 
-                                %% Evaluate the LJ Potential when needed
-                                if ENABLE_ENERGY_EVALUATION
-                                    % Fetch the index for the polynomials
-                                    c0_vdw12 = single(read_in_c0_vdw12{1}(lut_index));
-                                    c1_vdw12 = single(read_in_c1_vdw12{1}(lut_index));
-                                    if INTERPOLATION_ORDER > 1
-                                        c2_vdw12 = single(read_in_c2_vdw12{1}(lut_index));
-                                    end
-                                    if INTERPOLATION_ORDER > 2
-                                        c3_vdw12 = single(read_in_c3_vdw12{1}(lut_index));
-                                    end
-                                    c0_vdw6 = single(read_in_c0_vdw6{1}(lut_index));
-                                    c1_vdw6 = single(read_in_c1_vdw6{1}(lut_index));
-                                    if INTERPOLATION_ORDER > 1
-                                        c2_vdw6 = single(read_in_c2_vdw6{1}(lut_index));
-                                    end
-                                    if INTERPOLATION_ORDER > 2
-                                        c3_vdw6 = single(read_in_c3_vdw6{1}(lut_index));
-                                    end
-                                    % Calculate the poly value
-                                    switch(INTERPOLATION_ORDER)
-                                        case 1
-                                            vdw12 = polyval([c1_vdw12 c0_vdw12], r2);
-                                            vdw6 = polyval([c1_vdw6 c0_vdw6], r2);
-                                        case 2
-                                            vdw12 = polyval([c2_vdw12 c1_vdw12 c0_vdw12], r2);
-                                            vdw6 = polyval([c2_vdw6 c1_vdw6 c0_vdw6], r2);
-                                        case 3
-                                            vdw12 = polyval([c3_vdw12 c2_vdw12 c1_vdw12 c0_vdw12], r2);
-                                            vdw6 = polyval([c3_vdw6 c2_vdw6 c1_vdw6 c0_vdw6], r2);
-                                    end
-                                    % Calculate the LJ Potential
-                                    E_LJ = single(vdw12) - single(vdw6);
-                                    % Accumulate the LJ potential for reference particle
-                                    tmp_potential_acc = tmp_potential_acc + E_LJ;
+                                    %% Evaluate the LJ Potential when needed
+                                    if ENABLE_ENERGY_EVALUATION
+                                        % Use Interploation for energy evaluation
+                                        if ENABLE_INTERPOLATION
+                                            % Fetch the index for the polynomials
+                                            c0_vdw12 = single(read_in_c0_vdw12{1}(lut_index));
+                                            c1_vdw12 = single(read_in_c1_vdw12{1}(lut_index));
+                                            if INTERPOLATION_ORDER > 1
+                                                c2_vdw12 = single(read_in_c2_vdw12{1}(lut_index));
+                                            end
+                                            if INTERPOLATION_ORDER > 2
+                                                c3_vdw12 = single(read_in_c3_vdw12{1}(lut_index));
+                                            end
+                                            c0_vdw6 = single(read_in_c0_vdw6{1}(lut_index));
+                                            c1_vdw6 = single(read_in_c1_vdw6{1}(lut_index));
+                                            if INTERPOLATION_ORDER > 1
+                                                c2_vdw6 = single(read_in_c2_vdw6{1}(lut_index));
+                                            end
+                                            if INTERPOLATION_ORDER > 2
+                                                c3_vdw6 = single(read_in_c3_vdw6{1}(lut_index));
+                                            end
+                                            % Calculate the poly value
+                                            switch(INTERPOLATION_ORDER)
+                                                case 1
+                                                    vdw12 = polyval([c1_vdw12 c0_vdw12], r2);
+                                                    vdw6 = polyval([c1_vdw6 c0_vdw6], r2);
+                                                case 2
+                                                    vdw12 = polyval([c2_vdw12 c1_vdw12 c0_vdw12], r2);
+                                                    vdw6 = polyval([c2_vdw6 c1_vdw6 c0_vdw6], r2);
+                                                case 3
+                                                    vdw12 = polyval([c3_vdw12 c2_vdw12 c1_vdw12 c0_vdw12], r2);
+                                                    vdw6 = polyval([c3_vdw6 c2_vdw6 c1_vdw6 c0_vdw6], r2);
+                                            end
+                                        % Use direct computation for energy evaluation
+                                        else
+                                            vdw12 = OUTPUT_SCALE_INDEX * 4 * EPS * SIGMA ^ 12 * inv_r2^6;
+                                            vdw6 = OUTPUT_SCALE_INDEX * 4 * EPS * SIGMA ^ 6 * inv_r2^3;
+                                        end
+                                        % Calculate the LJ Potential
+                                        E_LJ = single(vdw12) - single(vdw6);
+                                        % Accumulate the LJ potential for reference particle
+                                        tmp_potential_acc = tmp_potential_acc + E_LJ;
 
-                                    % Accumulate the LJ potential to neighbor particles
-                                    % Don't accumulate for home cell
-                                    if filter_id > 1
-                                        cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,10) = cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,10) + E_LJ;
+                                        % Accumulate the LJ potential to neighbor particles
+                                        % Don't accumulate for home cell
+                                        if filter_id > 1
+                                            cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,10) = cell_particle(neighbor_cell_id,neighbor_cell_ptr_tmp,10) + E_LJ;
+                                        end
+                                    % End of LJ potential evaluation
                                     end
-                                % End of LJ potential evaluation
-                                end
 
                                 % End of force & energy evaluation and accumulation
                                 end
@@ -910,28 +954,60 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                     % Write the particle pairs that lies within the cutoff radius with the reference particle
                     cell_particle(home_cell_id,ref_particle_ptr,12) = cell_particle(home_cell_id,ref_particle_ptr,12) + tmp_counter_particles_within_cutoff;
 
-                    %% Evaluate the Kinetic energy when needed
-                    if ENABLE_ENERGY_EVALUATION
-                        v_x = cell_particle(home_cell_id,ref_particle_ptr,7);
-                        v_y = cell_particle(home_cell_id,ref_particle_ptr,8);
-                        v_z = cell_particle(home_cell_id,ref_particle_ptr,9);
-                        v2 = v_x^2 + v_y^2 + v_z^2;
-                        Ekinect = 0.5 * MASS * v2;
-                        cell_particle(home_cell_id,ref_particle_ptr,11) = Ekinect;
-                    end
-
                 % End of ref_particle_ptr
                 end
-                fprintf('Homecell(%d,%d,%d): Force Evaluation done!\n', HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z);
+                
+                % Print out which homecell is done processing
+                if ENABLE_PRINT_DETAIL_MESSAGE
+                    fprintf('Homecell(%d,%d,%d): Force Evaluation done!\n', HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z);
+                end
+                
             % End of homecell on Z Dir
             end
         % End of homecell on Y Dir
         end
     % End of homecell on X Dir, all done   
     end
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Energy Evaluation: Individual Kinetic Energy and System Total Energy
+    %% The energy is evaluated based on the position and velocity at the beginning of the current iteration
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if ENABLE_ENERGY_EVALUATION
+        energy_evaluation_counter = energy_evaluation_counter + 1;
+        potential_energy_acc = 0;
+        kinetic_energy_acc = 0;
+        for homecell_ptr_x = 1:length(HOME_CELL_X_RANGE)
+            CUR_CELL_X = HOME_CELL_X_RANGE(homecell_ptr_x);
+            for homecell_ptr_y = 1:length(HOME_CELL_Y_RANGE)
+                CUR_CELL_Y = HOME_CELL_Y_RANGE(homecell_ptr_y);
+                for homecell_ptr_z = 1:length(HOME_CELL_Z_RANGE)
+                    CUR_CELL_Z = HOME_CELL_Z_RANGE(homecell_ptr_z);
+                    cur_cell_id = (CUR_CELL_X-1)*CELL_COUNT_Y*CELL_COUNT_Z + (CUR_CELL_Y-1)*CELL_COUNT_Z + CUR_CELL_Z;
+                    for particle_ptr = 1:particle_in_cell_counter(CUR_CELL_X,CUR_CELL_Y,CUR_CELL_Z)
+                        %% Evaluate the individual Kinectic Energy First
+                        v_x = cell_particle(cur_cell_id,particle_ptr,7);
+                        v_y = cell_particle(cur_cell_id,particle_ptr,8);
+                        v_z = cell_particle(cur_cell_id,particle_ptr,9);
+                        v2 = v_x^2 + v_y^2 + v_z^2;
+                        Ekinect = 0.5 * MASS * v2;
+                        cell_particle(cur_cell_id,particle_ptr,11) = Ekinect;
+                        %% Evaluate the total energy
+                        potential_energy_acc = cell_particle(cur_cell_id,particle_ptr,10) + potential_energy_acc;
+                        kinetic_energy_acc = cell_particle(cur_cell_id,particle_ptr,11) + kinetic_energy_acc;
+                    end
+                end
+            end
+        end
+        % Record the energy value
+        energy_data_history(energy_evaluation_counter,1) = potential_energy_acc;
+        energy_data_history(energy_evaluation_counter,2) = kinetic_energy_acc;
+        energy_data_history(energy_evaluation_counter,3) = potential_energy_acc + kinetic_energy_acc; 
+    end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Motion Update Logic
+    %% Motion Update Logic: Update location and Velocity
+    %% The new data is write to an seprate array
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Clear the temp arraies
     tmp_particle_in_cell_counter = zeros(CELL_COUNT_X,CELL_COUNT_Y,CELL_COUNT_Z);
@@ -972,10 +1048,24 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                     v_y = v_y + (force_y / MASS) * SIMULATION_TIME_STEP;
                     v_z = v_z + (force_z / MASS) * SIMULATION_TIME_STEP;
                     % Update position
-                    pos_x = pos_x + v_x * SIMULATION_TIME_STEP;
-                    pos_y = pos_y + v_y * SIMULATION_TIME_STEP;
-                    pos_z = pos_z + v_z * SIMULATION_TIME_STEP;
+                    movement_x = v_x * SIMULATION_TIME_STEP;
+                    movement_y = v_y * SIMULATION_TIME_STEP;
+                    movement_z = v_z * SIMULATION_TIME_STEP;
+                    pos_x = pos_x + movement_x;
+                    pos_y = pos_y + movement_y;
+                    pos_z = pos_z + movement_z;
+%{
+                    % Apply boundary condition to the new position
+                    pos_x = mod(pos_x, BOUNDING_BOX_SIZE_X);
+                    pos_y = mod(pos_y, BOUNDING_BOX_SIZE_Y);
+                    pos_z = mod(pos_z, BOUNDING_BOX_SIZE_Z);
                     % Update cell x
+                    % use floor function to make sure when the coordinate is equal to the upper boundary, then move this particle to the next cell
+                    target_cell_x = floor(pos_x/CUTOFF_RADIUS) + 1;
+                    target_cell_y = floor(pos_y/CUTOFF_RADIUS) + 1;
+                    target_cell_z = floor(pos_z/CUTOFF_RADIUS) + 1;
+%}
+                    % Determine the target cell
                     if pos_x >= min_x && pos_x < max_x
                         target_cell_x = CUR_CELL_X;
                     elseif pos_x >= max_x
@@ -1038,24 +1128,24 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                     target_cell_id = (target_cell_x-1)*CELL_COUNT_Y*CELL_COUNT_Z + (target_cell_y-1)*CELL_COUNT_Z + target_cell_z;
                     % Assign the position, force, velocity to temp array (clear the force value in this process)
                     tmp_cell_particle(target_cell_id,new_particle_ptr,1:9) = [pos_x,pos_y,pos_z,0,0,0,v_x,v_y,v_z];
-                    % Assign the energy value to temp array
-                    tmp_cell_particle(target_cell_id,new_particle_ptr,10) = cell_particle(cur_cell_id,particle_ptr,10);
-                    tmp_cell_particle(target_cell_id,new_particle_ptr,11) = cell_particle(cur_cell_id,particle_ptr,11);
+                    % DO NOT!!! Assign the energy value to temp array, thus clear the energy value for the next iteration
+                    %tmp_cell_particle(target_cell_id,new_particle_ptr,10) = cell_particle(cur_cell_id,particle_ptr,10);
+                    %tmp_cell_particle(target_cell_id,new_particle_ptr,11) = cell_particle(cur_cell_id,particle_ptr,11);
                     % Assign the num of particles in the new cell
                     tmp_particle_in_cell_counter(target_cell_x, target_cell_y, target_cell_z) = new_particle_ptr;
                 end
             end
         end
     end
-
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Force and Energy Verification logic
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ENABLE_VERIFICATION
-        TARGET_HOME_CELL_X_POOL = 1:1:5;
-        TARGET_HOME_CELL_Y_POOL = 1:1:5;
-        TARGET_HOME_CELL_Z_POOL = 1:1:5;
-        TARGET_HOME_CELL_PARTICLE_ID_POOL = 1:1:5;
+        TARGET_HOME_CELL_X_POOL = 1:3;%1:1:5;
+        TARGET_HOME_CELL_Y_POOL = 1:3;%1:1:5;
+        TARGET_HOME_CELL_Z_POOL = 1:3;%1:1:5;
+        TARGET_HOME_CELL_PARTICLE_ID_POOL = 1:3;%1:1:5;
         for testing_ptr = 1:length(TARGET_HOME_CELL_X_POOL)
             TARGET_HOME_CELL_X = TARGET_HOME_CELL_X_POOL(testing_ptr);
             TARGET_HOME_CELL_Y = TARGET_HOME_CELL_Y_POOL(testing_ptr);
@@ -1114,13 +1204,13 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                             dy = ref_pos_y - neighbor_pos_y;
                             dz = ref_pos_z - neighbor_pos_z;
                             % Apply periodic boundary condition
-                            dx = dx - round(dx/BOUNDING_BOX_SIZE_X);
-                            dy = dy - round(dy/BOUNDING_BOX_SIZE_Y);
-                            dz = dz - round(dz/BOUNDING_BOX_SIZE_Z);
+                            dx = dx - BOUNDING_BOX_SIZE_X * round(dx/BOUNDING_BOX_SIZE_X);
+                            dy = dy - BOUNDING_BOX_SIZE_Y * round(dy/BOUNDING_BOX_SIZE_Y);
+                            dz = dz - BOUNDING_BOX_SIZE_Z * round(dz/BOUNDING_BOX_SIZE_Z);
                             % Calculate R2
                             r2 = dx^2 + dy^2 + dz^2;
                             % Filter
-                            if r2 ~= 0 &&  r2 < CUTOFF_RADIUS_2 
+                            if r2 >= EXCLUSION_2 &&  r2 < CUTOFF_RADIUS_2 
                                 num_particle_within_cutoff = num_particle_within_cutoff + 1;
                                 % Evaluate LJ force
                                 inv_r2 = 1 / r2;
@@ -1162,42 +1252,10 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
         end
     % End of testing phase
     end
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Update the CELLLIST from the Motion Update Temp array 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    particle_in_cell_counter = tmp_particle_in_cell_counter(:,:,:);
-    cell_particle = tmp_cell_particle(:,:,:);
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Evaluate the total energy of the system
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if ENABLE_ENERGY_EVALUATION
-        energy_evaluation_counter = energy_evaluation_counter + 1;
-        potential_energy_acc = 0;
-        kinetic_energy_acc = 0;
-        for homecell_ptr_x = 1:length(HOME_CELL_X_RANGE)
-            CUR_CELL_X = HOME_CELL_X_RANGE(homecell_ptr_x);
-            for homecell_ptr_y = 1:length(HOME_CELL_Y_RANGE)
-                CUR_CELL_Y = HOME_CELL_Y_RANGE(homecell_ptr_y);
-                for homecell_ptr_z = 1:length(HOME_CELL_Z_RANGE)
-                    CUR_CELL_Z = HOME_CELL_Z_RANGE(homecell_ptr_z);
-                    cur_cell_id = (CUR_CELL_X-1)*CELL_COUNT_Y*CELL_COUNT_Z + (CUR_CELL_Y-1)*CELL_COUNT_Z + CUR_CELL_Z;
-                    for particle_ptr = 1:particle_in_cell_counter(CUR_CELL_X,CUR_CELL_Y,CUR_CELL_Z)
-                        potential_energy_acc = cell_particle(cur_cell_id,particle_ptr,10) + potential_energy_acc;
-                        kinetic_energy_acc = cell_particle(cur_cell_id,particle_ptr,11) + kinetic_energy_acc;
-                    end
-                end
-            end
-        end
-        % Record the energy value
-        energy_data_history(energy_evaluation_counter,1) = potential_energy_acc;
-        energy_data_history(energy_evaluation_counter,2) = kinetic_energy_acc;
-        energy_data_history(energy_evaluation_counter,3) = potential_energy_acc + kinetic_energy_acc; 
-    end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Plot all particles out for fun
+    %% The plot out position is based on the status at the beginning of the current iteration
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     tmp_position_data = single(zeros(TOTAL_PARTICLE,3));
     tmp_particle_counter = 0;
@@ -1225,9 +1283,22 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
             end
         end
     end
-    clf;
-    % 3D scatter plot all the particles position
-    scatter3(tmp_position_data(:,1),tmp_position_data(:,2),tmp_position_data(:,3));
+    if ENABLE_SCATTER_PLOTTING
+        clf;
+        % 3D scatter plot all the particles position
+        figure(1);
+        scatter3(tmp_position_data(:,1),tmp_position_data(:,2),tmp_position_data(:,3));
+        title_str = sprintf('Iteration %d', sim_iteration);
+        title(title_str);
+    end
+    
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Update the CELLLIST from the Motion Update Temp array
+    %% The Force and Energy value is reset after this 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    particle_in_cell_counter = tmp_particle_in_cell_counter(:,:,:);
+    cell_particle = tmp_cell_particle(:,:,:);
 
 % End of current simulation iteration
 end
@@ -1236,11 +1307,16 @@ end
 figure(2);
 subplot(3,1,1);
 plot(1:ceil(SIMULATION_TIMESTEP/ENERGY_EVALUATION_STEPS), energy_data_history(1:ceil(SIMULATION_TIMESTEP/ENERGY_EVALUATION_STEPS),1));
+title('System LJ Energy');
+ylabel('kJ');
 subplot(3,1,2);
 plot(1:ceil(SIMULATION_TIMESTEP/ENERGY_EVALUATION_STEPS), energy_data_history(1:ceil(SIMULATION_TIMESTEP/ENERGY_EVALUATION_STEPS),2));
+title('System Kinetic Energy')
+ylabel('???');
 subplot(3,1,3);
 plot(1:ceil(SIMULATION_TIMESTEP/ENERGY_EVALUATION_STEPS), energy_data_history(1:ceil(SIMULATION_TIMESTEP/ENERGY_EVALUATION_STEPS),3));
-
+title('System Total Energy')
+ylabel('kJ');
 
 %% Measure the total runtime
 END_TIME = cputime;

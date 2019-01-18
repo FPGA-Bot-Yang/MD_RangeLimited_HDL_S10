@@ -11,6 +11,7 @@
 #include "Gen_Boundary_Mem.h"
 #include "Gen_Lookup_Mem.h"
 #include "Gen_Sim_Script.h"
+#include "../C_Model_ForceEval/MD_Evaluation_Model.h"
 
 // The full path of the Quartus project root folder
 std::string common_path = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0";
@@ -82,6 +83,8 @@ int main(){
 	Gen_Sim_Script(&common_path, &tmp_script_path, &sim_top_module);
 	// Make a copy to SourceCode path
 	Gen_Sim_Script(&common_path, &sim_script_out_path, &sim_top_module);
+
+	MD_Evaluation_Model();
 
 	return 0;
 }
