@@ -322,6 +322,10 @@ for i = 1:size(r2,2)
     Evdw_poly(i) = vdw12_poly(i) - vdw6_poly(i);
 end
 
+clf;
+figure(1);
+plot(r2, Evdw_poly);
+title('Evdw_poly');
 
 %% Evaluate the Error rate
 f_diff_rate = zeros(size(r2,2),1);

@@ -23,6 +23,7 @@ INPUT_FILE_NAME = "ar_gas.pdb";%"input_positions_ljargon_864.txt";%"input_positi
 % 1~3: posx, posy, posz; 4~6: vx, vy, vz; 8~10: Fx, Fy, Fz; 11: LJ Energy; 12: Kinetic Energy, 13: Neighbor particles within cutoff
 position_data = single(zeros(TOTAL_PARTICLE_NUM,9));
 energy_history = single(zeros(NUM_ITERATION,3));
+position_data_history = single(zeros(NUM_ITERATION,TOTAL_PARTICLE_NUM,5));  % 1~3: posx, posy, posz; 4: LJ Energy; 5: Kinetic Energy;
 
 %% Load the data from input file
 input_file_path = strcat(COMMON_PATH, INPUT_FILE_NAME);
@@ -88,6 +89,19 @@ for iteration = 1:NUM_ITERATION
                 % LJ Force and Energy
                 Fvdw = vdw14 - vdw8;
                 Evdw = vdw12 - vdw6;
+                
+%                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                 %% Avoid the collision between particle 353 & 306
+%                 % Only serve as a temperal solution
+%                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                 if ref_ptr == 353 && neighbor_ptr == 306
+%                     Evdw = 0;
+%                 end
+%                 if ref_ptr == 306 && neighbor_ptr == 353
+%                     Evdw = 0;
+%                 end
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                
                 % Accumulate force
                 Fx_acc = Fx_acc + Fvdw * dx;
                 Fy_acc = Fy_acc + Fvdw * dy;
@@ -135,6 +149,16 @@ for iteration = 1:NUM_ITERATION
     energy_history(iteration,1:3) = [System_energy,System_Ek,System_energy+System_Ek];
     fprintf("Iteration %d, System energy is %f, Kinetic energy is %f\n", iteration, System_energy, System_Ek);
 
+    %% Record history data
+    for i=1:TOTAL_PARTICLE_NUM
+        position_data_history(iteration,i,1) = position_data(i,1);
+        position_data_history(iteration,i,2) = position_data(i,2);
+        position_data_history(iteration,i,3) = position_data(i,3);
+        position_data_history(iteration,i,4) = position_data(i,10);
+        position_data_history(iteration,i,5) = position_data(i,11);
+    end
+    
+    
     %% Motion Update
     for ptr = 1:TOTAL_PARTICLE_NUM
         posx = position_data(ptr, 1);
@@ -171,6 +195,7 @@ for iteration = 1:NUM_ITERATION
         position_data(ptr, 8) = 0;
         position_data(ptr, 9) = 0;
     end
+    
 end
 
 % Plot the energy waveform
