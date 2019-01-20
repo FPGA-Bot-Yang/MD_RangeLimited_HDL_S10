@@ -1,24 +1,25 @@
-NUM_ITERATION = 500;
+NUM_ITERATION = 10000;
 % Ar
 kb = 1.380e-23;                               % Boltzmann constant (J/K)S
 Nav = 6.022e23;                               % Avogadro constant, # of atoms per mol
 Ar_weight = 39.95;                            % g/mol value of Argon atom
 EPS = 1.995996 * 1.995996;                    % Extracted from OpenMM, unit kJ      %0.996;% Unit: kJ	%0.238;% Unit kcal/mol	%kb * 120;% Unit J
-SIGMA = 0.1675*2;                             % Extracted from OpenMM, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
+SIGMA = 3.4;%0.8;%0.1675*2;                             % Extracted from OpenMM, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
 MASS = Ar_weight / Nav / 10^3;                % Unit kg
 SIMULATION_TIME_STEP = 2E-15;                 % 2 femtosecond
-CUTOFF_RADIUS = single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
+CUTOFF_RADIUS = single(SIGMA*2.5);%single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS^2;            % Cutoff distance square
-CELL_COUNT_X = 3;%5;
-CELL_COUNT_Y = 3;%5;
-CELL_COUNT_Z = 3;%5;
+CELL_COUNT_X = 5;%3;%5;
+CELL_COUNT_Y = 5;%3;%5;
+CELL_COUNT_Z = 5;%3;%5;
 BOUNDING_BOX_SIZE_X = single(CELL_COUNT_X * CUTOFF_RADIUS);
 BOUNDING_BOX_SIZE_Y = single(CELL_COUNT_Y * CUTOFF_RADIUS);
 BOUNDING_BOX_SIZE_Z = single(CELL_COUNT_Z * CUTOFF_RADIUS);
 % Dataset parameters
-TOTAL_PARTICLE_NUM = 500;
+TOTAL_PARTICLE_NUM = 864;%500;
 COMMON_PATH = "";
-INPUT_FILE_NAME = "ar_gas.pdb";%"input_positions_ljargon_864.txt";%"input_positions_ljargon.txt";
+INPUT_FILE_FORMAT = "txt";%"pdb";                   % The input file format, can be "txt" or "pdb"
+INPUT_FILE_NAME = "input_positions_ljargon_864.txt";%"ar_gas.pdb";%"input_positions_ljargon.txt";
 % Position data array
 % 1~3: posx, posy, posz; 4~6: vx, vy, vz; 8~10: Fx, Fy, Fz; 11: LJ Energy; 12: Kinetic Energy, 13: Neighbor particles within cutoff
 position_data = single(zeros(TOTAL_PARTICLE_NUM,9));
@@ -35,25 +36,55 @@ if fp == -1
 end
 % Read in line by line
 line_counter = 1;
-% Readout the top 5 lines, contains no data information
-tline = fgets(fp);
-tline = fgets(fp);
-tline = fgets(fp);
-tline = fgets(fp);
-tline = fgets(fp);
-while line_counter <= TOTAL_PARTICLE_NUM
+% Read txt input file
+if INPUT_FILE_FORMAT == "txt"
+    while line_counter <= TOTAL_PARTICLE_NUM
+        tline = fgets(fp);
+        line_elements = textscan(tline,'%s %f64 %f64 %f64');
+        position_data(line_counter,1) = line_elements{2}*1.0e10;
+        position_data(line_counter,2) = line_elements{3}*1.0e10;
+        position_data(line_counter,3) = line_elements{4}*1.0e10;
+        line_counter = line_counter + 1;
+    end
+% Read pdb input file
+elseif INPUT_FILE_FORMAT == "pdb"
+    % Readout the top 5 lines, contains no data information
     tline = fgets(fp);
-    line_elements = textscan(tline,'%s %s %s %s %s %s %f64 %f64 %f64 %s %s %s');
-    position_data(line_counter,1) = line_elements{7};
-    position_data(line_counter,2) = line_elements{8};
-    position_data(line_counter,3) = line_elements{9};
-    line_counter = line_counter + 1;
+    tline = fgets(fp);
+    tline = fgets(fp);
+    tline = fgets(fp);
+    tline = fgets(fp);
+    while line_counter <= TOTAL_PARTICLE_NUM
+        tline = fgets(fp);
+        line_elements = textscan(tline,'%s %s %s %s %s %s %f64 %f64 %f64 %s %s %s');
+        position_data(line_counter,1) = line_elements{7};
+        position_data(line_counter,2) = line_elements{8};
+        position_data(line_counter,3) = line_elements{9};
+        line_counter = line_counter + 1;
+    end
 end
+% Close File
+fclose(fp);
+fprintf('Particle data loading finished!\n');
+
+
+% %% remove 306 & 353
+% tmp_position_data = single(zeros(TOTAL_PARTICLE_NUM-2,9));
+% tmp_ptr = 0;
+% for i = 1:TOTAL_PARTICLE_NUM
+%     if i ~= 306 && i ~= 353
+%         tmp_ptr = tmp_ptr + 1;
+%         tmp_position_data(tmp_ptr,:) = position_data(i,:);
+%     end
+% end
+% TOTAL_PARTICLE_NUM = TOTAL_PARTICLE_NUM -2;
+% position_data(1:TOTAL_PARTICLE_NUM,:) = tmp_position_data(1:TOTAL_PARTICLE_NUM,:);
+
 
 for iteration = 1:NUM_ITERATION
     % Traverse all the particles in the simulation space
     System_energy = 0;
-    System_Ek = 0;
+    
     for ref_ptr = 1:TOTAL_PARTICLE_NUM
         Evdw_acc = 0;
         Fx_acc = 0;
@@ -118,8 +149,7 @@ for iteration = 1:NUM_ITERATION
         position_data(ref_ptr,10) = Evdw_acc;
         position_data(ref_ptr,12) = particle_within_cutoff_counter;
 
-
-        %% Kinetic Energy
+        %% Update Velocity
         acceleration_x = Fx_acc / MASS;
         acceleration_y = Fy_acc / MASS;
         acceleration_z = Fz_acc / MASS;
@@ -134,20 +164,16 @@ for iteration = 1:NUM_ITERATION
         position_data(ref_ptr,4) = vx;
         position_data(ref_ptr,5) = vy;
         position_data(ref_ptr,6) = vz;
-        % Kinetic energy
-        Ek = 0.5 * MASS * (vx*vx + vy*vy +vz*vz);
-        % Write back Ek
-        position_data(ref_ptr,11) = Ek;
+%         % Kinetic energy
+%         Ek = 0.5 * MASS * (vx*vx + vy*vy +vz*vz);
+%         % Write back Ek
+%         position_data(ref_ptr,11) = Ek;
 
         %% Accumualte System energy
         %System_energy = System_energy + Ek + Evdw_acc;
         System_energy = System_energy + Evdw_acc;
-        System_Ek = System_Ek + Ek;
+%         System_Ek = System_Ek + Ek;
     end
-    % LJ potential should only count once towards both particles
-    System_energy = System_energy / 2;
-    energy_history(iteration,1:3) = [System_energy,System_Ek,System_energy+System_Ek];
-    fprintf("Iteration %d, System energy is %f, Kinetic energy is %f\n", iteration, System_energy, System_Ek);
 
     %% Record history data
     for i=1:TOTAL_PARTICLE_NUM
@@ -158,12 +184,21 @@ for iteration = 1:NUM_ITERATION
         position_data_history(iteration,i,5) = position_data(i,11);
     end
     
+    %% Correct momenta
+    vx_avg = sum(position_data(:,4)) / TOTAL_PARTICLE_NUM;
+    vy_avg = sum(position_data(:,5)) / TOTAL_PARTICLE_NUM;
+    vz_avg = sum(position_data(:,6)) / TOTAL_PARTICLE_NUM;
     
-    %% Motion Update
+
+    %% Motion Update & System Ek evaluation
+    System_Ek = 0;
     for ptr = 1:TOTAL_PARTICLE_NUM
         posx = position_data(ptr, 1);
         posy = position_data(ptr, 2);
         posz = position_data(ptr, 3);
+%        vx = position_data(ptr, 4) - vx_avg;
+%        vy = position_data(ptr, 5) - vy_avg;
+%        vz = position_data(ptr, 6) - vz_avg;
         vx = position_data(ptr, 4);
         vy = position_data(ptr, 5);
         vz = position_data(ptr, 6);
@@ -186,15 +221,33 @@ for iteration = 1:NUM_ITERATION
         elseif posz >= BOUNDING_BOX_SIZE_Z
             posz = posz - BOUNDING_BOX_SIZE_Z;
         end
+        
+        % Evaluate Ek
+        % Kinetic energy
+        Ek = 0.5 * MASS * (vx*vx + vy*vy +vz*vz) * 10^-20;       % v unit is ang/s, MASS unit is kg, Ek unit supposed to be J(kg*m^2*s^-2)
+        % Write back Ek
+        position_data(ref_ptr,11) = Ek;
+        % Accumualte to system Ek
+        System_Ek = System_Ek + Ek;
+        
         % Write back position and velocity
         position_data(ptr, 1) = posx;
         position_data(ptr, 2) = posy;
         position_data(ptr, 3) = posz;
+        position_data(ptr, 4) = vx;
+        position_data(ptr, 5) = vy;
+        position_data(ptr, 6) = vz;
         % Clear force
         position_data(ptr, 7) = 0;
         position_data(ptr, 8) = 0;
         position_data(ptr, 9) = 0;
     end
+    
+    %% Print out system energy infomation
+    % LJ potential should only count once towards both particles
+    System_energy = System_energy / 2;
+    energy_history(iteration,1:3) = [System_energy,System_Ek,System_energy+System_Ek*10^-3];
+    fprintf("Iteration %d, System energy is %f, Kinetic energy is %f\n", iteration, System_energy, System_Ek);
     
 end
 
@@ -208,7 +261,7 @@ ylabel('kJ');
 subplot(3,1,2);
 plot(1:NUM_ITERATION, energy_history(1:NUM_ITERATION,2));
 title('System Kinetic Energy')
-ylabel('???');
+ylabel('J');
 subplot(3,1,3);
 plot(1:NUM_ITERATION, energy_history(1:NUM_ITERATION,3));
 title('System Total Energy')
