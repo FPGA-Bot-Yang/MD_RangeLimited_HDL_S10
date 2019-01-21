@@ -36,6 +36,10 @@
 // Dependency:
 //				RL_LJ_Evaluation_Unit.v
 //				Particle_Pair_Gen_HalfShell.v
+//				Motion_Update.v
+//				cell_x_y_z.v
+//				Force_Cache_x_y_z.v
+//				Velocity_Cache_x_y_z.v
 //
 // Testbench:
 //				RL_LJ_Top_tb.v

@@ -11,6 +11,7 @@
 #include "Gen_Boundary_Mem.h"
 #include "Gen_Lookup_Mem.h"
 #include "Gen_Sim_Script.h"
+#include "Gen_Sim_top.h"
 #include "../C_Model_ForceEval/MD_Evaluation_Model.h"
 
 // The full path of the Quartus project root folder
@@ -76,6 +77,11 @@ int main(){
 	}
 
 	/////////////////////////////////////////////////////////////////////////
+	// Generate Top module
+	/////////////////////////////////////////////////////////////////////////
+	Gen_Sim_Top(5, 5, 5, &common_src_path);
+
+	/////////////////////////////////////////////////////////////////////////
 	// Generate Simulation Script (.do file)
 	/////////////////////////////////////////////////////////////////////////
 	// Make a copy to simulation path
@@ -84,7 +90,7 @@ int main(){
 	// Make a copy to SourceCode path
 	Gen_Sim_Script(&common_path, &sim_script_out_path, &sim_top_module);
 
-	MD_Evaluation_Model();
+	//MD_Evaluation_Model();
 
 	return 0;
 }

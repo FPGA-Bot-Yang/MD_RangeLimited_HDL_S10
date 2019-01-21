@@ -37,8 +37,8 @@ DATASET_NAME = 'LJArgon';
 % Ar
 kb = 1.380e-23;                            % Boltzmann constant (J/K)
 eps = 1.995996 * 1.995996;                 % Extracted from OpenMM, unit kJ      %0.996;% Unit: kJ	%0.238;% Unit kcal/mol	%kb * 120;% Unit J
-sigma = 0.1675*2;                          % Extracted from OpenMM, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
-cutoff = single(8 * INPUT_SCALE_INDEX);%single(7.65 * INPUT_SCALE_INDEX);             % Cut-off radius, unit Angstrom
+sigma = 3.4;%0.1675*2;                     % Extracted from LJArgon Dataset, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
+cutoff = single(sigma*2.5 * INPUT_SCALE_INDEX);%single(7.65 * INPUT_SCALE_INDEX);             % Cut-off radius, unit Angstrom
 cutoff2 = cutoff * cutoff;
 EXCLUSION = single(2^-1);
 EXCLUSION_2 = EXCLUSION ^ 2;
@@ -356,9 +356,9 @@ fprintf(fileID, '\tvdw12_real range is: (%e, %e)\n', min(abs(vdw12_real)), max(v
 fprintf(fileID, '\tvdw12_poly range is: (%e, %e)\n', min(abs(vdw12_poly)), max(vdw12_poly));
 fprintf(fileID, '\tvdw6_real range is: (%e, %e)\n', min(abs(vdw6_real)), max(vdw6_real));
 fprintf(fileID, '\tvdw6_poly range is: (%e, %e)\n', min(abs(vdw6_poly)), max(vdw6_poly));
-fprintf(fileID, '\tFvdw_real range is: (%e, %e)\n', min(abs(Fvdw_real)), max(Fvdw_real));
-fprintf(fileID, '\tFvdw_poly range is: (%e, %e)\n', min(abs(Fvdw_poly)), max(Fvdw_poly));
-fprintf(fileID, '\tEvdw_real range is: (%e, %e)\n', min(abs(Evdw_real)), max(Evdw_real));
-fprintf(fileID, '\tEvdw_poly range is: (%e, %e)\n', min(abs(Evdw_poly)), max(Evdw_poly));
+fprintf(fileID, '\tFvdw_real range is: (%e, %e)\n', min(Fvdw_real), max(Fvdw_real));
+fprintf(fileID, '\tFvdw_poly range is: (%e, %e)\n', min(Fvdw_poly), max(Fvdw_poly));
+fprintf(fileID, '\tEvdw_real range is: (%e, %e)\n', min(Evdw_real), max(Evdw_real));
+fprintf(fileID, '\tEvdw_poly range is: (%e, %e)\n', min(Evdw_poly), max(Evdw_poly));
 fprintf(fileID, '\tAverage error rate is: Force %f%%, Energy %f%%\n', f_average_error_rate * 100, e_average_error_rate * 100);
 fclose(fileID);

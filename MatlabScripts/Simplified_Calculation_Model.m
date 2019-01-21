@@ -1,17 +1,17 @@
-NUM_ITERATION = 10000;
+NUM_ITERATION = 100;
 % Ar
 kb = 1.380e-23;                               % Boltzmann constant (J/K)S
 Nav = 6.022e23;                               % Avogadro constant, # of atoms per mol
 Ar_weight = 39.95;                            % g/mol value of Argon atom
 EPS = 1.995996 * 1.995996;                    % Extracted from OpenMM, unit kJ      %0.996;% Unit: kJ	%0.238;% Unit kcal/mol	%kb * 120;% Unit J
-SIGMA = 3.4;%0.8;%0.1675*2;                             % Extracted from OpenMM, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
+SIGMA = 3.4;%0.8;%0.1675*2;                   % Extracted from LJArgon, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
 MASS = Ar_weight / Nav / 10^3;                % Unit kg
 SIMULATION_TIME_STEP = 2E-15;                 % 2 femtosecond
 CUTOFF_RADIUS = single(SIGMA*2.5);%single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS^2;            % Cutoff distance square
-CELL_COUNT_X = 5;%3;%5;
-CELL_COUNT_Y = 5;%3;%5;
-CELL_COUNT_Z = 5;%3;%5;
+CELL_COUNT_X = 5;%3;
+CELL_COUNT_Y = 5;%3;
+CELL_COUNT_Z = 5;%3;
 BOUNDING_BOX_SIZE_X = single(CELL_COUNT_X * CUTOFF_RADIUS);
 BOUNDING_BOX_SIZE_Y = single(CELL_COUNT_Y * CUTOFF_RADIUS);
 BOUNDING_BOX_SIZE_Z = single(CELL_COUNT_Z * CUTOFF_RADIUS);
@@ -253,7 +253,7 @@ end
 
 % Plot the energy waveform
 clf;
-figure(2);
+figure(3);
 subplot(3,1,1);
 plot(1:NUM_ITERATION, energy_history(1:NUM_ITERATION,1));
 title('System LJ Energy');

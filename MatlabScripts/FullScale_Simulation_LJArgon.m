@@ -53,11 +53,11 @@ ENABLE_PRINT_DETAIL_MESSAGE = 0;                     % Print out detailed messag
 %GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 0;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
 %GEN_PAIRWISE_FORCE_VALUE = 1;                       % Generate VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt
 %GEN_PAIRWISE_NEIGHBOR_ACC_FORCE = 1;                % Generate VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt (if this one need to be generated, GEN_PAIRWISE_FORCE_VALUE has to be 1)
-SIMULATION_TIMESTEP = 100;                           % Total timesteps to simulate
+SIMULATION_TIMESTEP = 1000;                           % Total timesteps to simulate
 ENERGY_EVALUATION_STEPS = 1;                         % Every few iterations, evaluate energy once
 %% Dataset Parameters
 % Input & Output Scale Parameters (Determined by the LJ_no_smooth_poly_interpolation_accuracy.m)
-INPUT_SCALE_INDEX = 1;                    % if the readin position data is in the unit of meter, it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
+INPUT_SCALE_INDEX = 10^10;                    % if the readin position data is in the unit of meter, it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
 OUTPUT_SCALE_INDEX = 1;                       % The scale value for the results of r14 & r8 term
 % Dataset Paraemeters
 DATASET_NAME = 'LJArgon';
@@ -66,10 +66,10 @@ kb = 1.380e-23;                               % Boltzmann constant (J/K)
 Nav = 6.022e23;                               % Avogadro constant, # of atoms per mol
 Ar_weight = 39.95;                            % g/mol value of Argon atom
 EPS = 1.995996 * 1.995996;                    % Extracted from OpenMM, unit kJ      %0.996;% Unit: kJ	%0.238;% Unit kcal/mol	%kb * 120;% Unit J
-SIGMA = 0.1675*2;                             % Extracted from OpenMM, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
+SIGMA = 3.4;%0.8;%0.1675*2;                   % Extracted from LJArgon, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
 MASS = Ar_weight / Nav / 10^3;                % Unit kg
 SIMULATION_TIME_STEP = 2E-15;                 % 2 femtosecond
-CUTOFF_RADIUS = single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
+CUTOFF_RADIUS = single(SIGMA*2.5);%single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS^2;            % Cutoff distance square
 EXCLUSION = single(2^-1);                     % Unit Angstrom, If the particle pairs has closers distance than this value, then don't evaluate
 EXCLUSION_2 = EXCLUSION ^ 2;                  % Exclusion distance square
@@ -86,18 +86,18 @@ INTERPOLATION_ORDER = 1;
 SEGMENT_NUM = MAX_LOG_INDEX-MIN_LOG_INDEX;    % # of segment
 BIN_NUM = 256;                                % # of bins per segment
 %% Benmarck Related Parameters (related with CUTOFF_RADIUS)
-CELL_COUNT_X = 3;%5;
-CELL_COUNT_Y = 3;%5;
-CELL_COUNT_Z = 3;%5;
+CELL_COUNT_X = 5;%3;
+CELL_COUNT_Y = 5;%3;
+CELL_COUNT_Z = 5;%3;
 BOUNDING_BOX_SIZE_X = double(CELL_COUNT_X * CUTOFF_RADIUS);
 BOUNDING_BOX_SIZE_Y = double(CELL_COUNT_Y * CUTOFF_RADIUS);
 BOUNDING_BOX_SIZE_Z = double(CELL_COUNT_Z * CUTOFF_RADIUS);
 CELL_PARTICLE_MAX = 200;                            % The maximum possible particle count in each cell
-TOTAL_PARTICLE = 500;%864;%19000;                   % particle count in benchmark
+TOTAL_PARTICLE = 864;%500;%19000;                   % particle count in benchmark
 MEM_DATA_WIDTH = 32*3;                              % Memory Data Width (3*32 for position)
 COMMON_PATH = "";
-INPUT_FILE_FORMAT = "pdb";%"txt";                   % The input file format, can be "txt" or "pdb"
-INPUT_FILE_NAME = "ar_gas.pdb";%"input_positions_ljargon_864.txt";%"input_positions_ljargon.txt";
+INPUT_FILE_FORMAT = "txt";%"pdb";                   % The input file format, can be "txt" or "pdb"
+INPUT_FILE_NAME = "input_positions_ljargon_864.txt";%"ar_gas.pdb";%"input_positions_ljargon.txt";
 %% HDL design parameters
 NUM_FILTER = 8;                                     % Number of filters in the pipeline
 FILTER_BUFFER_DEPTH = 32;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
@@ -125,9 +125,9 @@ filter_input_particle_num = zeros(NUM_FILTER,3);                                
 %HOME_CELL_X = 2;                                    % Home cell coordiante
 %HOME_CELL_Y = 2;
 %HOME_CELL_Z = 2;
-HOME_CELL_X_RANGE = 1:3;%1:5;                                    % Home cell coordiante
-HOME_CELL_Y_RANGE = 1:3;%1:5;
-HOME_CELL_Z_RANGE = 1:3;%1:5;
+HOME_CELL_X_RANGE = 1:CELL_COUNT_X;             % Home cell coordiante
+HOME_CELL_Y_RANGE = 1:CELL_COUNT_Y;
+HOME_CELL_Z_RANGE = 1:CELL_COUNT_Z;
 % The subset of cell initalization file need to generate (the cell number starting from 1)
 % Cell numbering mechanism: cell_id = (cell_x-1)*CELL_COUNT_Y*CELL_COUNT_Z + (cell_y-1)*CELL_COUNT_Z + cell_z;
 %GEN_CELL_RANGE_X = [1 2 3];
@@ -990,7 +990,7 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                         v_y = cell_particle(cur_cell_id,particle_ptr,8);
                         v_z = cell_particle(cur_cell_id,particle_ptr,9);
                         v2 = v_x^2 + v_y^2 + v_z^2;
-                        Ekinect = 0.5 * MASS * v2;
+                        Ekinect = 0.5 * MASS * v2 * 10^-20;       % v unit is ang/s, MASS unit is kg, Ek unit supposed to be J(kg*m^2*s^-2);
                         cell_particle(cur_cell_id,particle_ptr,11) = Ekinect;
                         %% Evaluate the total energy
                         potential_energy_acc = cell_particle(cur_cell_id,particle_ptr,10) + potential_energy_acc;
@@ -1001,8 +1001,11 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
         end
         % Record the energy value
         energy_data_history(energy_evaluation_counter,1) = potential_energy_acc / 2;
-        energy_data_history(energy_evaluation_counter,2) = kinetic_energy_acc;
-        energy_data_history(energy_evaluation_counter,3) = potential_energy_acc / 2 + kinetic_energy_acc; 
+        energy_data_history(energy_evaluation_counter,2) = kinetic_energy_acc;                                      % Unit: J
+        energy_data_history(energy_evaluation_counter,3) = potential_energy_acc / 2 + kinetic_energy_acc * 10^-3;   % Unit: kJ
+%        if ENABLE_PRINT_DETAIL_MESSAGE
+            fprintf('Iteration %d, LJ energy %f, Kinectic energy %d, Total energy %f.\n', sim_iteration, energy_data_history(energy_evaluation_counter,1:3))
+%        end
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1054,17 +1057,27 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                     pos_x = pos_x + movement_x;
                     pos_y = pos_y + movement_y;
                     pos_z = pos_z + movement_z;
-%{
+
                     % Apply boundary condition to the new position
                     pos_x = mod(pos_x, BOUNDING_BOX_SIZE_X);
                     pos_y = mod(pos_y, BOUNDING_BOX_SIZE_Y);
                     pos_z = mod(pos_z, BOUNDING_BOX_SIZE_Z);
+                    % Correct the rare bug that when pos is a little bit smaller than BOUNDING_BOX_SIZE (say BOUNDING_BOX_SIZE-1.0e-10), it will return the value of BOUNDING_BOX_SIZE 
+                    if pos_x == BOUNDING_BOX_SIZE_X
+                        pos_x = 0;
+                    end
+                    if pos_y == BOUNDING_BOX_SIZE_Y
+                        pos_y = 0;
+                    end
+                    if pos_z == BOUNDING_BOX_SIZE_Z
+                        pos_z = 0;
+                    end
                     % Update cell x
                     % use floor function to make sure when the coordinate is equal to the upper boundary, then move this particle to the next cell
                     target_cell_x = floor(pos_x/CUTOFF_RADIUS) + 1;
                     target_cell_y = floor(pos_y/CUTOFF_RADIUS) + 1;
                     target_cell_z = floor(pos_z/CUTOFF_RADIUS) + 1;
-%}
+%{
                     % Determine the target cell
                     if pos_x >= min_x && pos_x < max_x
                         target_cell_x = CUR_CELL_X;
@@ -1122,7 +1135,7 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
                             target_cell_z = CELL_COUNT_Z - 1;
                         end
                     end
-
+%}
                     %% Assign the particle to new cells
                     new_particle_ptr = tmp_particle_in_cell_counter(target_cell_x, target_cell_y, target_cell_z) + 1;
                     target_cell_id = (target_cell_x-1)*CELL_COUNT_Y*CELL_COUNT_Z + (target_cell_y-1)*CELL_COUNT_Z + target_cell_z;
