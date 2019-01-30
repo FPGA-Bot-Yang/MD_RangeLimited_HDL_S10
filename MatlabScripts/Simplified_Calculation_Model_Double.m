@@ -8,14 +8,14 @@ EPS = 1.995996 * 1.995996;                    % Extracted from OpenMM, unit kJ  
 SIGMA = 2.1;%3.4;%0.8;%0.1675*2;                   % Extracted from LJArgon, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
 MASS = Ar_weight / Nav / 10^3;                % Unit kg
 SIMULATION_TIME_STEP = 2E-15;                 % 2 femtosecond
-CUTOFF_RADIUS = single(8.5);%single(SIGMA*2.5);%single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
+CUTOFF_RADIUS = double(8.5);%single(SIGMA*2.5);%single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS^2;            % Cutoff distance square
 CELL_COUNT_X = 7;%5;%3;
 CELL_COUNT_Y = 6;%5;%3;
 CELL_COUNT_Z = 6;%5;%3;
-BOUNDING_BOX_SIZE_X = single(CELL_COUNT_X * CUTOFF_RADIUS);
-BOUNDING_BOX_SIZE_Y = single(CELL_COUNT_Y * CUTOFF_RADIUS);
-BOUNDING_BOX_SIZE_Z = single(CELL_COUNT_Z * CUTOFF_RADIUS);
+BOUNDING_BOX_SIZE_X = double(CELL_COUNT_X * CUTOFF_RADIUS);
+BOUNDING_BOX_SIZE_Y = double(CELL_COUNT_Y * CUTOFF_RADIUS);
+BOUNDING_BOX_SIZE_Z = double(CELL_COUNT_Z * CUTOFF_RADIUS);
 % Dataset parameters
 INPUT_SCALE_INDEX = 1;%1.0E10;                      % Set this as 10^10 if the input unit is in meters, or set as 1 when input unit is Angstrom
 TOTAL_PARTICLE_NUM = 20000;%10000;%864;%500;
@@ -24,11 +24,11 @@ INPUT_FILE_FORMAT = "txt";%"pdb";                   % The input file format, can
 INPUT_FILE_NAME = "input_positions_ljargon_20000_box_58_49_49.txt";%"input_positions_ljargon_10000_40box.txt";%"ar_gas.pdb";%"input_positions_ljargon.txt";
 % Position data array
 % 1~3: posx, posy, posz; 4~6: vx, vy, vz; 8~10: Fx, Fy, Fz; 11: LJ Energy; 12: Kinetic Energy, 13: Neighbor particles within cutoff
-position_data = single(zeros(TOTAL_PARTICLE_NUM,9));
-energy_history = single(zeros(NUM_ITERATION,3));
-position_data_history = single(zeros(NUM_ITERATION,TOTAL_PARTICLE_NUM,5));  % 1~3: posx, posy, posz; 4: LJ Energy; 5: Kinetic Energy;
+position_data = double(zeros(TOTAL_PARTICLE_NUM,9));
+energy_history = double(zeros(NUM_ITERATION,3));
+position_data_history = double(zeros(NUM_ITERATION,TOTAL_PARTICLE_NUM,5));  % 1~3: posx, posy, posz; 4: LJ Energy; 5: Kinetic Energy;
 % Output result file
-OUTPUT_FILE_NAME = strcat('Output_Energy_Simplified_Model_',DATASET_NAME,'_',num2str(TOTAL_PARTICLE_NUM),'_iter_',num2str(NUM_ITERATION),'.txt');
+OUTPUT_FILE_NAME = strcat('Output_Energy_Simplified_Model_Double_',DATASET_NAME,'_',num2str(TOTAL_PARTICLE_NUM),'_iter_',num2str(NUM_ITERATION),'.txt');
 OUTPUT_FILE_ID = fopen(OUTPUT_FILE_NAME,'w');
 
 %% Load the data from input file

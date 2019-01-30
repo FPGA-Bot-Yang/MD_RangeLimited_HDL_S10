@@ -30,7 +30,7 @@
 //				RL_LJ_Top.v
 //
 // Dependency:
-//				RL_LJ_Force_Evaluation_Unit.v
+//				RL_LJ_Force_Evaluation_Unit.v / RL_LJ_Force_Evaluation_Unit_simple_filter.v
 //
 // Testbench:
 //				RL_LJ_Top_tb.v
@@ -57,6 +57,12 @@ module RL_LJ_Evaluation_Unit
 	parameter FILTER_BUFFER_DEPTH 		= 32,
 	parameter FILTER_BUFFER_ADDR_WIDTH	= 5,
 	parameter CUTOFF_2 						= 32'h43100000,						// (12^2=144 in IEEE floating point)
+	parameter CUTOFF_TIMES_SQRT_3			= 32'h41A646DC,						// sqrt(3) * CUTOFF
+	parameter FIXED_POINT_WIDTH 			= 32,
+	parameter FILTER_IN_PATCH_0_BITS		= 8'b0,									// Width = FIXED_POINT_WIDTH - 1 - 23
+	parameter BOUNDING_BOX_X				= 32'h42D80000,						// 12*9 = 108 in IEEE floating point
+	parameter BOUNDING_BOX_Y				= 32'h42D80000,						// 12*9 = 108 in IEEE floating point
+	parameter BOUNDING_BOX_Z				= 32'h42A80000,						// 12*7 = 84 in IEEE floating point
 	// Force Evaluation parameters
 	parameter SEGMENT_NUM					= 14,
 	parameter SEGMENT_WIDTH					= 4,
@@ -138,7 +144,7 @@ module RL_LJ_Evaluation_Unit
 	
 	// Force evaluation unit
 	// Including filters and force evaluation pipeline
-	RL_LJ_Force_Evaluation_Unit
+/*	RL_LJ_Force_Evaluation_Unit
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		// Dataset defined parameters
@@ -149,6 +155,54 @@ module RL_LJ_Evaluation_Unit
 		.FILTER_BUFFER_DEPTH(FILTER_BUFFER_DEPTH),
 		.FILTER_BUFFER_ADDR_WIDTH(FILTER_BUFFER_ADDR_WIDTH),
 		.CUTOFF_2(CUTOFF_2),													// in IEEE floating point format
+		// Force Evaluation parameters
+		.SEGMENT_NUM(SEGMENT_NUM),
+		.SEGMENT_WIDTH(SEGMENT_WIDTH),
+		.BIN_NUM(BIN_NUM),
+		.BIN_WIDTH(BIN_WIDTH),
+		.LOOKUP_NUM(LOOKUP_NUM),											// SEGMENT_NUM * BIN_NUM
+		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)							// log(LOOKUP_NUM) / log 2
+	)
+	RL_LJ_Force_Evaluation_Unit
+	(
+		.clk(clk),
+		.rst(rst),
+		.input_valid(in_input_pair_valid),										// INPUT [NUM_FILTER-1:0]
+		.ref_particle_id(in_ref_particle_id),									// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id(in_neighbor_particle_id),						// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.refx(refx_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.refy(refy_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.refz(refz_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighborx(neighborx_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighbory(neighbory_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.neighborz(neighborz_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.ref_particle_id_out(ref_particle_id_wire),							// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.neighbor_particle_id_out(out_neighbor_particle_id),				// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.LJ_Force_X(LJ_Force_X_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.LJ_Force_Y(LJ_Force_Y_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.LJ_Force_Z(LJ_Force_Z_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.forceoutput_valid(evaluated_force_valid),							// OUTPUT
+		.out_back_pressure_to_input(out_back_pressure_to_input),			// OUTPUT [NUM_FILTER-1:0]
+		.out_all_buffer_empty_to_input(out_all_buffer_empty_to_input)	// OUTPUT
+	);
+*/	
+	RL_LJ_Force_Evaluation_Unit_simple_filter
+	#(
+		.DATA_WIDTH(DATA_WIDTH),
+		// Dataset defined parameters
+		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH),							// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
+		// Filter parameters
+		.NUM_FILTER(NUM_FILTER),
+		.ARBITER_MSB(ARBITER_MSB),											// 2^(NUM_FILTER-1)
+		.FILTER_BUFFER_DEPTH(FILTER_BUFFER_DEPTH),
+		.FILTER_BUFFER_ADDR_WIDTH(FILTER_BUFFER_ADDR_WIDTH),
+		.CUTOFF_2(CUTOFF_2),													// in IEEE floating point format
+		.CUTOFF_TIMES_SQRT_3(CUTOFF_TIMES_SQRT_3),					// sqrt(3) * CUTOFF
+		.FIXED_POINT_WIDTH(FIXED_POINT_WIDTH),
+		.FILTER_IN_PATCH_0_BITS(FILTER_IN_PATCH_0_BITS),			// Width = FIXED_POINT_WIDTH - 1 - 23
+		.BOUNDING_BOX_X(BOUNDING_BOX_X),									// 12*9 = 108 in IEEE floating point
+		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),									// 12*9 = 108 in IEEE floating point
+		.BOUNDING_BOX_Z(BOUNDING_BOX_Z),									// 12*7 = 84 in IEEE floating point
 		// Force Evaluation parameters
 		.SEGMENT_NUM(SEGMENT_NUM),
 		.SEGMENT_WIDTH(SEGMENT_WIDTH),

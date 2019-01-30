@@ -52,7 +52,7 @@
 // synopsys translate_on
 module  force_cache
 #(
-	parameter DATA_WIDTH = 32*3,
+	parameter DATA_WIDTH = 32*3,//32*3,
 	parameter PARTICLE_NUM = 290,
 	parameter ADDR_WIDTH = 9
 )

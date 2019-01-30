@@ -37,8 +37,8 @@ DATASET_NAME = 'LJArgon';
 % Ar
 kb = 1.380e-23;                            % Boltzmann constant (J/K)
 eps = 1.995996 * 1.995996;                 % Extracted from OpenMM, unit kJ      %0.996;% Unit: kJ	%0.238;% Unit kcal/mol	%kb * 120;% Unit J
-sigma = 3.4;%0.1675*2;                     % Extracted from LJArgon Dataset, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
-cutoff = single(sigma*2.5 * INPUT_SCALE_INDEX);%single(7.65 * INPUT_SCALE_INDEX);             % Cut-off radius, unit Angstrom
+sigma = 2.1;%3.4;%0.1675*2;                     % Extracted from LJArgon Dataset, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
+cutoff = single(8.5);%single(sigma*2.5 * INPUT_SCALE_INDEX);%single(7.65 * INPUT_SCALE_INDEX);             % Cut-off radius, unit Angstrom
 cutoff2 = cutoff * cutoff;
 EXCLUSION = single(2^-1);
 EXCLUSION_2 = EXCLUSION ^ 2;

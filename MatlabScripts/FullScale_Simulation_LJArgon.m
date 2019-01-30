@@ -48,16 +48,17 @@ ENABLE_INTERPOLATION = 1;                            % Choose to use direct comp
 ENABLE_VERIFICATION = 0;                             % Enable verification for a certain reference particle
 ENABLE_SCATTER_PLOTTING = 0;                         % Ploting out the particle positions after each iteration ends
 ENABLE_PRINT_DETAIL_MESSAGE = 0;                     % Print out detailed message showing which step the program is working on
+ENABLE_OUTPUT_ENERGY_FILE = 1;                       % Print out the energy result to an output file
 %ENABLE_ENERGY_EVALUATION = 1;                       % Enable the generation of LJ potential
 %GEN_INPUT_MIF_FILE = 1;                             % Generate the memory initialization file for on-chip ram (.mif)
 %GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 0;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
 %GEN_PAIRWISE_FORCE_VALUE = 1;                       % Generate VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt
 %GEN_PAIRWISE_NEIGHBOR_ACC_FORCE = 1;                % Generate VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt (if this one need to be generated, GEN_PAIRWISE_FORCE_VALUE has to be 1)
-SIMULATION_TIMESTEP = 1000;                           % Total timesteps to simulate
+SIMULATION_TIMESTEP = 10000;                         % Total timesteps to simulate
 ENERGY_EVALUATION_STEPS = 1;                         % Every few iterations, evaluate energy once
 %% Dataset Parameters
 % Input & Output Scale Parameters (Determined by the LJ_no_smooth_poly_interpolation_accuracy.m)
-INPUT_SCALE_INDEX = 10^10;                    % if the readin position data is in the unit of meter, it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
+INPUT_SCALE_INDEX = 1;                        % if the readin position data is in the unit of meter, it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
 OUTPUT_SCALE_INDEX = 1;                       % The scale value for the results of r14 & r8 term
 % Dataset Paraemeters
 DATASET_NAME = 'LJArgon';
@@ -66,10 +67,10 @@ kb = 1.380e-23;                               % Boltzmann constant (J/K)
 Nav = 6.022e23;                               % Avogadro constant, # of atoms per mol
 Ar_weight = 39.95;                            % g/mol value of Argon atom
 EPS = 1.995996 * 1.995996;                    % Extracted from OpenMM, unit kJ      %0.996;% Unit: kJ	%0.238;% Unit kcal/mol	%kb * 120;% Unit J
-SIGMA = 3.4;%0.8;%0.1675*2;                   % Extracted from LJArgon, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
+SIGMA = 2.1;%3.4;%0.8;%0.1675*2;                   % Extracted from LJArgon, unit Angstrom        %3.35;%3.4;% Unit Angstrom    %3.4e-10;% Unit meter, the unit should be in consistant with position value
 MASS = Ar_weight / Nav / 10^3;                % Unit kg
 SIMULATION_TIME_STEP = 2E-15;                 % 2 femtosecond
-CUTOFF_RADIUS = single(SIGMA*2.5);%single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
+CUTOFF_RADIUS = single(8.5);%single(SIGMA*2.5);%single(8);%single(7.65);      % Unit Angstrom, Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS^2;            % Cutoff distance square
 EXCLUSION = single(2^-1);                     % Unit Angstrom, If the particle pairs has closers distance than this value, then don't evaluate
 EXCLUSION_2 = EXCLUSION ^ 2;                  % Exclusion distance square
@@ -86,21 +87,27 @@ INTERPOLATION_ORDER = 1;
 SEGMENT_NUM = MAX_LOG_INDEX-MIN_LOG_INDEX;    % # of segment
 BIN_NUM = 256;                                % # of bins per segment
 %% Benmarck Related Parameters (related with CUTOFF_RADIUS)
-CELL_COUNT_X = 5;%3;
-CELL_COUNT_Y = 5;%3;
-CELL_COUNT_Z = 5;%3;
+CELL_COUNT_X = 7;%5;%3;
+CELL_COUNT_Y = 6;%5;%3;
+CELL_COUNT_Z = 6;%5;%3;
 BOUNDING_BOX_SIZE_X = double(CELL_COUNT_X * CUTOFF_RADIUS);
 BOUNDING_BOX_SIZE_Y = double(CELL_COUNT_Y * CUTOFF_RADIUS);
 BOUNDING_BOX_SIZE_Z = double(CELL_COUNT_Z * CUTOFF_RADIUS);
 CELL_PARTICLE_MAX = 200;                            % The maximum possible particle count in each cell
-TOTAL_PARTICLE = 864;%500;%19000;                   % particle count in benchmark
+TOTAL_PARTICLE = 20000;%10000;%864;%500;%19000;                   % particle count in benchmark
 MEM_DATA_WIDTH = 32*3;                              % Memory Data Width (3*32 for position)
 COMMON_PATH = "";
 INPUT_FILE_FORMAT = "txt";%"pdb";                   % The input file format, can be "txt" or "pdb"
-INPUT_FILE_NAME = "input_positions_ljargon_864.txt";%"ar_gas.pdb";%"input_positions_ljargon.txt";
+INPUT_FILE_NAME = "input_positions_ljargon_20000_box_58_49_49.txt";%"input_positions_ljargon_10000_40box.txt";%"ar_gas.pdb";%"input_positions_ljargon.txt";
 %% HDL design parameters
 NUM_FILTER = 8;                                     % Number of filters in the pipeline
 FILTER_BUFFER_DEPTH = 32;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
+%% Output result file
+if ENABLE_OUTPUT_ENERGY_FILE
+    OUTPUT_FILE_NAME = strcat('Output_Energy_FullScale_Sim_',DATASET_NAME,'_',num2str(TOTAL_PARTICLE),'_iter_',num2str(SIMULATION_TIMESTEP),'.txt');
+    OUTPUT_FILE_ID = fopen(OUTPUT_FILE_NAME,'w');
+end
+
 
 %% Data Arraies for processing
 %% Position data arraies
@@ -1006,6 +1013,11 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
 %        if ENABLE_PRINT_DETAIL_MESSAGE
             fprintf('Iteration %d, LJ energy %f, Kinectic energy %d, Total energy %f.\n', sim_iteration, energy_data_history(energy_evaluation_counter,1:3))
 %        end
+
+        % Write the energy result to output file
+        if ENABLE_OUTPUT_ENERGY_FILE
+            fprintf(OUTPUT_FILE_ID, '%d\t%e\t%e\t%e\n', sim_iteration, energy_data_history(energy_evaluation_counter,1:3));
+        end
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1314,6 +1326,11 @@ for sim_iteration = 1:SIMULATION_TIMESTEP
     cell_particle = tmp_cell_particle(:,:,:);
 
 % End of current simulation iteration
+end
+
+%% Close the output file
+if ENABLE_OUTPUT_ENERGY_FILE
+    fclose(OUTPUT_FILE_ID);
 end
 
 %% Plot the energy waveform

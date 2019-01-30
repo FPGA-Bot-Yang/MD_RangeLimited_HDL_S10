@@ -4,14 +4,11 @@
 #include <string>
 #include <stdlib.h>
 
-#include "Gen_Cell_Mem.h"
-
-#define N 128
-#define NumUnit 16
+#include "Gen_Pos_Cell.h"
 
 using namespace std;
 
-int Gen_Cell_Mem(int cellx, int celly, int cellz, std::string* common_path){
+int Gen_Pos_Cell(int cellx, int celly, int cellz, std::string* common_path){
 
 	// Setup Generating file
 	char filename[100];
@@ -51,7 +48,7 @@ int Gen_Cell_Mem(int cellx, int celly, int cellz, std::string* common_path){
 	fout << "//\t\t\t\t2 cycles reading delay from input address and output data.\n";
 	fout << "//\n";
 	fout << "// Created by:\n";
-	fout << "//\t\t\t\tChen Yang's Script (Gen_Cell_Mem.cpp), based on Single Port RAM IP core\n";
+	fout << "//\t\t\t\tChen Yang's Script (Gen_Pos_Cell.cpp), based on Single Port RAM IP core\n";
 	fout << "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n";
 
 	fout << "`include \"define.v\"\n\n";

@@ -24,7 +24,7 @@
 //				1 cycle reading delay from input address and output data.
 //
 // Created by:
-//				Chen Yang's Script (Gen_Cell_Velocity_Mem.cpp), based on Single Port RAM IP core
+//				Chen Yang's Script (Gen_Velocity_Cell.cpp), based on Single Port RAM IP core
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 `include "define.v"

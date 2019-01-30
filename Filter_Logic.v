@@ -206,7 +206,7 @@ module Filter_Logic
 			buffer_wr_data <= 0;
 			buffer_wr <= 1'b0;
 			end
-		else if(r2_valid && r2_wire < CUTOFF_2 && r2_wire > 0)
+		else if(r2_valid && r2_wire <= CUTOFF_2 && r2_wire > 0)
 			begin
 			buffer_wr_data <= {ref_particle_id_delayed, neighbor_particle_id_delayed, r2_wire, dz_wire, dy_wire, dx_wire};
 			buffer_wr <= 1'b1;

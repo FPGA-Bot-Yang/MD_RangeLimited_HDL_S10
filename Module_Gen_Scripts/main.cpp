@@ -7,12 +7,15 @@
 #include <ctime>
 
 #include "homecell.h"
-#include "Gen_Cell_Mem.h"
+#include "Gen_Pos_Cell.h"
+#include "Gen_Velocity_Cell.h"
 #include "Gen_Boundary_Mem.h"
 #include "Gen_Lookup_Mem.h"
 #include "Gen_Sim_Script.h"
 #include "Gen_Sim_top.h"
 #include "../C_Model_ForceEval/MD_Evaluation_Model.h"
+
+#define GEN_SAMPLE_CELLS 1
 
 // The full path of the Quartus project root folder
 std::string common_path = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0";
@@ -29,28 +32,42 @@ int HOME_CELL_X = 2;
 int HOME_CELL_Y = 2;
 int HOME_CELL_Z = 2;
 int INTERPOLATION_ORDER = 1;
+int NUM_CELL_X = 5;
+int NUM_CELL_Y = 5;
+int NUM_CELL_Z = 5;
 
 
 int main(){
 	/////////////////////////////////////////////////////////////////////////
 	// Generate Cell Memory module
 	/////////////////////////////////////////////////////////////////////////
+#ifdef GEN_SAMPLE_CELLS
 	// Gen Home cell
-	Gen_Cell_Mem(HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z, &common_src_path);
 	// Gen 13 neighbor cells
-	Gen_Cell_Mem(HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z+1, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X, HOME_CELL_Y+1, HOME_CELL_Z-1, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X, HOME_CELL_Y+1, HOME_CELL_Z, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X, HOME_CELL_Y+1, HOME_CELL_Z+1, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y-1, HOME_CELL_Z-1, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y-1, HOME_CELL_Z, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y-1, HOME_CELL_Z+1, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y, HOME_CELL_Z-1, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y, HOME_CELL_Z, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y, HOME_CELL_Z+1, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z-1, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z, &common_src_path);
-	Gen_Cell_Mem(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z+1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z+1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X, HOME_CELL_Y+1, HOME_CELL_Z-1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X, HOME_CELL_Y+1, HOME_CELL_Z, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X, HOME_CELL_Y+1, HOME_CELL_Z+1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y-1, HOME_CELL_Z-1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y-1, HOME_CELL_Z, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y-1, HOME_CELL_Z+1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y, HOME_CELL_Z-1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y, HOME_CELL_Z, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y, HOME_CELL_Z+1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z-1, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z, &common_src_path);
+	Gen_Pos_Cell(HOME_CELL_X+1, HOME_CELL_Y+1, HOME_CELL_Z+1, &common_src_path);
+	Gen_Velocity_Cell(HOME_CELL_X, HOME_CELL_Y, HOME_CELL_Z, &common_src_path);
+#else
+	for(int cell_x=0; cell_x < NUM_CELL_X; cell_x++){
+		for(int cell_y=0; cell_y < NUM_CELL_Y; cell_y++){
+			for(int cell_z=0; cell_z < NUM_CELL_Z; cell_z++){
+				Gen_Pos_Cell(cell_x, cell_y, cell_z, &common_src_path);
+			}
+		}
+	}
+#endif
 
 	/////////////////////////////////////////////////////////////////////////
 	// Generate Cell Boundary Memory module

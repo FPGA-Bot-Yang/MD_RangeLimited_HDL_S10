@@ -15,13 +15,14 @@ clear all;
 
 %% Variables
 EVALUATE_ALL = 1;
-SCALE_INDEX = 10^10;%100 * 10^10;                              % the readin position data suppose to in the unit of A, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14
-TOTAL_PARTICLE_NUM = 864;%19008;
-CUT_OFF = 7.65;
+SCALE_INDEX = 1;%10^10;%100 * 10^10;                              % the readin position data suppose to in the unit of A, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14
+TOTAL_PARTICLE_NUM = 20000;%10000;%864;%19008;
+CUT_OFF = 8.5;%7.65;
 CUTOFF_2 = CUT_OFF * CUT_OFF;
 DEPTH = 100;
 % filepath = 'F:\Research_Files\MD\Ethan_MD_HDL\Ethan_Range_Limited_Pipeline\';
-filename = 'input_positions_ljargon_864.txt';
+%filename = 'input_positions_ljargon_10000_40box.txt';
+filename = 'input_positions_ljargon_20000_box_58_49_49.txt';
 %filename = strcat(filepath, filename);
 % Position data
 pos = zeros(TOTAL_PARTICLE_NUM,3);

@@ -72,20 +72,26 @@ module RL_LJ_Top
 	// High level parameters
 	parameter NUM_EVAL_UNIT					= 1,											// # of evaluation units in the design
 	// Dataset defined parameters
-	parameter MAX_CELL_COUNT_PER_DIM 	= 9,											// Maximum cell count among the 3 dimensions
+	parameter MAX_CELL_COUNT_PER_DIM 	= 5,//9,										// Maximum cell count among the 3 dimensions
 	parameter NUM_NEIGHBOR_CELLS			= 13,											// # of neighbor cells per home cell, for Half-shell method, is 13
-	parameter CELL_ID_WIDTH					= 4,											// log(NUM_NEIGHBOR_CELLS)
-	parameter MAX_CELL_PARTICLE_NUM		= 290,										// The maximum # of particles can be in a cell
-	parameter CELL_ADDR_WIDTH				= 9,											// log(MAX_CELL_PARTICLE_NUM)
+	parameter CELL_ID_WIDTH					= 3,//4,										// log(NUM_NEIGHBOR_CELLS)
+	parameter MAX_CELL_PARTICLE_NUM		= 120,//200,								// The maximum # of particles can be in a cell
+	parameter CELL_ADDR_WIDTH				= 7,//8,										// log(MAX_CELL_PARTICLE_NUM)
 	parameter PARTICLE_ID_WIDTH			= CELL_ID_WIDTH*3+CELL_ADDR_WIDTH,	// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
 	// Filter parameters
 	parameter NUM_FILTER						= 8,		//4
 	parameter ARBITER_MSB 					= 128,	//8								// 2^(NUM_FILTER-1)
-	parameter FILTER_BUFFER_DEPTH 		= 32,
-	parameter FILTER_BUFFER_ADDR_WIDTH	= 5,
-	parameter CUTOFF_2 						= 32'h43100000,							// (12^2=144 in IEEE floating point)
+	parameter FILTER_BUFFER_DEPTH 		= 8,//32,
+	parameter FILTER_BUFFER_ADDR_WIDTH	= 3,//5,
+	parameter CUTOFF_2 						= 32'h42908000,							// 8.5^2=72.25 in IEEE Floating Point//32'h43100000,			// (12^2=144 in IEEE floating point)
+	parameter CUTOFF_TIMES_SQRT_3			= 32'h416b8f15,//32'h41A646DC,		// sqrt(3) * CUTOFF
+	parameter FIXED_POINT_WIDTH 			= 24,//32,
+	parameter FILTER_IN_PATCH_0_BITS		= 0,//8'b0,									// Width = FIXED_POINT_WIDTH - 1 - 23
+	parameter BOUNDING_BOX_X				= 32'h42D80000,							// 12*9 = 108 in IEEE floating point
+	parameter BOUNDING_BOX_Y				= 32'h42D80000,							// 12*9 = 108 in IEEE floating point
+	parameter BOUNDING_BOX_Z				= 32'h42A80000,							// 12*7 = 84 in IEEE floating point
 	// Force Evaluation parameters
-	parameter SEGMENT_NUM					= 14,
+	parameter SEGMENT_NUM					= 9,//14,
 	parameter SEGMENT_WIDTH					= 4,
 	parameter BIN_NUM							= 256,
 	parameter BIN_WIDTH						= 8,
@@ -359,6 +365,12 @@ module RL_LJ_Top
 		.FILTER_BUFFER_DEPTH(FILTER_BUFFER_DEPTH),
 		.FILTER_BUFFER_ADDR_WIDTH(FILTER_BUFFER_ADDR_WIDTH),
 		.CUTOFF_2(CUTOFF_2),
+		.CUTOFF_TIMES_SQRT_3(CUTOFF_TIMES_SQRT_3),					// sqrt(3) * CUTOFF
+		.FIXED_POINT_WIDTH(FIXED_POINT_WIDTH),
+		.FILTER_IN_PATCH_0_BITS(FILTER_IN_PATCH_0_BITS),			// Width = FIXED_POINT_WIDTH - 1 - 23
+		.BOUNDING_BOX_X(BOUNDING_BOX_X),									// 12*9 = 108 in IEEE floating point
+		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),									// 12*9 = 108 in IEEE floating point
+		.BOUNDING_BOX_Z(BOUNDING_BOX_Z),									// 12*7 = 84 in IEEE floating point
 		// Force Evaluation parameters
 		.SEGMENT_NUM(SEGMENT_NUM),
 		.SEGMENT_WIDTH(SEGMENT_WIDTH),
@@ -456,7 +468,7 @@ module RL_LJ_Top
 	// Cell particle memory
 	// In this impelementation, take cell(2,2,2) as home cell (cell cooridinate starts from (1,1,1))
 	// The neighbor cells including:
-	//	Side: (3,1,1),(3,1,2),(3,1,3),(3,2,1),(3,2,2),(3,2,3),(3,3,1),(3,3,2),(3,3,3)
+	// Side: (3,1,1),(3,1,2),(3,1,3),(3,2,1),(3,2,2),(3,2,3),(3,3,1),(3,3,2),(3,3,3)
 	// Column: (2,3,1),(2,3,2),(2,3,3)
 	// Top: (2,2,3)
 	// Data orgainization in cell memory: (pos_z, pos_y, pos_x)
@@ -803,13 +815,13 @@ module RL_LJ_Top
 	// Each cell has an independent cache, MSB -> LSB:{Force_Z, Force_Y, Force_X}
 	// The force Serve as the buffer to hold evaluated force values during evaluation
 	// The initial force value is 0
-	//	When new force value arrives, it will accumulate to the current stored value
+	// When new force value arrives, it will accumulate to the current stored value
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Home cell 222
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z),
@@ -842,7 +854,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z+1'b1),
@@ -875,7 +887,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z-1'b1),
@@ -908,7 +920,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z),
@@ -941,7 +953,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z+1'b1),
@@ -974,7 +986,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y-1'b1),
 		.CELL_Z(CELL_Z-1'b1),
@@ -1007,7 +1019,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y-1'b1),
 		.CELL_Z(CELL_Z),
@@ -1040,7 +1052,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y-1'b1),
 		.CELL_Z(CELL_Z+1'b1),
@@ -1073,7 +1085,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z-1'b1),
@@ -1106,7 +1118,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z),
@@ -1139,7 +1151,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y),
 		.CELL_Z(CELL_Z+1'b1),
@@ -1172,7 +1184,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z-1'b1),
@@ -1205,7 +1217,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z),
@@ -1238,7 +1250,7 @@ module RL_LJ_Top
 	Force_Write_Back_Controller
 	#(
 		.DATA_WIDTH(DATA_WIDTH),									// Data width of a single force value, 32-bit
-		// Dell id this unit related to
+		// Cell id this unit related to
 		.CELL_X(CELL_X+1'b1),
 		.CELL_Y(CELL_Y+1'b1),
 		.CELL_Z(CELL_Z+1'b1),
@@ -1273,7 +1285,7 @@ module RL_LJ_Top
 	// Each cell has an independent cache, MSB -> LSB:{vz, vy, vx}
 	// The velocity cache provide the spped information for motion update units
 	// The inital velocity information is initialized by a initilization file generated from scripts
-	//	Double buffer mechanism is implemented
+	// Double buffer mechanism is implemented
 	// During motion update process, the new evaluated speed information will write into the alternative cache
 	// The read and write address and particle number information should be the same as the Position Cache
 	///////////////////////////////////////////////////////////////////////////////////////////////
