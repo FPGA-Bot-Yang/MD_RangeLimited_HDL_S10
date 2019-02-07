@@ -1,4 +1,5 @@
 NUM_ITERATION = 10000;
+ENABLE_PBC = 1;                               % Enable periodic boundary condition
 % Ar
 DATASET_NAME = "LiquidArgon";
 kb = 1.380e-23;                               % Boltzmann constant (J/K)S
@@ -89,7 +90,7 @@ fprintf('All particles shifted to align on (0,0,0)\n');
 for iteration = 1:NUM_ITERATION
     % Traverse all the particles in the simulation space
     System_LJ_Energy = 0;
-    
+    Pairs_Evaluated_Counter = 0;
     for ref_ptr = 1:TOTAL_PARTICLE_NUM
         Evdw_acc = 0;
         Fx_acc = 0;
@@ -108,13 +109,17 @@ for iteration = 1:NUM_ITERATION
             dy = ref_y - neighbor_y;
             dz = ref_z - neighbor_z;
             % Apply periodic boundary
-            dx = dx - BOUNDING_BOX_SIZE_X * round(dx/BOUNDING_BOX_SIZE_X);
-            dy = dy - BOUNDING_BOX_SIZE_Y * round(dy/BOUNDING_BOX_SIZE_Y);
-            dz = dz - BOUNDING_BOX_SIZE_Z * round(dz/BOUNDING_BOX_SIZE_Z);
+            if ENABLE_PBC
+                dx = dx - BOUNDING_BOX_SIZE_X * round(dx/BOUNDING_BOX_SIZE_X);
+                dy = dy - BOUNDING_BOX_SIZE_Y * round(dy/BOUNDING_BOX_SIZE_Y);
+                dz = dz - BOUNDING_BOX_SIZE_Z * round(dz/BOUNDING_BOX_SIZE_Z);
+            end
             % Get dx
             r2 = dx*dx + dy*dy + dz*dz;
             % Apply cutoff
             if r2 > 0 && r2 <= CUTOFF_RADIUS_2
+                Pairs_Evaluated_Counter = Pairs_Evaluated_Counter + 1;
+                
                 particle_within_cutoff_counter = particle_within_cutoff_counter + 1;
                 inv_r2 = 1 / r2;
                 %% Potential Energy
@@ -189,9 +194,9 @@ for iteration = 1:NUM_ITERATION
         posx = position_data(ptr, 1);
         posy = position_data(ptr, 2);
         posz = position_data(ptr, 3);
-%        vx = position_data(ptr, 4) - vx_avg;
-%        vy = position_data(ptr, 5) - vy_avg;
-%        vz = position_data(ptr, 6) - vz_avg;
+        vx = position_data(ptr, 4) - vx_avg;
+        vy = position_data(ptr, 5) - vy_avg;
+        vz = position_data(ptr, 6) - vz_avg;
         vx = position_data(ptr, 4);
         vy = position_data(ptr, 5);
         vz = position_data(ptr, 6);

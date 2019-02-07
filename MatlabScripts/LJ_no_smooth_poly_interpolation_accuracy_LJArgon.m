@@ -362,3 +362,8 @@ fprintf(fileID, '\tEvdw_real range is: (%e, %e)\n', min(Evdw_real), max(Evdw_rea
 fprintf(fileID, '\tEvdw_poly range is: (%e, %e)\n', min(Evdw_poly), max(Evdw_poly));
 fprintf(fileID, '\tAverage error rate is: Force %f%%, Energy %f%%\n', f_average_error_rate * 100, e_average_error_rate * 100);
 fclose(fileID);
+
+plot(Fvdw_poly);
+hold on;
+plot(Fvdw_real);
+%ylim([0.1E5 0.2E5]);
