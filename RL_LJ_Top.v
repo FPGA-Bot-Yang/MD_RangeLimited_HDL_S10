@@ -72,24 +72,24 @@ module RL_LJ_Top
 	// High level parameters
 	parameter NUM_EVAL_UNIT					= 1,											// # of evaluation units in the design
 	// Dataset defined parameters
-	parameter MAX_CELL_COUNT_PER_DIM 	= 5,//9,										// Maximum cell count among the 3 dimensions
+	parameter MAX_CELL_COUNT_PER_DIM 	= 7,//9,										// Maximum cell count among the 3 dimensions
 	parameter NUM_NEIGHBOR_CELLS			= 13,											// # of neighbor cells per home cell, for Half-shell method, is 13
 	parameter CELL_ID_WIDTH					= 3,//4,										// log(NUM_NEIGHBOR_CELLS)
-	parameter MAX_CELL_PARTICLE_NUM		= 120,//200,								// The maximum # of particles can be in a cell
+	parameter MAX_CELL_PARTICLE_NUM		= 100,//200,								// The maximum # of particles can be in a cell
 	parameter CELL_ADDR_WIDTH				= 7,//8,										// log(MAX_CELL_PARTICLE_NUM)
 	parameter PARTICLE_ID_WIDTH			= CELL_ID_WIDTH*3+CELL_ADDR_WIDTH,	// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 220 particles, 8-bit
 	// Filter parameters
 	parameter NUM_FILTER						= 8,		//4
 	parameter ARBITER_MSB 					= 128,	//8								// 2^(NUM_FILTER-1)
-	parameter FILTER_BUFFER_DEPTH 		= 8,//32,
-	parameter FILTER_BUFFER_ADDR_WIDTH	= 3,//5,
+	parameter FILTER_BUFFER_DEPTH 		= 32,
+	parameter FILTER_BUFFER_ADDR_WIDTH	= 5,
 	parameter CUTOFF_2 						= 32'h42908000,							// 8.5^2=72.25 in IEEE Floating Point//32'h43100000,			// (12^2=144 in IEEE floating point)
 	parameter CUTOFF_TIMES_SQRT_3			= 32'h416b8f15,//32'h41A646DC,		// sqrt(3) * CUTOFF
 	parameter FIXED_POINT_WIDTH 			= 24,//32,
 	parameter FILTER_IN_PATCH_0_BITS		= 0,//8'b0,									// Width = FIXED_POINT_WIDTH - 1 - 23
-	parameter BOUNDING_BOX_X				= 32'h42D80000,							// 12*9 = 108 in IEEE floating point
-	parameter BOUNDING_BOX_Y				= 32'h42D80000,							// 12*9 = 108 in IEEE floating point
-	parameter BOUNDING_BOX_Z				= 32'h42A80000,							// 12*7 = 84 in IEEE floating point
+	parameter BOUNDING_BOX_X				= 32'h426E0000,							// 8.5*7 = 59.5 in IEEE floating point		//32'h42D80000,							// 12*9 = 108 in IEEE floating point
+	parameter BOUNDING_BOX_Y				= 32'h424C0000,							// 8.5*6 = 51 in IEEE floating point		//32'h42D80000,							// 12*9 = 108 in IEEE floating point
+	parameter BOUNDING_BOX_Z				= 32'h424C0000,							// 8.5*6 = 51 in IEEE floating point		//32'h42A80000,							// 12*7 = 84 in IEEE floating point
 	// Force Evaluation parameters
 	parameter SEGMENT_NUM					= 9,//14,
 	parameter SEGMENT_WIDTH					= 4,

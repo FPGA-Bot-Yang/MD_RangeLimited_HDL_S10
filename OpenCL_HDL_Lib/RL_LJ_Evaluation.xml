@@ -8,8 +8,8 @@
       <IS_FIXED_LATENCY value="no"/>
       <EXPECTED_LATENCY value="35"/>
       <CAPACITY value="1"/>
-      <HAS_SIDE_EFFECTS value="no"/>
-      <ALLOW_MERGING value="yes"/>      
+      <HAS_SIDE_EFFECTS value="yes"/>
+      <ALLOW_MERGING value="no"/>      
     </ATTRIBUTES>
     <INTERFACE>
       <AVALON port="clock" type="clock"/>
@@ -44,24 +44,24 @@
       <FILE name="RL_LJ_Evaluation_c_model.cl" />
     </C_MODEL>
     <REQUIREMENTS>
-      <FILE name="define.v" />
-      <FILE name="FIFO.v" />
-	  <FILE name="Filter_Buffer.v" />
-	  <FILE name="Filter_Logic.v" />
-	  <FILE name="r2_compute.v" />
-	  <FILE name="RL_LJ_Evaluate_Pairs_1st_Order.v" />
-	  <FILE name="RL_LJ_Evaluation_OpenCL_Top.v" />
-	  <FILE name="FP_SUB.v" />
-	  <FILE name="FP_MUL.v" />
-	  <FILE name="FP_MUL_ADD.v" />
-	  <FILE name="lut0_8.v" />
-	  <FILE name="lut1_8.v" />
-	  <FILE name="lut0_14.v" />
-	  <FILE name="lut1_14.v" />
-	  <FILE name="c0_8.hex" />
-	  <FILE name="c1_8.hex" />
-	  <FILE name="c0_14.hex" />
-	  <FILE name="c1_14.hex" />
+      <FILE name="HDL_Source/define.v" />
+      <FILE name="HDL_Source/FIFO.v" />
+	  <FILE name="HDL_Source/Filter_Buffer.v" />
+	  <FILE name="HDL_Source/Filter_Logic.v" />
+	  <FILE name="HDL_Source/r2_compute.v" />
+	  <FILE name="HDL_Source/RL_LJ_Evaluate_Pairs_1st_Order.v" />
+	  <FILE name="HDL_Source/RL_LJ_Evaluation_OpenCL_Top.v" />
+	  <FILE name="HDL_Source/FP_SUB.v" />
+	  <FILE name="HDL_Source/FP_MUL.v" />
+	  <FILE name="HDL_Source/FP_MUL_ADD.v" />
+	  <FILE name="HDL_Source/lut0_8.v" />
+	  <FILE name="HDL_Source/lut1_8.v" />
+	  <FILE name="HDL_Source/lut0_14.v" />
+	  <FILE name="HDL_Source/lut1_14.v" />
+	  <FILE name="HDL_Source/c0_8.hex" />
+	  <FILE name="HDL_Source/c1_8.hex" />
+	  <FILE name="HDL_Source/c0_14.hex" />
+	  <FILE name="HDL_Source/c1_14.hex" />
     </REQUIREMENTS>
 	<RESOURCES>
 	  <ALUTS value="904"/>

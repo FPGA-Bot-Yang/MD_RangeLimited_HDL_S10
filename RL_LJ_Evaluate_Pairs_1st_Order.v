@@ -28,6 +28,10 @@
 //				Level 1: calculate r8, r14 (MUL_ADD)									5 cycles
 //				Level 2: calculate LJ Force (SUB)										3 cycles
 //				Level 3: calculate Force components in each direction (MUL)		4 cycles
+// 
+// DataSet:
+//				ApoA1: Segment 14, Bin 256, range: 2^-6 ~ 2^8
+//				LJArgon: Segment 9, Bin 256, range: 2^-2 ~ 2^7
 //
 // Created by:
 //				Chen Yang 10/01/2018 
@@ -36,7 +40,7 @@
 module RL_LJ_Evaluate_Pairs_1st_Order
 #(
 	parameter DATA_WIDTH 				= 32,
-	parameter SEGMENT_NUM				= 14,
+	parameter SEGMENT_NUM				= 9,
 	parameter SEGMENT_WIDTH				= 4,
 	parameter BIN_NUM						= 256,
 	parameter BIN_WIDTH					= 8,
@@ -159,7 +163,10 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	// Generate table lookup address
 	assign rdaddr = {segment_id, bin_id};							// asssign the table lookup address
 	wire [7:0] segment_id_temp;
-	assign segment_id_temp = r2[30:23] - 8'd121;
+	// DataSet: LJArgon
+	assign segment_id_temp = r2[30:23] - 8'd125;
+	// DataSet: ApoA1
+	//assign segment_id_temp = r2[30:23] - 8'd121;
 	always@(*)
 		if(rst)
 			begin		
@@ -168,7 +175,8 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			end
 		else
 			begin
-				// Table lookup starting from 0.015625 = 2^-6
+				// ApoA1: Table lookup starting from 0.015625 = 2^-6
+				// LJArgon: Table lookup starting from 0.25 = 2^-2
 				// assign bin_id
 				bin_id = r2[22:22-BIN_WIDTH+1];
 				// assign segment_id

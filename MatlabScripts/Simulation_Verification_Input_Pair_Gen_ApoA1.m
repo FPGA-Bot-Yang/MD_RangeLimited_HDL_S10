@@ -52,7 +52,7 @@ SEGMENT_NUM = 14;                       % # of segment
 BIN_NUM = 256;                          % # of bins per segment
 % Range starting from 2^-6 (ApoA1 min r2 is 0.015793)
 MIN_RANGE = 0.015625;                  % minimal range for the evaluation
-% ApoA1 cutoff is 12~13 Ang, thus set the bin as 14 to cover the range
+% ApoA1 cutoff is 12~13 Ang, thus set the segment as 14 to cover the range
 MAX_RANGE = MIN_RANGE * 2^SEGMENT_NUM;  % maximum range for the evaluation (currently this is the cutoff radius)
 %% Benmarck Related Parameters (related with CUTOFF_RADIUS)
 CELL_COUNT_X = 9;

@@ -144,7 +144,7 @@ module RL_LJ_Evaluation_Unit
 	
 	// Force evaluation unit
 	// Including filters and force evaluation pipeline
-/*	RL_LJ_Force_Evaluation_Unit
+	RL_LJ_Force_Evaluation_Unit
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		// Dataset defined parameters
@@ -185,8 +185,8 @@ module RL_LJ_Evaluation_Unit
 		.out_back_pressure_to_input(out_back_pressure_to_input),			// OUTPUT [NUM_FILTER-1:0]
 		.out_all_buffer_empty_to_input(out_all_buffer_empty_to_input)	// OUTPUT
 	);
-*/	
-	RL_LJ_Force_Evaluation_Unit_simple_filter
+	
+/*	RL_LJ_Force_Evaluation_Unit_simple_filter
 	#(
 		.DATA_WIDTH(DATA_WIDTH),
 		// Dataset defined parameters
@@ -233,7 +233,7 @@ module RL_LJ_Evaluation_Unit
 		.out_back_pressure_to_input(out_back_pressure_to_input),			// OUTPUT [NUM_FILTER-1:0]
 		.out_all_buffer_empty_to_input(out_all_buffer_empty_to_input)	// OUTPUT
 	);
-	
+*/	
 	// Partial force accumulator
 	// Working on reference particle
 	Partial_Force_Acc

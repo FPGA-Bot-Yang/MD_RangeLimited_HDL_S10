@@ -76,13 +76,16 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << "# # Force Evaluation Units\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_Unit.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Force_Evaluation_Unit.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Force_Evaluation_Unit_simple_filter.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Particle_Pair_Gen_HalfShell.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluate_Pairs_1st_Order.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluate_Pairs_1st_Order_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Filter_Bank.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Filter_Bank_no_DSP.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Filter_Arbiter.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Filter_Arbiter_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Filter_Logic.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "Filter_Logic_no_DSP.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "r2_compute.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "r2_compute_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Filter_Buffer.v\n";

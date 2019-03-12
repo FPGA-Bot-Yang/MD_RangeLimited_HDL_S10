@@ -65,7 +65,7 @@ module Motion_Update
 	parameter CELL_Y							= 4'd2,
 	parameter CELL_Z							= 4'd2,
 	// Dataset defined parameters
-	parameter MAX_CELL_COUNT_PER_DIM 	= 9,											// Maximum cell count among the 3 dimensions
+	parameter MAX_CELL_COUNT_PER_DIM 	= 7,											// Maximum cell count among the 3 dimensions
 	parameter CELL_ID_WIDTH					= 4,											// log(NUM_NEIGHBOR_CELLS)
 	parameter MAX_CELL_PARTICLE_NUM		= 290,										// The maximum # of particles can be in a cell
 	parameter CELL_ADDR_WIDTH				= 9,											// log(MAX_CELL_PARTICLE_NUM)

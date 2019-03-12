@@ -42,39 +42,37 @@ clear all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Verfication Control Parameter
 GEN_INPUT_MIF_FILE = 1;                             % Generate the memory initialization file for on-chip ram (.mif)
-GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 0;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
+GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 1;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
 GEN_PAIRWISE_FORCE_VALUE = 1;                       % Generate VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt
 GEN_PAIRWISE_NEIGHBOR_ACC_FORCE = 1;                % Generate VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt (if this one need to be generated, GEN_PAIRWISE_FORCE_VALUE has to be 1)
 %% Interpolation Parameters
 INTERPOLATION_ORDER = 1;
-SEGMENT_NUM = 29;                       % # of segment
-BIN_NUM = 128;                          % # of bins per segment
+SEGMENT_NUM = 9;                       % # of segment
+BIN_NUM = 256;                          % # of bins per segment
 %% Dataset Parameters
 % Range starting from 2^-6 (ApoA1 min r2 is 0.015793)
 % Input & Output Scale Parameters (Determined by the LJ_no_smooth_poly_interpolation_accuracy.m)
-INPUT_SCALE_INDEX = 10^11;                          % the readin position data is in the unit of meter, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
-OUTPUT_SCALE_INDEX = 10^-5;                         % The scale value for the results of r14 & r8 term
+INPUT_SCALE_INDEX = 1;                          % the readin position data is in the unit of meter, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
+OUTPUT_SCALE_INDEX = 1;                         % The scale value for the results of r14 & r8 term
 SCALE_INDEX = 50;                                   % the readin position data suppose to in the unit of A, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14
-CUTOFF_RADIUS = single(7.65e-10*INPUT_SCALE_INDEX); % Cutoff Radius
+CUTOFF_RADIUS = single(8.5); % Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS * CUTOFF_RADIUS;    % Cutoff distance square
-RAW_R2_MIN = 2.272326e-27;
-SCALED_R2_MIN = RAW_R2_MIN * INPUT_SCALE_INDEX^2;
-MIN_LOG_INDEX = floor(log(SCALED_R2_MIN)/log(2));
+MIN_LOG_INDEX = -2;
 MIN_RANGE = 2^MIN_LOG_INDEX;            % minimal range for the evaluation
 % LJArgon cutoff is 7.65 Ang, min r2 value is 2.272326e-27, thus set the bin as 29 to cover the range
 MAX_RANGE = MIN_RANGE * 2^SEGMENT_NUM;  % maximum range for the evaluation (currently this is the cutoff radius)
 %% Benmarck Related Parameters (related with CUTOFF_RADIUS)
-CELL_COUNT_X = 5;
-CELL_COUNT_Y = 5;
-CELL_COUNT_Z = 5;
-CELL_PARTICLE_MAX = 350;                            % The maximum possible particle count in each cell
-TOTAL_PARTICLE = 19008;                             % particle count in benchmark
+CELL_COUNT_X = 7;
+CELL_COUNT_Y = 6;
+CELL_COUNT_Z = 6;
+CELL_PARTICLE_MAX = 100;                            % The maximum possible particle count in each cell
+TOTAL_PARTICLE = 20000;                             % particle count in benchmark
 MEM_DATA_WIDTH = 32*3;                              % Memory Data Width (3*32 for position)
 COMMON_PATH = '';
-INPUT_FILE_NAME = 'input_positions_ljargon.txt';
+INPUT_FILE_NAME = 'input_positions_ljargon_20000_box_58_49_49.txt';
 %% HDL design parameters
 NUM_FILTER = 8;                                     % Number of filters in the pipeline
-FILTER_BUFFER_DEPTH = 32;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
+FILTER_BUFFER_DEPTH = 8;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
 %% Data Arraies for processing
 % Bounding box of 12A, total of 9*9*7 cells, organized in a 4D array
 raw_position_data = zeros(TOTAL_PARTICLE,3);                                            % The raw input data

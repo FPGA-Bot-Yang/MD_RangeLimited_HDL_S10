@@ -32,17 +32,17 @@ clear all;
 %% Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Simulation Parameters
-CUTOFF_RADIUS = single(7.65);                       % Cutoff Radius
+CUTOFF_RADIUS = single(8.5);                       % Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS * CUTOFF_RADIUS;    % Cutoff distance square
 %% Benmarck Related Parameters (related with CUTOFF_RADIUS)
-CELL_COUNT_X = 5;
-CELL_COUNT_Y = 5;
-CELL_COUNT_Z = 5;
-CELL_PARTICLE_MAX = 350;                            % The maximum possible particle count in each cell
-TOTAL_PARTICLE = 19008;                             % particle count in ApoA1 benchmark
+CELL_COUNT_X = 7;
+CELL_COUNT_Y = 6;
+CELL_COUNT_Z = 6;
+CELL_PARTICLE_MAX = 100;                            % The maximum possible particle count in each cell
+TOTAL_PARTICLE = 20000;                             % particle count in LJArgon benchmark
 MEM_DATA_WIDTH = 32*3;                              % Memory Data Width (3*32 for position)
 COMMON_PATH = '';
-INPUT_FILE_NAME = 'input_positions_ljargon.txt';
+INPUT_FILE_NAME = 'input_positions_ljargon_20000_box_58_49_49.txt';
 %% Data Arraies for processing
 % Bounding box of 12A, total of 9*9*7 cells, organized in a 4D array
 raw_position_data = zeros(TOTAL_PARTICLE,3);                % The raw input data
@@ -74,9 +74,9 @@ line_counter = 1;
 while ~feof(fp)
     tline = fgets(fp);
     line_elements = textscan(tline,'%s %f64 %f64 %f64');
-    raw_position_data(line_counter,1) = line_elements{2} * 10^10;
-    raw_position_data(line_counter,2) = line_elements{3} * 10^10;
-    raw_position_data(line_counter,3) = line_elements{4} * 10^10;
+    raw_position_data(line_counter,1) = line_elements{2};
+    raw_position_data(line_counter,2) = line_elements{3};
+    raw_position_data(line_counter,3) = line_elements{4};
     line_counter = line_counter + 1;
 end
 % Close File
@@ -90,7 +90,7 @@ min_y  = (min(raw_position_data(:,2)));
 max_y  = (max(raw_position_data(:,2)));
 min_z  = (min(raw_position_data(:,3)));
 max_z  = (max(raw_position_data(:,3)));
-% Original range is (-56.296,56.237), (-57.123,56.259), (-40.611,40.878)
+% Original range is (-7.7900e-04,58.0042), (-0.0015,49.0014), (-0.0062,49.0017)
 % shift all the data to positive
 position_data(:,1) = raw_position_data(:,1)-min_x;          % range: 0 ~ 112.533
 position_data(:,2) = raw_position_data(:,2)-min_y;          % range: 0 ~ 113.382
