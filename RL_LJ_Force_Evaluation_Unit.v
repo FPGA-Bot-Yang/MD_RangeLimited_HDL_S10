@@ -34,17 +34,20 @@ module RL_LJ_Force_Evaluation_Unit
 	parameter PARTICLE_ID_WIDTH			= 20,									// # of bit used to represent particle ID, 9*9*7 cells, each 4-bit, each cell have max of 200 particles, 8-bit
 	// Filter parameters
 	parameter NUM_FILTER						= 4,	// 8
-	parameter ARBITER_MSB 					= 8,	//128								// 2^(NUM_FILTER-1)
+	parameter ARBITER_MSB 					= 8,	//128							// 2^(NUM_FILTER-1)
 	parameter FILTER_BUFFER_DEPTH 		= 32,
 	parameter FILTER_BUFFER_ADDR_WIDTH	= 5,
-	parameter CUTOFF_2 						= 32'h43100000,						// (12^2=144 in IEEE floating point)
+	parameter CUTOFF_2 						= 32'h43100000,					// (12^2=144 in IEEE floating point)
+	parameter BOUNDING_BOX_X 				= 32'h426E0000,					// 8.5*7 = 59.5 in IEEE floating point
+	parameter BOUNDING_BOX_Y 				= 32'h424C0000,					// 8.5*6 = 51 in IEEE floating point
+	parameter BOUNDING_BOX_Z 				= 32'h424C0000,					// 8.5*6 = 51 in IEEE floating point
 	// Force Evaluation parameters
 	parameter SEGMENT_NUM					= 14,
 	parameter SEGMENT_WIDTH					= 4,
 	parameter BIN_NUM							= 256,
 	parameter BIN_WIDTH						= 8,
-	parameter LOOKUP_NUM						= SEGMENT_NUM * BIN_NUM,			// SEGMENT_NUM * BIN_NUM
-	parameter LOOKUP_ADDR_WIDTH			= SEGMENT_WIDTH + BIN_WIDTH		// log LOOKUP_NUM / log 2
+	parameter LOOKUP_NUM						= SEGMENT_NUM * BIN_NUM,		// SEGMENT_NUM * BIN_NUM
+	parameter LOOKUP_ADDR_WIDTH			= SEGMENT_WIDTH + BIN_WIDTH	// log LOOKUP_NUM / log 2
 )
 (
 	input clk,
@@ -195,7 +198,10 @@ module RL_LJ_Force_Evaluation_Unit
 		.PARTICLE_ID_WIDTH(PARTICLE_ID_WIDTH),
 		.FILTER_BUFFER_DEPTH(FILTER_BUFFER_DEPTH),
 		.FILTER_BUFFER_ADDR_WIDTH(FILTER_BUFFER_ADDR_WIDTH),
-		.CUTOFF_2(CUTOFF_2)													// (12^2=144 in IEEE floating point)
+		.CUTOFF_2(CUTOFF_2),													// (12^2=144 in IEEE floating point)
+		.BOUNDING_BOX_X(BOUNDING_BOX_X),									// Bounding box size used for applying PBC
+		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),									// Bounding box size used for applying PBC
+		.BOUNDING_BOX_Z(BOUNDING_BOX_Z)									// Bounding box size used for applying PBC
 	)
 	Filter_Bank
 	(

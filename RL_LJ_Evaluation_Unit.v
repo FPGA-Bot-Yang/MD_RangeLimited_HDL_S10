@@ -155,6 +155,9 @@ module RL_LJ_Evaluation_Unit
 		.FILTER_BUFFER_DEPTH(FILTER_BUFFER_DEPTH),
 		.FILTER_BUFFER_ADDR_WIDTH(FILTER_BUFFER_ADDR_WIDTH),
 		.CUTOFF_2(CUTOFF_2),													// in IEEE floating point format
+		.BOUNDING_BOX_X(BOUNDING_BOX_X),									// Bounding box size used for applying PBC
+		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),									// Bounding box size used for applying PBC
+		.BOUNDING_BOX_Z(BOUNDING_BOX_Z),									// Bounding box size used for applying PBC
 		// Force Evaluation parameters
 		.SEGMENT_NUM(SEGMENT_NUM),
 		.SEGMENT_WIDTH(SEGMENT_WIDTH),

@@ -88,6 +88,8 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " vlog -vlog01compat -work work " << path << "Filter_Logic_no_DSP.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "r2_compute.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "r2_compute_tb.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "r2_compute_with_pbc.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "r2_compute_with_pbc_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Filter_Buffer.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "Filter_Buffer_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "lut0_14.v\n";

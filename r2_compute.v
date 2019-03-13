@@ -33,7 +33,18 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module r2_compute
-#(parameter DATA_WIDTH = 32)
+#(
+	parameter DATA_WIDTH = 32,
+	parameter BOUNDING_BOX_X = 32'h426E0000,							// 8.5*7 = 59.5 in IEEE floating point
+	parameter BOUNDING_BOX_Y = 32'h424C0000,							// 8.5*6 = 51 in IEEE floating point
+	parameter BOUNDING_BOX_Z = 32'h424C0000,							// 8.5*6 = 51 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_X_POS = 32'h41EE0000,				// 59.5/2 = 29.75 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Y_POS = 32'h41CC0000,				// 51/2 = 25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Z_POS = 32'h41CC0000,				// 51/2 = 25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_X_NEG = 32'hC1EE0000,				// -59.5/2 = -29.75 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Y_NEG = 32'hC1CC0000,				// -51/2 = -25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Z_NEG = 32'hC1CC0000				// -51/2 = -25.5 in IEEE floating point
+)
 (
 	input clk,
 	input rst,
@@ -273,8 +284,12 @@ module r2_compute
 			end
 		end
 
+	
+	///////////////////////////////////////////////////////////////////////////////////
+	// Evaluate raw dx, dy, dz
+	///////////////////////////////////////////////////////////////////////////////////
 	// dx = refx - neighborx
-	// 3 cycle delay
+	// 3 cycles delay
 	FP_SUB FP_SUB_diff_x (
 		.ax     (neighborx),     		//   input,  width = 32,     ax.ax
 		.ay     (refx),     		//   input,  width = 32,     ay.ay
@@ -285,29 +300,32 @@ module r2_compute
 	);
 	
 	// dy = refy - neighbory
-	// 3 cycle delay
+	// 3 cycles delay
 	FP_SUB FP_SUB_diff_y (
 		.ax     (neighbory),     		//   input,  width = 32,     ax.ax
 		.ay     (refy),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr
-		.ena    (level1_en || level2_en),    //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en || level1_en_reg1 || level1_en_reg2),    //   input,   width = 1,    ena.ena
 		.result (dy)  				//  output,  width = 32, result.result
 	);
 	
 	// dz = refz - neighborz
-	// 3 cycle delay
+	// 3 cycles delay
 	FP_SUB FP_SUB_diff_z (
 		.ax     (neighborz),     		//   input,  width = 32,     ax.ax
 		.ay     (refz),     		//   input,  width = 32,     ay.ay
 		.clk    (clk),    		//   input,   width = 1,    clk.clk
 		.clr    (rst),    		//   input,   width = 2,    clr.clr
-		.ena    (level1_en || level2_en),    //   input,   width = 1,    ena.ena
+		.ena    (level1_en || level2_en || level1_en_reg1 || level1_en_reg2),    //   input,   width = 1,    ena.ena
 		.result (dz)  				//  output,  width = 32, result.result
 	);
 	
+	///////////////////////////////////////////////////////////////////////////////////
+	// Evaluate r2
+	///////////////////////////////////////////////////////////////////////////////////
 	// dx2 = dx * dx
-	// 4 cycle delay
+	// 4 cycles delay
 	FP_MUL FP_MUL_x2 (
 		.ay(dx),     				//     ay.ay
 		.az(dx),     				//     az.az
@@ -318,7 +336,7 @@ module r2_compute
 	);
 	
 	// partial = dx2 + dy2
-	// 5 cycle delay
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_ADD_Partial_r2 (
 		.ax     (dx2), 			//   input,  width = 32,     ax.ax
 		.ay     (dy_delay),     	//   input,  width = 32,     ay.ay
@@ -330,7 +348,7 @@ module r2_compute
 	);
 	
 	// r2 = dx2 + dy2 + dz2
-	// 5 cycle delay
+	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_ADD_final_r2 (
 		.ax     (r2_partial), 	//   input,  width = 32,     ax.ax
 		.ay     (dz_delay),     	//   input,  width = 32,     ay.ay
