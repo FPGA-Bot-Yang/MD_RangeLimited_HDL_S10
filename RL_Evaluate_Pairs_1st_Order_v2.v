@@ -86,10 +86,11 @@ module RL_Evaluate_Pairs_1st_Order_v2
 
 	wire table_rden;														// Table lookup enable
 	wire [LOOKUP_ADDR_WIDTH - 1:0] rdaddr;							// Table lookup address
-/*	
+	
 	// Create a 2 cycles delay of the input R2 value, thus allow the table lookup entry to be readout from RAM
+	reg [DATA_WIDTH-1:0] r2_delay;
 	reg [DATA_WIDTH-1:0] r2_reg1;
-	reg [DATA_WIDTH-1:0] r2_reg2;
+/*	reg [DATA_WIDTH-1:0] r2_reg2;
 	reg [DATA_WIDTH-1:0] r2_reg3;
 	reg [DATA_WIDTH-1:0] r2_reg4;
 	reg [DATA_WIDTH-1:0] r2_reg5;
@@ -101,7 +102,6 @@ module RL_Evaluate_Pairs_1st_Order_v2
 	reg [DATA_WIDTH-1:0] r2_reg11;
 	reg [DATA_WIDTH-1:0] r2_reg12;
 	reg [DATA_WIDTH-1:0] r2_reg13;
-	reg [DATA_WIDTH-1:0] r2_delay;
 	reg [DATA_WIDTH-1:0] r2_final;									// The r2 value related to the current output force
 */	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,10 +222,11 @@ module RL_Evaluate_Pairs_1st_Order_v2
 		begin
 		if(rst)
 			begin
-/*			
+			
 			// delay the input r2 value by 2 cycle to wait for table lookup to finish
+			r2_delay <= 0;
 			r2_reg1 <= 0;
-			r2_reg2 <= 0;
+/*			r2_reg2 <= 0;
 			r2_reg3 <= 0;
 			r2_reg4 <= 0;
 			r2_reg5 <= 0;
@@ -237,7 +238,6 @@ module RL_Evaluate_Pairs_1st_Order_v2
 			r2_reg11 <= 0;
 			r2_reg12 <= 0;
 			r2_reg13 <= 0;
-			r2_delay <= 0;
 			r2_final <= 0;
 */
 			// delay registers to propagate the enable signal of FP IP units
@@ -303,10 +303,11 @@ module RL_Evaluate_Pairs_1st_Order_v2
 			end
 		else
 			begin
-/*
+
 			// delay the input r2 value by 1 cycle to wait for table lookup to finish
 			r2_reg1 <= r2;
-			r2_reg2 <= r2_reg1;
+			r2_delay <= r2_reg1;
+/*			r2_reg2 <= r2_reg1;
 			r2_reg3 <= r2_reg2;
 			r2_reg4 <= r2_reg3;
 			r2_reg5 <= r2_reg4;
@@ -318,7 +319,6 @@ module RL_Evaluate_Pairs_1st_Order_v2
 			r2_reg11 <= r2_reg10;
 			r2_reg12 <= r2_reg11;
 			r2_reg13 <= r2_reg12;
-			r2_delay <= r2_reg1;
 			r2_final <= r2_reg13;
 */
 			// 2 cycle delay between table lookup enable and polynomial calculation
