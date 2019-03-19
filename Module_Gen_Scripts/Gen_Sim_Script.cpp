@@ -74,6 +74,8 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing_tb.v\n";
 	// Generate Force Evaluation Units
 	fout << "# # Force Evaluation Units\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_Evaluate_Pairs_1st_Order_v2.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_Evaluate_Pairs_1st_Order_v2_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_Unit.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Force_Evaluation_Unit.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Force_Evaluation_Unit_simple_filter.v\n";

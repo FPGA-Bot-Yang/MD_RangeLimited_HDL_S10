@@ -46,7 +46,9 @@
 //					Cycle 1: At the end of this cycle, passed read address to register that connected to force cache
 //					Cycle 2: At the end of this cycle, data readout from memory
 //					Cycle 3: At the end of this cycle, the read out data is assigned to the registered output 'out_partial_force'
-//					
+//
+//				FP_ADD: Latency 3 cycles
+//
 //
 // Used by:
 //				RL_LJ_Top.v

@@ -44,6 +44,8 @@
  #vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Top_Raw_Data_Testing.v
  #vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Top_Raw_Data_Testing_tb.v
 # # Force Evaluation Units
+ vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Evaluate_Pairs_1st_Order_v2.v
+ vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_Evaluate_Pairs_1st_Order_v2_tb.v
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Evaluation_Unit.v
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Force_Evaluation_Unit.v
  vlog -vlog01compat -work work F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/RL_LJ_Force_Evaluation_Unit_simple_filter.v

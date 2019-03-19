@@ -32,9 +32,9 @@ int HOME_CELL_X = 2;
 int HOME_CELL_Y = 2;
 int HOME_CELL_Z = 2;
 int INTERPOLATION_ORDER = 1;
-int NUM_CELL_X = 5;
-int NUM_CELL_Y = 5;
-int NUM_CELL_Z = 5;
+int NUM_CELL_X = 7;
+int NUM_CELL_Y = 6;
+int NUM_CELL_Z = 6;
 
 
 int main(){
@@ -96,7 +96,7 @@ int main(){
 	/////////////////////////////////////////////////////////////////////////
 	// Generate Top module
 	/////////////////////////////////////////////////////////////////////////
-	Gen_Sim_Top(5, 5, 5, &common_src_path);
+	Gen_Sim_Top(NUM_CELL_X, NUM_CELL_Y, NUM_CELL_Z, &common_src_path);
 
 	/////////////////////////////////////////////////////////////////////////
 	// Generate Simulation Script (.do file)

@@ -87,9 +87,16 @@ module RL_LJ_Top
 	parameter CUTOFF_TIMES_SQRT_3			= 32'h416b8f15,//32'h41A646DC,		// sqrt(3) * CUTOFF
 	parameter FIXED_POINT_WIDTH 			= 24,//32,
 	parameter FILTER_IN_PATCH_0_BITS		= 0,//8'b0,									// Width = FIXED_POINT_WIDTH - 1 - 23
+	// Bounding box parameters, used when applying PBC inside r2 evaluation
 	parameter BOUNDING_BOX_X				= 32'h426E0000,							// 8.5*7 = 59.5 in IEEE floating point		//32'h42D80000,							// 12*9 = 108 in IEEE floating point
 	parameter BOUNDING_BOX_Y				= 32'h424C0000,							// 8.5*6 = 51 in IEEE floating point		//32'h42D80000,							// 12*9 = 108 in IEEE floating point
 	parameter BOUNDING_BOX_Z				= 32'h424C0000,							// 8.5*6 = 51 in IEEE floating point		//32'h42A80000,							// 12*7 = 84 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_X_POS 	= 32'h41EE0000,							// 59.5/2 = 29.75 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Y_POS 	= 32'h41CC0000,							// 51/2 = 25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Z_POS 	= 32'h41CC0000,							// 51/2 = 25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_X_NEG 	= 32'hC1EE0000,							// -59.5/2 = -29.75 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Y_NEG 	= 32'hC1CC0000,							// -51/2 = -25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Z_NEG 	= 32'hC1CC0000,							// -51/2 = -25.5 in IEEE floating point
 	// Force Evaluation parameters
 	parameter SEGMENT_NUM					= 9,//14,
 	parameter SEGMENT_WIDTH					= 4,
@@ -368,16 +375,23 @@ module RL_LJ_Top
 		.CUTOFF_TIMES_SQRT_3(CUTOFF_TIMES_SQRT_3),					// sqrt(3) * CUTOFF
 		.FIXED_POINT_WIDTH(FIXED_POINT_WIDTH),
 		.FILTER_IN_PATCH_0_BITS(FILTER_IN_PATCH_0_BITS),			// Width = FIXED_POINT_WIDTH - 1 - 23
-		.BOUNDING_BOX_X(BOUNDING_BOX_X),									// 12*9 = 108 in IEEE floating point
-		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),									// 12*9 = 108 in IEEE floating point
-		.BOUNDING_BOX_Z(BOUNDING_BOX_Z),									// 12*7 = 84 in IEEE floating point
 		// Force Evaluation parameters
 		.SEGMENT_NUM(SEGMENT_NUM),
 		.SEGMENT_WIDTH(SEGMENT_WIDTH),
 		.BIN_NUM(BIN_NUM),
 		.BIN_WIDTH(BIN_WIDTH),
 		.LOOKUP_NUM(LOOKUP_NUM),
-		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
+		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH),
+		// Bounding box size, used when applying PBC
+		.BOUNDING_BOX_X(BOUNDING_BOX_X),
+		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),
+		.BOUNDING_BOX_Z(BOUNDING_BOX_Z),
+		.HALF_BOUNDING_BOX_X_POS(HALF_BOUNDING_BOX_X_POS),
+		.HALF_BOUNDING_BOX_Y_POS(HALF_BOUNDING_BOX_Y_POS),
+		.HALF_BOUNDING_BOX_Z_POS(HALF_BOUNDING_BOX_Z_POS),
+		.HALF_BOUNDING_BOX_X_NEG(HALF_BOUNDING_BOX_X_NEG),
+		.HALF_BOUNDING_BOX_Y_NEG(HALF_BOUNDING_BOX_Y_NEG),
+		.HALF_BOUNDING_BOX_Z_NEG(HALF_BOUNDING_BOX_Z_NEG)
 	)
 	RL_LJ_Evaluation_Unit
 	(

@@ -63,6 +63,12 @@ module RL_LJ_Evaluation_Unit
 	parameter BOUNDING_BOX_X				= 32'h42D80000,						// 12*9 = 108 in IEEE floating point
 	parameter BOUNDING_BOX_Y				= 32'h42D80000,						// 12*9 = 108 in IEEE floating point
 	parameter BOUNDING_BOX_Z				= 32'h42A80000,						// 12*7 = 84 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_X_POS 	= 32'h41EE0000,					// 59.5/2 = 29.75 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Y_POS 	= 32'h41CC0000,					// 51/2 = 25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Z_POS 	= 32'h41CC0000,					// 51/2 = 25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_X_NEG 	= 32'hC1EE0000,					// -59.5/2 = -29.75 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Y_NEG 	= 32'hC1CC0000,					// -51/2 = -25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Z_NEG 	= 32'hC1CC0000,					// -51/2 = -25.5 in IEEE floating point
 	// Force Evaluation parameters
 	parameter SEGMENT_NUM					= 14,
 	parameter SEGMENT_WIDTH					= 4,
@@ -112,6 +118,7 @@ module RL_LJ_Evaluation_Unit
 	wire [DATA_WIDTH-1:0] LJ_Force_X_wire;
 	wire [DATA_WIDTH-1:0] LJ_Force_Y_wire;
 	wire [DATA_WIDTH-1:0] LJ_Force_Z_wire;
+	/*
 	generate
 		begin: neighbor_particle_partial_force_assignment
 		assign out_neighbor_LJ_Force_X[DATA_WIDTH-2:0] = LJ_Force_X_wire[DATA_WIDTH-2:0];	
@@ -122,6 +129,11 @@ module RL_LJ_Evaluation_Unit
 		assign out_neighbor_LJ_Force_Z[DATA_WIDTH-1] = ~LJ_Force_Z_wire[DATA_WIDTH-1];		// Negate the sign bit
 		end
 	endgenerate
+	*/
+	// Assign the output neighbor force, flip the sign bit
+	assign out_neighbor_LJ_Force_X = LJ_Force_X_wire ^ 32'h80000000;
+	assign out_neighbor_LJ_Force_Y = LJ_Force_Y_wire ^ 32'h80000000;
+	assign out_neighbor_LJ_Force_Z = LJ_Force_Z_wire ^ 32'h80000000;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Wires for assigning input particle data to Force Evaluation Unit
@@ -155,16 +167,23 @@ module RL_LJ_Evaluation_Unit
 		.FILTER_BUFFER_DEPTH(FILTER_BUFFER_DEPTH),
 		.FILTER_BUFFER_ADDR_WIDTH(FILTER_BUFFER_ADDR_WIDTH),
 		.CUTOFF_2(CUTOFF_2),													// in IEEE floating point format
-		.BOUNDING_BOX_X(BOUNDING_BOX_X),									// Bounding box size used for applying PBC
-		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),									// Bounding box size used for applying PBC
-		.BOUNDING_BOX_Z(BOUNDING_BOX_Z),									// Bounding box size used for applying PBC
 		// Force Evaluation parameters
 		.SEGMENT_NUM(SEGMENT_NUM),
 		.SEGMENT_WIDTH(SEGMENT_WIDTH),
 		.BIN_NUM(BIN_NUM),
 		.BIN_WIDTH(BIN_WIDTH),
 		.LOOKUP_NUM(LOOKUP_NUM),											// SEGMENT_NUM * BIN_NUM
-		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)							// log(LOOKUP_NUM) / log 2
+		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH),							// log(LOOKUP_NUM) / log 2
+		// Bounding box size, used when applying PBC
+		.BOUNDING_BOX_X(BOUNDING_BOX_X),
+		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),
+		.BOUNDING_BOX_Z(BOUNDING_BOX_Z),
+		.HALF_BOUNDING_BOX_X_POS(HALF_BOUNDING_BOX_X_POS),
+		.HALF_BOUNDING_BOX_Y_POS(HALF_BOUNDING_BOX_Y_POS),
+		.HALF_BOUNDING_BOX_Z_POS(HALF_BOUNDING_BOX_Z_POS),
+		.HALF_BOUNDING_BOX_X_NEG(HALF_BOUNDING_BOX_X_NEG),
+		.HALF_BOUNDING_BOX_Y_NEG(HALF_BOUNDING_BOX_Y_NEG),
+		.HALF_BOUNDING_BOX_Z_NEG(HALF_BOUNDING_BOX_Z_NEG)
 	)
 	RL_LJ_Force_Evaluation_Unit
 	(

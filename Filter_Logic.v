@@ -33,9 +33,16 @@ module Filter_Logic
 	parameter FILTER_BUFFER_DEPTH 		= 32,
 	parameter FILTER_BUFFER_ADDR_WIDTH	= 5,
 	parameter CUTOFF_2 						= 32'h43100000,					// (12^2=144 in IEEE floating point)
+	// Bounding box size, used when applying PBC
 	parameter BOUNDING_BOX_X 				= 32'h426E0000,					// 8.5*7 = 59.5 in IEEE floating point
 	parameter BOUNDING_BOX_Y 				= 32'h424C0000,					// 8.5*6 = 51 in IEEE floating point
-	parameter BOUNDING_BOX_Z 				= 32'h424C0000						// 8.5*6 = 51 in IEEE floating point
+	parameter BOUNDING_BOX_Z 				= 32'h424C0000,					// 8.5*6 = 51 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_X_POS 	= 32'h41EE0000,					// 59.5/2 = 29.75 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Y_POS 	= 32'h41CC0000,					// 51/2 = 25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Z_POS 	= 32'h41CC0000,					// 51/2 = 25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_X_NEG 	= 32'hC1EE0000,					// -59.5/2 = -29.75 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Y_NEG 	= 32'hC1CC0000,					// -51/2 = -25.5 in IEEE floating point
+	parameter HALF_BOUNDING_BOX_Z_NEG 	= 32'hC1CC0000						// -51/2 = -25.5 in IEEE floating point
 )
 (
 	input clk,
@@ -239,9 +246,16 @@ module Filter_Logic
 	// Evaluate r2 between particle pairs
 	r2_compute_with_pbc #(
 		.DATA_WIDTH(DATA_WIDTH),
+		// Bounding box size, used when applying PBC
 		.BOUNDING_BOX_X(BOUNDING_BOX_X),
 		.BOUNDING_BOX_Y(BOUNDING_BOX_Y),
-		.BOUNDING_BOX_Z(BOUNDING_BOX_Z)
+		.BOUNDING_BOX_Z(BOUNDING_BOX_Z),
+		.HALF_BOUNDING_BOX_X_POS(HALF_BOUNDING_BOX_X_POS),
+		.HALF_BOUNDING_BOX_Y_POS(HALF_BOUNDING_BOX_Y_POS),
+		.HALF_BOUNDING_BOX_Z_POS(HALF_BOUNDING_BOX_Z_POS),
+		.HALF_BOUNDING_BOX_X_NEG(HALF_BOUNDING_BOX_X_NEG),
+		.HALF_BOUNDING_BOX_Y_NEG(HALF_BOUNDING_BOX_Y_NEG),
+		.HALF_BOUNDING_BOX_Z_NEG(HALF_BOUNDING_BOX_Z_NEG)
 	)
 	r2_evaluate(
 		.clk(clk),

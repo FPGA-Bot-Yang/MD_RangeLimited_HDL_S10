@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: RL_LJ_Evaluate_Pairs_LJ_1st_Order_tb.v
+// Module: RL_Evaluate_Pairs_1st_Order_v2_tb.v
 //
-//	Function: Testbench for timing evaluation of RL_Evaluate_Pairs_LJ_1st_Order.v
+//	Function: Testbench for timing evaluation of RL_Evaluate_Pairs_1st_Order_v2.v
 //
 // Dependency:
-// 			RL_LJ_Evaluate_Pairs_1st_Order.v
+// 			RL_Evaluate_Pairs_1st_Order_v2.v
 //
 //
 // FP IP timing:
@@ -12,18 +12,29 @@
 //				FP_MUL: ay * az = result				latency: 3
 //				FP_MUL_ADD: ay * az + ax  = result	latency: 4
 //
-// Latency: total: 11 cycles
-//				Input level: wait for table lookup to finish					      2 cycle
-//				Level 1: calculate r8, r14 (MUL_ADD)						         4 cycles
-//				Level 2: calculate LJ force (SUB)							         2 cycles
-//				Level 3: calculate Force component in each direction (MUL)		3 cycles
+// Latency: total: 17 cycles
+//				Input level: wait for table lookup to finish							2 cycle
+//				Level 1: calculate r3, r8, r14 terms (MUL_ADD)						5 cycles
+//				Level 2: calculate LJ Force (SUB)										3 cycles
+//				Level 3: calculate RL Force (ADD)										3 cycles
+//				Level 4: calculate Force components in each direction (MUL)		4 cycles
 //
 // Created by:
-//				Chen Yang 10/01/18
+//				Chen Yang 03/19/2019
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-`timescale 1ps/1ps
+`timescale 1ns/1ns
 
-module RL_Evaluate_Pairs_LJ_1st_Order_tb;
+module RL_Evaluate_Pairs_1st_Order_v2_tb;
+
+	parameter DATA_WIDTH 				= 32;
+	parameter SEGMENT_NUM				= 9;
+	parameter SEGMENT_WIDTH				= 4;
+	parameter BIN_NUM						= 256;
+	parameter BIN_WIDTH					= 8;
+	parameter CUTOFF_2					= 32'h43100000;						// (12^2=144 in IEEE floating point)
+	parameter LOOKUP_NUM					= SEGMENT_NUM * BIN_NUM;			// SEGMENT_NUM * BIN_NUM
+	parameter LOOKUP_ADDR_WIDTH		= SEGMENT_WIDTH + BIN_WIDTH;		// log LOOKUP_NUM / log 2
+
 
 	reg clk;
 	reg rst;
@@ -39,12 +50,23 @@ module RL_Evaluate_Pairs_LJ_1st_Order_tb;
 	reg [31:0] dy;
 	reg [31:0] dz;
 	
-	wire [31:0] LJ_Force_X;
-	wire [31:0] LJ_Force_Y;
-	wire [31:0] LJ_Force_Z;
-	wire LJ_force_valid;
+	wire [31:0] RL_Force_X;
+	wire [31:0] RL_Force_Y;
+	wire [31:0] RL_Force_Z;
+	wire RL_force_valid;
 
-	RL_Evaluate_Pairs_LJ_1st_Order test_inst
+	RL_Evaluate_Pairs_1st_Order_v2
+	#(
+		.DATA_WIDTH(DATA_WIDTH),
+		.SEGMENT_NUM(SEGMENT_NUM),
+		.SEGMENT_WIDTH(SEGMENT_WIDTH),
+		.BIN_NUM(BIN_NUM),
+		.BIN_WIDTH(BIN_WIDTH),
+		.CUTOFF_2(CUTOFF_2),
+		.LOOKUP_NUM(LOOKUP_NUM),
+		.LOOKUP_ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
+	)
+	UUT
 	(
 		.clk(clk),
 		.rst(rst),
@@ -53,10 +75,10 @@ module RL_Evaluate_Pairs_LJ_1st_Order_tb;
 		.dx(dx),										// in IEEE floating point
 		.dy(dy),										// in IEEE floating point
 		.dz(dz),										// in IEEE floating point
-		.LJ_Force_X(LJ_Force_X),								// in IEEE floating point
-		.LJ_Force_Y(LJ_Force_Y),								// in IEEE floating point
-		.LJ_Force_Z(LJ_Force_Z),								// in IEEE floating point
-		.LJ_force_valid(LJ_force_valid)
+		.RL_Force_X(RL_Force_X),				// in IEEE floating point
+		.RL_Force_Y(RL_Force_Y),				// in IEEE floating point
+		.RL_Force_Z(RL_Force_Z),				// in IEEE floating point
+		.RL_force_valid(RL_force_valid)
 	);
 	
 	always #1 clk <= ~clk;
