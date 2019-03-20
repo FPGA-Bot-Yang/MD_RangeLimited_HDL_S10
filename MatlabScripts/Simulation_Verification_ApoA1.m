@@ -1,12 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Verification logic for Particle_Pair_gen_HalfShell.v
-% Input dataset is LJArgon
+% Verification logic for full simulation on cell (2,2,2)
+% Generate Force result for each cycle
+% Input dataset is ApoA1
 %
 % Function:
 %       Generate on-chip RAM initialization file (*.mif)
 %       Generate simulation verification file
 %
-% Cell Mapping: ApoA1, follow the HDL design (cell id starts from 1 in each dimension)
+% Cell Mapping: ApoA1/LJArgon, follow the HDL design (cell id starts from 1 in each dimension)
 %       Filter 0: 222(home)
 %       Filter 1: 223(face)
 %       Filter 2: 231(edge) 232(face)
@@ -20,10 +21,9 @@
 %       1, posx; 2, posy; 3, posz
 %
 % Process:
-%       0, Run LJArgon_Position_Data_Analyze, find the min and max value of the r2, based on that to generate the lookup table
-%       1, Run LJ_no_smooth_poly_interpolation_accuracy/LJ_Coulomb_no_smooth_poly_interpolation_accuracy, to generate the interpolation file
-%       2, import the raw LJArgon data, and pre-processing
-%       3, mapping the LJArgon data into cells
+%       0, Run LJ_no_smooth_poly_interpolation_accuracy, to generate the interpolation file
+%       1, import the raw ApoA1 data, and pre-processing
+%       2, mapping the ApoA1 data into cells
 %
 % Output file:
 %       VERIFICATION_PARTICLE_PAIR_INPUT.txt (Particle_Pair_Gen_HalfShell.v)
@@ -46,34 +46,28 @@ GEN_INPUT_MIF_FILE = 0;                             % Generate the memory initia
 GEN_PAIRWISE_INPUT_DATA_TO_FILTER = 0;              % Generate VERIFICATION_PARTICLE_PAIR_INPUT.txt
 GEN_PAIRWISE_FORCE_VALUE = 1;                       % Generate VERIFICATION_PARTICLE_PAIR_DISTANCE_AND_FORCE.txt
 GEN_PAIRWISE_NEIGHBOR_ACC_FORCE = 1;                % Generate VERIFICATION_PARTICLE_PAIR_NEIGHBOR_ACC_FORCE.txt (if this one need to be generated, GEN_PAIRWISE_FORCE_VALUE has to be 1)
-%% Interpolation Parameters
-INTERPOLATION_ORDER = 1;
-SEGMENT_NUM = 9;                       % # of segment
-BIN_NUM = 256;                          % # of bins per segment
-%% Dataset Parameters
-% Range starting from 2^-6 (ApoA1 min r2 is 0.015793)
-% Input & Output Scale Parameters (Determined by the LJ_no_smooth_poly_interpolation_accuracy.m)
-INPUT_SCALE_INDEX = 1;                          % the readin position data is in the unit of meter, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14, thus scale to A
-OUTPUT_SCALE_INDEX = 1;                         % The scale value for the results of r14 & r8 term
-SCALE_INDEX = 50;                                   % the readin position data suppose to in the unit of A, but it turns out that the minimum r2 value can be too small, lead to the overflow when calculating the r^-14
-CUTOFF_RADIUS = single(8.5); % Cutoff Radius
+%% General Simulation Parameters
+CUTOFF_RADIUS = single(12);                         % Cutoff Radius
 CUTOFF_RADIUS_2 = CUTOFF_RADIUS * CUTOFF_RADIUS;    % Cutoff distance square
-MIN_LOG_INDEX = -2;
-MIN_RANGE = 2^MIN_LOG_INDEX;            % minimal range for the evaluation
-% LJArgon cutoff is 7.65 Ang, min r2 value is 2.272326e-27, thus set the bin as 29 to cover the range
+INTERPOLATION_ORDER = 1;
+SEGMENT_NUM = 14;                       % # of segment
+BIN_NUM = 256;                          % # of bins per segment
+% Range starting from 2^-6 (ApoA1 min r2 is 0.015793)
+MIN_RANGE = 0.015625;                  % minimal range for the evaluation
+% ApoA1 cutoff is 12~13 Ang, thus set the segment as 14 to cover the range
 MAX_RANGE = MIN_RANGE * 2^SEGMENT_NUM;  % maximum range for the evaluation (currently this is the cutoff radius)
 %% Benmarck Related Parameters (related with CUTOFF_RADIUS)
-CELL_COUNT_X = 7;
-CELL_COUNT_Y = 6;
-CELL_COUNT_Z = 6;
-CELL_PARTICLE_MAX = 100;                            % The maximum possible particle count in each cell
-TOTAL_PARTICLE = 20000;                             % particle count in benchmark
+CELL_COUNT_X = 9;
+CELL_COUNT_Y = 9;
+CELL_COUNT_Z = 7;
+CELL_PARTICLE_MAX = 300;                            % The maximum possible particle count in each cell
+TOTAL_PARTICLE = 92224;                             % particle count in ApoA1 benchmark
 MEM_DATA_WIDTH = 32*3;                              % Memory Data Width (3*32 for position)
 COMMON_PATH = '';
-INPUT_FILE_NAME = 'input_positions_ljargon_20000_box_58_49_49.txt';
+INPUT_FILE_NAME = 'input_positions_ApoA1.txt';
 %% HDL design parameters
 NUM_FILTER = 8;                                     % Number of filters in the pipeline
-FILTER_BUFFER_DEPTH = 8;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
+FILTER_BUFFER_DEPTH = 32;                           % Filter buffer depth, if buffer element # is larger than this value, pause generating particle pairs into filter bank
 %% Data Arraies for processing
 % Bounding box of 12A, total of 9*9*7 cells, organized in a 4D array
 raw_position_data = zeros(TOTAL_PARTICLE,3);                                            % The raw input data
@@ -110,10 +104,8 @@ end
 line_counter = 1;
 while ~feof(fp)
     tline = fgets(fp);
-    line_elements = textscan(tline,'%s %f64 %f64 %f64');
-    raw_position_data(line_counter,1) = line_elements{2} * INPUT_SCALE_INDEX;
-    raw_position_data(line_counter,2) = line_elements{3} * INPUT_SCALE_INDEX;
-    raw_position_data(line_counter,3) = line_elements{4} * INPUT_SCALE_INDEX;
+    line_elements = textscan(tline,'%f');
+    raw_position_data(line_counter,:) = line_elements{1}; 
     line_counter = line_counter + 1;
 end
 % Close File
@@ -127,11 +119,11 @@ min_y  = min(raw_position_data(:,2));
 max_y  = max(raw_position_data(:,2));
 min_z  = min(raw_position_data(:,3));
 max_z  = max(raw_position_data(:,3));
-% Original range is (0.0011,347.7858), (4.5239e-04,347.7855), (3.1431e-04,347.7841)
+% Original range is (-56.296,56.237), (-57.123,56.259), (-40.611,40.878)
 % shift all the data to positive
-position_data(:,1) = raw_position_data(:,1)-min_x;          % range: 0 ~ 347.7847
-position_data(:,2) = raw_position_data(:,2)-min_y;          % range: 0 ~ 347.7851
-position_data(:,3) = raw_position_data(:,3)-min_z;          % range: 0 ~ 347.7838
+position_data(:,1) = raw_position_data(:,1)-min_x;          % range: 0 ~ 112.533
+position_data(:,2) = raw_position_data(:,2)-min_y;          % range: 0 ~ 113.382
+position_data(:,3) = raw_position_data(:,3)-min_z;          % range: 0 ~ 81.489
 fprintf('All particles shifted to align on (0,0,0)\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
