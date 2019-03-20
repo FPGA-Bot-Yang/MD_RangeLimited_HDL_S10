@@ -105,6 +105,10 @@ module RL_Evaluate_Pairs_1st_Order_v2_tb;
 		rst <= 1'b0;
 		
 		#10
+		// F = -0.0412
+		// Fx = -0.0412
+		// Fy = -0.0824
+		// Fz = -0.1648
 		r2_valid_wire <= 1'b1;
 		dx_wire <= 32'h3F800000;				// 1.0
 		dy_wire <= 32'h40000000;				// 2.0
