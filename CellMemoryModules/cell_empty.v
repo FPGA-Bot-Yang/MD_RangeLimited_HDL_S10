@@ -1,37 +1,37 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: cell_3_2_3.v
+// Module: cell_empty.v
 //
 //	Function:
-//				Memory modules holding the position value of each cells
+//				Empty memory modules for motion update use
 //
 //	Purpose:
-//				Providing particle position data for force evaluation and motion update
+//				The secondary memory module for each cell
 //
 // Data Organization:
-//				Address 0 for each cell module: # of particles in the cell.
+//				Address 0 for each cell module: # of particles in the cell
 //				MSB-LSB: {posz, posy, posx}
 //
 // Used by:
-//				Pos_Cache_3_2_3.v
+//				Pos_Cache_x_y_z.v
 //
 // Dependency:
-//				cell_ini_file_3_2_3.hex / cell_ini_file_3_2_3.mif
+//				N/A
 //
 // Testbench:
 //				RL_LJ_Top_tb.v
 //
 // Timing:
-//				2 cycles reading delay from input address and output data.
+//				1 cycle reading delay from input address and output data.
 //
 // Created by:
-//				Chen Yang's Script (Gen_Pos_Cell.cpp), based on Single Port RAM IP core
+//				Chen Yang	12/17/2018
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-`include "define.v"
+`include "../define.v"
 
 `timescale 1 ps / 1 ps
 
-module cell_3_2_3
+module cell_empty
 #(
 	parameter DATA_WIDTH = 32*3,
 	parameter PARTICLE_NUM = 220,
@@ -92,17 +92,6 @@ module cell_3_2_3
 		altera_syncram_component.width_byteena_a  = 1,
 		altera_syncram_component.clock_enable_input_a  = "BYPASS",
 		altera_syncram_component.clock_enable_output_a  = "BYPASS",
-
-`ifdef WINDOWS_PATH
-		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_2_3.hex"
-`elsif STX_PATH
-		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_2_3.hex"
-`elsif STX_2ND_PATH
-		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/cell_ini_file_3_2_3.hex"
-`else
-		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_2_3.hex"
-`endif
-,
 		altera_syncram_component.intended_device_family  = "Stratix 10",
 		altera_syncram_component.lpm_hint  = "ENABLE_RUNTIME_MOD=NO",
 		altera_syncram_component.lpm_type  = "altera_syncram",

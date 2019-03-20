@@ -14,7 +14,8 @@ int Gen_Pos_Cell(int cellx, int celly, int cellz, std::string* common_path){
 	char filename[100];
 	sprintf(filename,"cell_%d_%d_%d.v", cellx, celly, cellz);
 
-	std::string path = *common_path + "/" + std::string(filename);
+	std::string path = *common_path + "/CellMemoryModules/" + std::string(filename);
+	std::string cell_mem_path = *common_path + "/CellMemoryModules";
 	std::ofstream fout;
 	fout.open(path.c_str());
 	if (fout.fail()){
@@ -51,7 +52,7 @@ int Gen_Pos_Cell(int cellx, int celly, int cellz, std::string* common_path){
 	fout << "//\t\t\t\tChen Yang's Script (Gen_Pos_Cell.cpp), based on Single Port RAM IP core\n";
 	fout << "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n";
 
-	fout << "`include \"define.v\"\n\n";
+	fout << "`include \"../define.v\"\n\n";
 
 	fout << "`timescale 1 ps / 1 ps\n\n";
 	
@@ -118,13 +119,13 @@ int Gen_Pos_Cell(int cellx, int celly, int cellz, std::string* common_path){
 	fout << "\t\taltera_syncram_component.clock_enable_output_a  = \"BYPASS\",\n\n";
 
 	fout << "`ifdef WINDOWS_PATH\n";
-	fout << "\t\taltera_syncram_component.init_file = \"F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_"<< cellx <<"_"<< celly <<"_"<< cellz <<".hex\"\n";
+	fout << "\t\taltera_syncram_component.init_file = \"" << cell_mem_path << "/cell_ini_file_" << cellx <<"_"<< celly <<"_"<< cellz <<".hex\"\n";
 	fout << "`elsif STX_PATH\n";
 	fout << "\t\taltera_syncram_component.init_file = \"/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_"<< cellx <<"_"<< celly <<"_"<< cellz <<".hex\"\n";
 	fout << "`elsif STX_2ND_PATH\n";
 	fout << "\t\taltera_syncram_component.init_file = \"/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/cell_ini_file_"<< cellx <<"_"<< celly <<"_"<< cellz <<".hex\"\n";
 	fout << "`else\n";
-	fout << "\t\taltera_syncram_component.init_file = \""<< *common_path << "/cell_ini_file_"<< cellx <<"_"<< celly <<"_"<< cellz <<".hex\"\n";
+	fout << "\t\taltera_syncram_component.init_file = \"" << cell_mem_path << "/cell_ini_file_" << cellx <<"_"<< celly <<"_"<< cellz <<".hex\"\n";
 	fout << "`endif\n";
 	fout << ",\n";
 	fout << "\t\taltera_syncram_component.intended_device_family  = \"Stratix 10\",\n";

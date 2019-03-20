@@ -178,9 +178,9 @@ module RL_Evaluate_Pairs_1st_Order_v2
 	// Force variables
 	wire [DATA_WIDTH-1:0] LJ_Force;									// LJ Force
 	wire [DATA_WIDTH-1:0] RL_Force;									// Total Force
-	wire [DATA_WIDTH-1:0] RL_Force_X_wire;
-	wire [DATA_WIDTH-1:0] RL_Force_Y_wire;
-	wire [DATA_WIDTH-1:0] RL_Force_Z_wire;
+	//wire [DATA_WIDTH-1:0] RL_Force_X_wire;
+	//wire [DATA_WIDTH-1:0] RL_Force_Y_wire;
+	//wire [DATA_WIDTH-1:0] RL_Force_Z_wire;
 	
 	// Table lookup enable
 	assign table_rden = r2_valid;
@@ -397,7 +397,7 @@ module RL_Evaluate_Pairs_1st_Order_v2
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	Index_Mem_0_14
+	Index_Mem_0_R14
 	(
 		.data(32'd0),
 		.address(rdaddr),
@@ -412,7 +412,7 @@ module RL_Evaluate_Pairs_1st_Order_v2
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	Index_Mem_1_14
+	Index_Mem_1_R14
 	(
 		.data(32'd0),
 		.address(rdaddr),
@@ -427,7 +427,7 @@ module RL_Evaluate_Pairs_1st_Order_v2
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	Index_Mem_0_8
+	Index_Mem_0_R8
 	(
 		.data(32'd0),
 		.address(rdaddr),
@@ -442,7 +442,7 @@ module RL_Evaluate_Pairs_1st_Order_v2
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	Index_Mem_1_8
+	Index_Mem_1_R8
 	(
 		.data(32'd0),
 		.address(rdaddr),
@@ -457,7 +457,7 @@ module RL_Evaluate_Pairs_1st_Order_v2
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	Index_Mem_0_3
+	Index_Mem_0_R3
 	(
 		.data(32'd0),
 		.address(rdaddr),
@@ -472,7 +472,7 @@ module RL_Evaluate_Pairs_1st_Order_v2
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	Index_Mem_1_3
+	Index_Mem_1_R3
 	(
 		.data(32'd0),
 		.address(rdaddr),

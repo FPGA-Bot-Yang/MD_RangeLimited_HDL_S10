@@ -6,14 +6,24 @@
 //				Based on the sqaure distance, evaluate the table look-up entry
 //
 // Force Model:
-//				Force_LJ = 48*inv_r14 - 24*inv_r8			(48*inv_r14 and 24*inv_r8 come directly from table lookup)
+//				R14_term = 48 * eps * sigma^12 * inv_r14
+//				R8_term  = 24 * eps * sigma^8 * inv_r8
+//				Force_LJ = R14_term - R8_term			(R14_term and R8_term come directly from table lookup)
 //				Force_LJ_x = Force_LJ * dx;
 //				Force_LJ_y = Force_LJ * dy;
 //				Force_LJ_z = Force_LJ * dz;
 //
 // Dependency:
 // 			Table lookup memory module
+//					lut0_14.v
+//					lut1_14.v
+//					lut0_8.v
+//					lut1_8.v
 //				multiply and summation IPs
+//					FP_ADD.v
+//					FP_SUB.v
+//					FP_MUL.v
+//					FP_MUL_ADD.v
 //
 // Testbench:
 //				RL_LJ_Evaluate_Pairs_1st_Order_tb.v
@@ -45,7 +55,6 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	parameter BIN_NUM						= 256,
 	parameter BIN_WIDTH					= 8,
 	parameter CUTOFF_2					= 32'h43100000,						// (12^2=144 in IEEE floating point)
-
 	parameter LOOKUP_NUM					= SEGMENT_NUM * BIN_NUM,			// SEGMENT_NUM * BIN_NUM
 	parameter LOOKUP_ADDR_WIDTH		= SEGMENT_WIDTH + BIN_WIDTH		// log LOOKUP_NUM / log 2
 )
@@ -115,7 +124,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	reg [DATA_WIDTH-1:0] dx_reg7;
 	reg [DATA_WIDTH-1:0] dx_reg8;
 	reg [DATA_WIDTH-1:0] dx_reg9;
-	reg [DATA_WIDTH-1:0] dx_reg10;
+	reg [DATA_WIDTH-1:0] dx_delay;
 	
 	reg [DATA_WIDTH-1:0] dy_reg1;
 	reg [DATA_WIDTH-1:0] dy_reg2;
@@ -126,7 +135,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	reg [DATA_WIDTH-1:0] dy_reg7;
 	reg [DATA_WIDTH-1:0] dy_reg8;
 	reg [DATA_WIDTH-1:0] dy_reg9;
-	reg [DATA_WIDTH-1:0] dy_reg10;
+	reg [DATA_WIDTH-1:0] dy_delay;
 	
 	reg [DATA_WIDTH-1:0] dz_reg1;
 	reg [DATA_WIDTH-1:0] dz_reg2;
@@ -137,7 +146,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	reg [DATA_WIDTH-1:0] dz_reg7;
 	reg [DATA_WIDTH-1:0] dz_reg8;
 	reg [DATA_WIDTH-1:0] dz_reg9;
-	reg [DATA_WIDTH-1:0] dz_reg10;
+	reg [DATA_WIDTH-1:0] dz_delay;
 	
 	// Table lookup variables
 	reg [SEGMENT_WIDTH - 1:0] segment_id;							// Segment id, determined by r2 exponential part
@@ -232,7 +241,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			dx_reg7 <= 0;
 			dx_reg8 <= 0;
 			dx_reg9 <= 0;
-			dx_reg10 <= 0;
+			dx_delay <= 0;
 			
 			dy_reg1 <= 0;
 			dy_reg2 <= 0;
@@ -243,7 +252,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			dy_reg7 <= 0;
 			dy_reg8 <= 0;
 			dy_reg9 <= 0;
-			dy_reg10 <= 0;
+			dy_delay <= 0;
 			
 			dz_reg1 <= 0;
 			dz_reg2 <= 0;
@@ -254,7 +263,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			dz_reg7 <= 0;
 			dz_reg8 <= 0;
 			dz_reg9 <= 0;
-			dz_reg10 <= 0;
+			dz_delay <= 0;
 			end
 		else
 			begin
@@ -303,7 +312,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			dx_reg7 <= dx_reg6;
 			dx_reg8 <= dx_reg7;
 			dx_reg9 <= dx_reg8;
-			dx_reg10 <= dx_reg9;
+			dx_delay <= dx_reg9;
 			
 			dy_reg1 <= dy;
 			dy_reg2 <= dy_reg1;
@@ -314,7 +323,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			dy_reg7 <= dy_reg6;
 			dy_reg8 <= dy_reg7;
 			dy_reg9 <= dy_reg8;
-			dy_reg10 <= dy_reg9;
+			dy_delay <= dy_reg9;
 			
 			dz_reg1 <= dz;
 			dz_reg2 <= dz_reg1;
@@ -325,21 +334,24 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 			dz_reg7 <= dz_reg6;
 			dz_reg8 <= dz_reg7;
 			dz_reg9 <= dz_reg8;
-			dz_reg10 <= dz_reg9;
+			dz_delay <= dz_reg9;
 			end
 		end
 
+	//////////////////////////////////////////////////////////////////////
+	// Interpolation index ROM
+	//////////////////////////////////////////////////////////////////////
 	lut0_14
 	#(
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	lut0_14 (
+	Index_Mem_0_R14 (
 		.data(32'd0),
 		.address(rdaddr),
 		.wren(1'd0),
 		.clock(clk),
-		.rden(table_rden),
+		.rden(table_rden || table_rden_reg),
 		.q(terms0_r14)
 		);
 
@@ -348,12 +360,12 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	lut1_14 (
+	Index_Mem_1_R14 (
 		.data(32'd0),
 		.address(rdaddr),
 		.wren(1'd0),
 		.clock(clk),
-		.rden(table_rden),
+		.rden(table_rden || table_rden_reg),
 		.q(terms1_r14)
 		);
 
@@ -362,12 +374,12 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	lut0_8 (
+	Index_Mem_0_R8 (
 		.data(32'd0),
 		.address(rdaddr),
 		.wren(1'd0),
 		.clock(clk),
-		.rden(table_rden),
+		.rden(table_rden || table_rden_reg),
 		.q(terms0_r8)
 		);
 
@@ -376,15 +388,19 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.DEPTH(LOOKUP_NUM),
 		.ADDR_WIDTH(LOOKUP_ADDR_WIDTH)
 	)
-	lut1_8 (
+	Index_Mem_1_R8 (
 		.data(32'd0),
 		.address(rdaddr),
 		.wren(1'd0),
 		.clock(clk),
-		.rden(table_rden),
+		.rden(table_rden || table_rden_reg),
 		.q(terms1_r8)
 		);
 	
+	//////////////////////////////////////////////////////////////////////
+	// FP instances for force evaluation
+	//////////////////////////////////////////////////////////////////////
+	// ********** Level 1 ********** //
 	// Get r8 term = c1 * r2 + c0 (The coefficient of 24 is already included when generating the table
 	// 5 cycles delay
 	FP_MUL_ADD FP_MUL_r8_term (
@@ -409,6 +425,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.result (r14_result)     //   output,  width = 32, result.result
 	);
 	
+	// ********** Level 2 ********** //
 	// Get Force/J = R14_term - R8_term
 	// 3 cycles delay
 	FP_SUB FP_SUB_Total_Force (
@@ -420,11 +437,12 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 		.result (LJ_Force)       //   output,  width = 32, result.result
 	);
 	
+	// ********** Level 3 ********** //
 	// Get Force component on X direction: Fx = (Force/J) * dx
 	// 4 cycles delay
 	FP_MUL FP_MUL_FX (
 		.ay(LJ_Force),     			//     ay.ay
-		.az(dx_reg10),   				//     az.az
+		.az(dx_delay),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
 		.ena(level3_en || LJ_force_valid || level3_en_reg1 || level3_en_reg2 || level3_en_reg3),    			//    ena.ena
@@ -435,7 +453,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	// 4 cycles delay
 	FP_MUL FP_MUL_FY (
 		.ay(LJ_Force),     			//     ay.ay
-		.az(dy_reg10),   				//     az.az
+		.az(dy_delay),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
 		.ena(level3_en || LJ_force_valid || level3_en_reg1 || level3_en_reg2 || level3_en_reg3),    			//    ena.ena
@@ -446,7 +464,7 @@ module RL_LJ_Evaluate_Pairs_1st_Order
 	// 4 cycles delay
 	FP_MUL FP_MUL_FZ (
 		.ay(LJ_Force),     			//     ay.ay
-		.az(dz_reg10),   				//     az.az
+		.az(dz_delay),   				//     az.az
 		.clk(clk),    					//    clk.clk
 		.clr(rst),    					//    clr.clr
 		.ena(level3_en || LJ_force_valid || level3_en_reg1 || level3_en_reg2 || level3_en_reg3),    			//    ena.ena

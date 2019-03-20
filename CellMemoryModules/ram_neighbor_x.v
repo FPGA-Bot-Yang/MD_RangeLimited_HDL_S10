@@ -10,12 +10,12 @@
 // Intel or its authorized distributors.  Please refer to the applicable 
 // agreement for further details.
 
-`include "define.v"
+`include "../define.v"
 
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module  ram_neighbor_z
+module  ram_neighbor_x
 #(
 	parameter DATA_WIDTH = 32,
 	parameter PARTICLE_NUM = 100,
@@ -42,8 +42,7 @@ module  ram_neighbor_z
 
     wire [DATA_WIDTH-1:0] sub_wire0;
     wire [DATA_WIDTH-1:0] q = sub_wire0[DATA_WIDTH-1:0];
-
-
+	 
     altera_syncram  altera_syncram_component (
                 .address_a (address),
                 .clock0 (clock),
@@ -78,13 +77,13 @@ module  ram_neighbor_z
         altera_syncram_component.clock_enable_input_a  = "BYPASS",
         altera_syncram_component.clock_enable_output_a  = "BYPASS",
 `ifdef WINDOWS_PATH
-		  altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/particle_neighbor_z.hex"
+		  altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/CellMemoryModules/particle_neighbor_x.hex"
 `elsif STX_PATH
-        altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/particle_neighbor_z.hex"
+        altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/CellMemoryModules/particle_neighbor_x.hex"
 `elsif STX_2ND_PATH
-		  altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/particle_neighbor_z.hex"
+		  altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/CellMemoryModules/particle_neighbor_x.hex"
 `else
-        altera_syncram_component.init_file = "/home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/particle_neighbor_z.hex"
+        altera_syncram_component.init_file = "/home/jiayi/EthanWorkingDir/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/CellMemoryModules/particle_neighbor_x.hex"
 `endif
 ,
         altera_syncram_component.intended_device_family  = "Stratix 10",

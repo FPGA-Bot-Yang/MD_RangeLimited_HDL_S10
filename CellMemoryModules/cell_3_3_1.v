@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Module: cell_3_1_2.v
+// Module: cell_3_3_1.v
 //
 //	Function:
 //				Memory modules holding the position value of each cells
@@ -12,10 +12,10 @@
 //				MSB-LSB: {posz, posy, posx}
 //
 // Used by:
-//				Pos_Cache_3_1_2.v
+//				Pos_Cache_3_3_1.v
 //
 // Dependency:
-//				cell_ini_file_3_1_2.hex / cell_ini_file_3_1_2.mif
+//				cell_ini_file_3_3_1.hex / cell_ini_file_3_3_1.mif
 //
 // Testbench:
 //				RL_LJ_Top_tb.v
@@ -27,11 +27,11 @@
 //				Chen Yang's Script (Gen_Pos_Cell.cpp), based on Single Port RAM IP core
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-`include "define.v"
+`include "../define.v"
 
 `timescale 1 ps / 1 ps
 
-module cell_3_1_2
+module cell_3_3_1
 #(
 	parameter DATA_WIDTH = 32*3,
 	parameter PARTICLE_NUM = 220,
@@ -94,13 +94,13 @@ module cell_3_1_2
 		altera_syncram_component.clock_enable_output_a  = "BYPASS",
 
 `ifdef WINDOWS_PATH
-		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_1_2.hex"
+		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/CellMemoryModules/cell_ini_file_3_3_1.hex"
 `elsif STX_PATH
-		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_1_2.hex"
+		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_3_1.hex"
 `elsif STX_2ND_PATH
-		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/cell_ini_file_3_1_2.hex"
+		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/cell_ini_file_3_3_1.hex"
 `else
-		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_3_1_2.hex"
+		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/CellMemoryModules/cell_ini_file_3_3_1.hex"
 `endif
 ,
 		altera_syncram_component.intended_device_family  = "Stratix 10",

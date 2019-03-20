@@ -27,7 +27,7 @@
 //				Chen Yang's Script (Gen_Pos_Cell.cpp), based on Single Port RAM IP core
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-`include "define.v"
+`include "../define.v"
 
 `timescale 1 ps / 1 ps
 
@@ -94,13 +94,13 @@ module cell_2_2_2
 		altera_syncram_component.clock_enable_output_a  = "BYPASS",
 
 `ifdef WINDOWS_PATH
-		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_2_2_2.hex"
+		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/CellMemoryModules/cell_ini_file_2_2_2.hex"
 `elsif STX_PATH
 		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_2_2_2.hex"
 `elsif STX_2ND_PATH
 		altera_syncram_component.init_file = "/home/vsachde/Dropbox/CAAD_Server/MD_RL_Pipeline/MD_HDL_STX/SourceCode/cell_ini_file_2_2_2.hex"
 `else
-		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/cell_ini_file_2_2_2.hex"
+		altera_syncram_component.init_file = "F:/Dropbox/CAAD_Server/MD_RL_Pipeline/Ethan_RL_Pipeline_1st_Order_SingleFloat_18.0/SourceCode/CellMemoryModules/cell_ini_file_2_2_2.hex"
 `endif
 ,
 		altera_syncram_component.intended_device_family  = "Stratix 10",

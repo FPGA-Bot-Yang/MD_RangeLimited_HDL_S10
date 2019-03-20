@@ -14,7 +14,7 @@ int Gen_Velocity_Cell(int cellx, int celly, int cellz, std::string* common_path)
 	char filename[100];
 	sprintf(filename,"velocity_%d_%d_%d.v", cellx, celly, cellz);
 
-	std::string path = *common_path + "/" + std::string(filename);
+	std::string path = *common_path + "/CellMemoryModules/" + std::string(filename);
 	std::ofstream fout;
 	fout.open(path.c_str());
 	if (fout.fail()){
@@ -51,7 +51,7 @@ int Gen_Velocity_Cell(int cellx, int celly, int cellz, std::string* common_path)
 	fout << "//\t\t\t\tChen Yang's Script (Gen_Velocity_Cell.cpp), based on Single Port RAM IP core\n";
 	fout << "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\n";
 
-	fout << "`include \"define.v\"\n\n";
+	fout << "`include \"../define.v\"\n\n";
 
 	fout << "`timescale 1 ps / 1 ps\n\n";
 	
