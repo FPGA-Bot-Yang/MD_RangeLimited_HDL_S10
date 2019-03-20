@@ -24,7 +24,7 @@ std::string sim_script_out_path = "/mentor";
 // The full path where the source code is organized
 std::string common_src_path = common_path + "/SourceCode";
 // The simualtion top module
-std::string sim_top_module = "RL_LJ_Top_tb";
+std::string sim_top_module = "RL_Top_tb";
 
 int BIN_NUM = 256;
 int SEG_NUM = 14;

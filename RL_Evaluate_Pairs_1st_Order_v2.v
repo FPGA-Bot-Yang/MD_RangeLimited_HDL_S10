@@ -7,6 +7,9 @@
 // 			Taking the square distance as input
 //				Based on the sqaure distance, evaluate the table look-up entry
 //
+//	Used by:
+//				RL_Force_Evaluation_Unit.v
+//
 // Force Model:
 //				R14_term = 48 * eps * sigma^12 * inv_r14
 //				R8_term  = 24 * eps * sigma^8 * inv_r8
@@ -175,6 +178,11 @@ module RL_Evaluate_Pairs_1st_Order_v2
 	wire [DATA_WIDTH-1:0] terms0_r3, terms0_r8, terms0_r14, terms1_r3, terms1_r8, terms1_r14;
 	wire [DATA_WIDTH-1:0] r3_result, r14_result, r8_result;	// final result for r3, r8, r14
 	
+	// Delay register to propagate r3_result by 3 cycles to match the latency to evaluate LJ Force
+	reg [DATA_WIDTH-1:0] r3_result_reg1;
+	reg [DATA_WIDTH-1:0] r3_result_reg2;
+	reg [DATA_WIDTH-1:0] r3_result_delay;
+	
 	// Force variables
 	wire [DATA_WIDTH-1:0] LJ_Force;									// LJ Force
 	wire [DATA_WIDTH-1:0] RL_Force;									// Total Force
@@ -258,7 +266,11 @@ module RL_Evaluate_Pairs_1st_Order_v2
 			level4_en_reg2 <= 1'b0;
 			level4_en_reg3 <= 1'b0;
 			RL_force_valid <= 1'b0;
-			// delay registers to propogate the dx, dy, dz input
+			// Delay register to propagate r3_result by 3 cycles to match the latency to evaluate LJ Force
+			r3_result_reg1 <= 0;
+			r3_result_reg2 <= 0;
+			r3_result_delay <= 0;
+			// Delay registers to propogate the dx, dy, dz input
 			dx_reg1 <= 0;
 			dx_reg2 <= 0;
 			dx_reg3 <= 0;
@@ -303,7 +315,6 @@ module RL_Evaluate_Pairs_1st_Order_v2
 			end
 		else
 			begin
-
 			// delay the input r2 value by 1 cycle to wait for table lookup to finish
 			r2_reg1 <= r2;
 			r2_delay <= r2_reg1;
@@ -321,30 +332,33 @@ module RL_Evaluate_Pairs_1st_Order_v2
 			r2_reg13 <= r2_reg12;
 			r2_final <= r2_reg13;
 */
-			// 2 cycle delay between table lookup enable and polynomial calculation
+			// 2 cycles delay between table lookup enable and polynomial calculation
 			table_rden_reg <= table_rden;
 			level1_en <= table_rden_reg;
-			// 5 cycle delay between the starting of polynomical calculation and LJ force calculation
+			// 5 cycles delay between the starting of polynomical calculation and LJ force calculation
 			level1_en_reg1 <= level1_en;
 			level1_en_reg2 <= level1_en_reg1;
 			level1_en_reg3 <= level1_en_reg2;
 			level1_en_reg4 <= level1_en_reg3;			
 			level2_en <= level1_en_reg4;
-			// 3 cycle delay between the starting of LJ force calculation and LJ force component evaluation
+			// 3 cycles delay between the starting of LJ force calculation and LJ force component evaluation
 			level2_en_reg1 <= level2_en;
 			level2_en_reg2 <= level2_en_reg1;
 			level3_en <= level2_en_reg2;
-			// 3 cycle delay between the starting of RL force calculation and LJ force calculation
+			// 3 cycles delay between the starting of RL force calculation and LJ force calculation
 			level3_en_reg1 <= level3_en;
 			level3_en_reg2 <= level3_en_reg1;
 			level4_en <= level3_en_reg2;
-			// 4 cycle delay between the starting of LJ force component evaluation and final output LJ force
+			// 4 cycles delay between the starting of LJ force component evaluation and final output LJ force
 			level4_en_reg1 <= level4_en;
 			level4_en_reg2 <= level4_en_reg1;
 			level4_en_reg3 <= level4_en_reg2;
 			RL_force_valid <= level4_en_reg3;
-			
-			// 13 cycle delay between the input of dx, dy, dz before it used for calculate LJ force components
+			// 3 cycles delay between r3_term is evaluated and used for RL_Force evaluation
+			r3_result_reg1 <= r3_result;
+			r3_result_reg2 <= r3_result_reg1;
+			r3_result_delay <= r3_result_reg2;
+			// 13 cycles delay between the input of dx, dy, dz before it used for calculate LJ force components
 			dx_reg1 <= dx;
 			dx_reg2 <= dx_reg1;
 			dx_reg3 <= dx_reg2;
@@ -539,7 +553,7 @@ module RL_Evaluate_Pairs_1st_Order_v2
 	// 3 cycles delay
 	FP_ADD FP_ADD_Total_Force (
 		.ax     (LJ_Force),      //   input,  width = 32,     ax.ax
-		.ay     (r3_result),     //   input,  width = 32,     ay.ay
+		.ay     (r3_result_delay),     //   input,  width = 32,     ay.ay
 		.clk    (clk),           //   input,   width = 1,    clk.clk
 		.clr    (rst),           //   input,   width = 2,    clr.clr
 		.ena    (level3_en || level4_en || level3_en_reg1 || level3_en_reg2),     //   input,   width = 1,    ena.ena

@@ -64,17 +64,17 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	// Generate Top Modules
 	fout << "# # Top Modules\n";
 	fout << " vlog -vlog01compat -work work " << path << "define.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_Top.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_Top_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Top_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Pipeline_1st_Order_no_filter.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Pipeline_1st_Order_no_filter_tb.v\n";
-	fout << " #vlog -vlog01compat -work work " << path << "RL_Pipeline_1st_Order.v\n";
-	fout << " #vlog -vlog01compat -work work " << path << "RL_Pipeline_1st_Order_tb.v\n";
-	fout << " #vlog -vlog01compat -work work " << path << "RL_Evaluate_Pairs_1st_Order.v\n";
-	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing.v\n";
-	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing_tb.v\n";
+	
 	// Generate Force Evaluation Units
 	fout << "# # Force Evaluation Units\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_Evaluation_Unit.v\n";
+	fout << " vlog -vlog01compat -work work " << path << "RL_Force_Evaluation_Unit.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_Evaluate_Pairs_1st_Order_v2.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_Evaluate_Pairs_1st_Order_v2_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << path << "RL_LJ_Evaluation_Unit.v\n";
@@ -171,6 +171,11 @@ int Gen_Sim_Script(std::string* common_path, std::string* sim_script_out_path, s
 	fout << " vlog -vlog01compat -work work " << path << "fp_accumulation_test_tb.v\n";
 	// Depricated Modules
 	fout << "# # Depricated Modules\n";
+	fout << " #vlog -vlog01compat -work work " << path << "RL_Pipeline_1st_Order.v\n";
+	fout << " #vlog -vlog01compat -work work " << path << "RL_Pipeline_1st_Order_tb.v\n";
+	fout << " #vlog -vlog01compat -work work " << path << "RL_Evaluate_Pairs_1st_Order.v\n";
+	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing.v\n";
+	fout << " #vlog -vlog01compat -work work " << path << "RL_LJ_Top_Raw_Data_Testing_tb.v\n";
 	fout << " vlog -vlog01compat -work work " << cell_mem_path << "ram_ref_x.v\n";
 	fout << " vlog -vlog01compat -work work " << cell_mem_path << "ram_ref_y.v\n";
 	fout << " vlog -vlog01compat -work work " << cell_mem_path << "ram_ref_z.v\n";

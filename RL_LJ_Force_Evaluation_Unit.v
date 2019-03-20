@@ -2,8 +2,8 @@
 // Module: RL_LJ_Force_Evaluation_Unit.v
 //
 //	Function: 
-//				Evaluate the LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
-// 			Including a set of Filters and a single Force evaluation pipeline
+//				Evaluate the LJ force of given datasets using 1st order interpolation (interpolation index is generated in Matlab (under MatlabScripts/LJ_no_smooth_poly_interpolation_function.m))
+// 			Including a set of 8 Filters and a single Force evaluation pipeline
 //				The module connected the Filter_Bank and Force_Evaluation_Pipeline together for easy implementation
 //				The module also contains the delay register chain to pass the particle ID from r2_compute output along with the force output
 //
@@ -19,12 +19,13 @@
 //					- Filter_Arbiter.v
 //
 // Latency:
+//				Total Latency:									31 cycles (not considering latency inside filter bank)
 //				r2_compute: 									17 cycles
 //				RL_LJ_Pipeline_1st_Order: 					14 cycles
 //				Filter_Arbiter:								0 cycle
 //
 // Created by:
-//				Chen Yang 10/15/18
+//				Chen Yang 10/15/2018
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_LJ_Force_Evaluation_Unit
@@ -58,21 +59,21 @@ module RL_LJ_Force_Evaluation_Unit
 (
 	input clk,
 	input rst,
-	input [NUM_FILTER-1:0] input_valid,
-	input [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] ref_particle_id,
-	input [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] neighbor_particle_id,
-	input [NUM_FILTER*DATA_WIDTH-1:0] refx,
-	input [NUM_FILTER*DATA_WIDTH-1:0] refy,
-	input [NUM_FILTER*DATA_WIDTH-1:0] refz,
-	input [NUM_FILTER*DATA_WIDTH-1:0] neighborx,
-	input [NUM_FILTER*DATA_WIDTH-1:0] neighbory,
-	input [NUM_FILTER*DATA_WIDTH-1:0] neighborz,
-	output [PARTICLE_ID_WIDTH-1:0] ref_particle_id_out,
-	output [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_out,
-	output [DATA_WIDTH-1:0] LJ_Force_X,
-	output [DATA_WIDTH-1:0] LJ_Force_Y,
-	output [DATA_WIDTH-1:0] LJ_Force_Z,
-	output forceoutput_valid,
+	input [NUM_FILTER-1:0] in_input_valid,
+	input [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] in_ref_particle_id,
+	input [NUM_FILTER*PARTICLE_ID_WIDTH-1:0] in_neighbor_particle_id,
+	input [NUM_FILTER*DATA_WIDTH-1:0] in_refx,
+	input [NUM_FILTER*DATA_WIDTH-1:0] in_refy,
+	input [NUM_FILTER*DATA_WIDTH-1:0] in_refz,
+	input [NUM_FILTER*DATA_WIDTH-1:0] in_neighborx,
+	input [NUM_FILTER*DATA_WIDTH-1:0] in_neighbory,
+	input [NUM_FILTER*DATA_WIDTH-1:0] in_neighborz,
+	output [PARTICLE_ID_WIDTH-1:0] out_ref_particle_id,
+	output [PARTICLE_ID_WIDTH-1:0] out_neighbor_particle_id,
+	output [DATA_WIDTH-1:0] out_LJ_Force_X,
+	output [DATA_WIDTH-1:0] out_LJ_Force_Y,
+	output [DATA_WIDTH-1:0] out_LJ_Force_Z,
+	output out_forceoutput_valid,
 	
 	output [NUM_FILTER-1:0] out_back_pressure_to_input,			// If one of the FIFO is full, then set the back_pressure flag to stop more incoming particle pairs
 	output out_all_buffer_empty_to_input								// Output to FSM that generate particle pairs. Only when all the filter buffers are empty, then the FSM will move on to the next reference particle
@@ -88,15 +89,15 @@ module RL_LJ_Force_Evaluation_Unit
 	assign p_qq = 32'h41000000;				// p_qq = 8, in IEEE floating point format
 
 	// Wires connect Filter_Bank and RL_LJ_Evaluate_Pairs_1st_Order
-	wire [DATA_WIDTH-1:0] r2;
-	wire [DATA_WIDTH-1:0] dx;
-	wire [DATA_WIDTH-1:0] dy;
-	wire [DATA_WIDTH-1:0] dz;
-	wire r2_valid;
+	wire [DATA_WIDTH-1:0] filter_bank_out_r2;
+	wire [DATA_WIDTH-1:0] filter_bank_out_dx;
+	wire [DATA_WIDTH-1:0] filter_bank_out_dy;
+	wire [DATA_WIDTH-1:0] filter_bank_out_dz;
+	wire filter_bank_out_r2_valid;
 	
 	// Delay registers for particle IDs from r2_compute to force output
-	wire [PARTICLE_ID_WIDTH-1:0] r2_compute_out_ref_particle_id;
-	wire [PARTICLE_ID_WIDTH-1:0] r2_compute_out_neighbor_particle_id;
+	wire [PARTICLE_ID_WIDTH-1:0] filter_bank_out_ref_particle_id;
+	wire [PARTICLE_ID_WIDTH-1:0] filter_bank_out_neighbor_particle_id;
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg0;
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg1;
 	reg [PARTICLE_ID_WIDTH-1:0] ref_particle_id_reg2;
@@ -126,8 +127,8 @@ module RL_LJ_Force_Evaluation_Unit
 	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_reg12;
 	reg [PARTICLE_ID_WIDTH-1:0] neighbor_particle_id_delayed;
 	// Assign output port
-	assign ref_particle_id_out = ref_particle_id_delayed;
-	assign neighbor_particle_id_out = neighbor_particle_id_delayed;
+	assign out_ref_particle_id = ref_particle_id_delayed;
+	assign out_neighbor_particle_id = neighbor_particle_id_delayed;
 	// Delay register
 	always@(posedge clk)
 		begin
@@ -164,7 +165,7 @@ module RL_LJ_Force_Evaluation_Unit
 			end
 		else
 			begin
-			ref_particle_id_reg0 <= r2_compute_out_ref_particle_id;
+			ref_particle_id_reg0 <= filter_bank_out_ref_particle_id;
 			ref_particle_id_reg1 <= ref_particle_id_reg0;
 			ref_particle_id_reg2 <= ref_particle_id_reg1;
 			ref_particle_id_reg3 <= ref_particle_id_reg2;
@@ -178,7 +179,7 @@ module RL_LJ_Force_Evaluation_Unit
 			ref_particle_id_reg11 <= ref_particle_id_reg10;
 			ref_particle_id_reg12 <= ref_particle_id_reg11;
 			ref_particle_id_delayed <= ref_particle_id_reg12;
-			neighbor_particle_id_reg0 <= r2_compute_out_neighbor_particle_id;
+			neighbor_particle_id_reg0 <= filter_bank_out_neighbor_particle_id;
 			neighbor_particle_id_reg1 <= neighbor_particle_id_reg0;
 			neighbor_particle_id_reg2 <= neighbor_particle_id_reg1;
 			neighbor_particle_id_reg3 <= neighbor_particle_id_reg2;
@@ -220,22 +221,22 @@ module RL_LJ_Force_Evaluation_Unit
 	(
 		.clk(clk),
 		.rst(rst),
-		.input_valid(input_valid),
-		.ref_particle_id(ref_particle_id),
-		.neighbor_particle_id(neighbor_particle_id),
-		.refx(refx),
-		.refy(refy),
-		.refz(refz),
-		.neighborx(neighborx),
-		.neighbory(neighbory),
-		.neighborz(neighborz),
-		.ref_particle_id_out(r2_compute_out_ref_particle_id),
-		.neighbor_particle_id_out(r2_compute_out_neighbor_particle_id),
-		.r2(r2),
-		.dx(dx),
-		.dy(dy),
-		.dz(dz),
-		.out_valid(r2_valid),
+		.input_valid(in_input_valid),
+		.ref_particle_id(in_ref_particle_id),
+		.neighbor_particle_id(in_neighbor_particle_id),
+		.refx(in_refx),
+		.refy(in_refy),
+		.refz(in_refz),
+		.neighborx(in_neighborx),
+		.neighbory(in_neighbory),
+		.neighborz(in_neighborz),
+		.ref_particle_id_out(filter_bank_out_ref_particle_id),
+		.neighbor_particle_id_out(filter_bank_out_neighbor_particle_id),
+		.r2(filter_bank_out_r2),
+		.dx(filter_bank_out_dx),
+		.dy(filter_bank_out_dy),
+		.dz(filter_bank_out_dz),
+		.out_valid(filter_bank_out_r2_valid),
 		.out_back_pressure_to_input(out_back_pressure_to_input),						// If one of the FIFO is full, then set the back_pressure flag to stop more incoming particle pairs
 		.out_all_buffer_empty(out_all_buffer_empty_to_input)
 	);
@@ -255,18 +256,18 @@ module RL_LJ_Force_Evaluation_Unit
 	RL_LJ_Evaluate_Pairs_1st_Order(
 		.clk(clk),
 		.rst(rst),
-		.r2_valid(r2_valid),
-		.r2(r2),
-		.dx(dx),
-		.dy(dy),
-		.dz(dz),
+		.r2_valid(filter_bank_out_r2_valid),
+		.r2(filter_bank_out_r2),
+		.dx(filter_bank_out_dx),
+		.dy(filter_bank_out_dy),
+		.dz(filter_bank_out_dz),
 		.p_a(p_a),
 		.p_b(p_b),
 		.p_qq(p_qq),
-		.LJ_Force_X(LJ_Force_X),
-		.LJ_Force_Y(LJ_Force_Y),
-		.LJ_Force_Z(LJ_Force_Z),
-		.LJ_force_valid(forceoutput_valid)
+		.LJ_Force_X(out_LJ_Force_X),
+		.LJ_Force_Y(out_LJ_Force_Y),
+		.LJ_Force_Z(out_LJ_Force_Z),
+		.LJ_force_valid(out_forceoutput_valid)
 	);
 
 

@@ -5,6 +5,9 @@
 // 			Taking the square distance as input
 //				Based on the sqaure distance, evaluate the table look-up entry
 //
+//	Used by:
+//				RL_LJ_Force_Evaluation_Unit.v
+//
 // Force Model:
 //				R14_term = 48 * eps * sigma^12 * inv_r14
 //				R8_term  = 24 * eps * sigma^8 * inv_r8

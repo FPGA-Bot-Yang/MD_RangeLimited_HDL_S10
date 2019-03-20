@@ -6,7 +6,7 @@
 // 			Force_Evaluation_Unit with Accumulation_Unit and send out neighbor particle force (with negation)
 //				Single set of force evaluation unit, including:
 //							* Single force evaluation pipeline
-//							* Multiple filters
+//							* Multiple (8) filters
 //							* Accumulation unit for reference particles
 //				Output:
 //							* Each iteration, output neighbor particle's partial force
@@ -31,15 +31,18 @@
 //
 // Dependency:
 //				RL_LJ_Force_Evaluation_Unit.v / RL_LJ_Force_Evaluation_Unit_simple_filter.v
+//				Partial_Force_Acc.v
 //
 // Testbench:
 //				RL_LJ_Top_tb.v
 //
 // Timing:
-//				TBD
+//				Total Latency:									32 cycles
+//				RL_LJ_Force_Evaluation_Unit:				31 cycles
+//				Partial_Force_Acc:							currently 1 cycle
 //
 // Created by:
-//				Chen Yang 10/23/18
+//				Chen Yang 10/23/2018
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_LJ_Evaluation_Unit
@@ -189,21 +192,21 @@ module RL_LJ_Evaluation_Unit
 	(
 		.clk(clk),
 		.rst(rst),
-		.input_valid(in_input_pair_valid),										// INPUT [NUM_FILTER-1:0]
-		.ref_particle_id(in_ref_particle_id),									// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.neighbor_particle_id(in_neighbor_particle_id),						// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
-		.refx(refx_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.refy(refy_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.refz(refz_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighborx(neighborx_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighbory(neighbory_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.neighborz(neighborz_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
-		.ref_particle_id_out(ref_particle_id_wire),							// OUTPUT [PARTICLE_ID_WIDTH-1:0]
-		.neighbor_particle_id_out(out_neighbor_particle_id),				// OUTPUT [PARTICLE_ID_WIDTH-1:0]
-		.LJ_Force_X(LJ_Force_X_wire),												// OUTPUT [DATA_WIDTH-1:0]
-		.LJ_Force_Y(LJ_Force_Y_wire),												// OUTPUT [DATA_WIDTH-1:0]
-		.LJ_Force_Z(LJ_Force_Z_wire),												// OUTPUT [DATA_WIDTH-1:0]
-		.forceoutput_valid(evaluated_force_valid),							// OUTPUT
+		.in_input_valid(in_input_pair_valid),										// INPUT [NUM_FILTER-1:0]
+		.in_ref_particle_id(in_ref_particle_id),									// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.in_neighbor_particle_id(in_neighbor_particle_id),						// INPUT [NUM_FILTER*PARTICLE_ID_WIDTH-1:0]
+		.in_refx(refx_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.in_refy(refy_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.in_refz(refz_in_wire),															// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.in_neighborx(neighborx_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.in_neighbory(neighbory_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.in_neighborz(neighborz_in_wire),											// INPUT [NUM_FILTER*DATA_WIDTH-1:0]
+		.out_ref_particle_id(ref_particle_id_wire),							// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.out_neighbor_particle_id(out_neighbor_particle_id),				// OUTPUT [PARTICLE_ID_WIDTH-1:0]
+		.out_LJ_Force_X(LJ_Force_X_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.out_LJ_Force_Y(LJ_Force_Y_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.out_LJ_Force_Z(LJ_Force_Z_wire),												// OUTPUT [DATA_WIDTH-1:0]
+		.out_forceoutput_valid(evaluated_force_valid),							// OUTPUT
 		.out_back_pressure_to_input(out_back_pressure_to_input),			// OUTPUT [NUM_FILTER-1:0]
 		.out_all_buffer_empty_to_input(out_all_buffer_empty_to_input)	// OUTPUT
 	);

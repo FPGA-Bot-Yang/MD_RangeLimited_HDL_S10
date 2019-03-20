@@ -2,8 +2,8 @@
 // Module: RL_LJ_Top.v
 //
 //	Function: 
-//				Evaluate the dataset using 1st order interpolation (interpolation index is generated in Matlab (under Ethan_GoldenModel/Matlab_Interpolation))
-// 			The input data is pre-processed ApoA1 data with partiation into cells
+//				Evaluate the dataset using 1st order interpolation (interpolation index is generated in Matlab (under MatlabScripts/LJ_no_smooth_poly_interpolation_function.m))
+// 			The input data is pre-processed ApoA1/LJArgon data with partiation into cells
 //				Mapping a single reference pariticle cell and multiple neighbor particle cells onto one RL_LJ_Evaluation_Unit (memory content in ref and neighbor are realistic to actual distibution)
 //				Including force accumulation & Motion Update
 //				Cell coordinates start from (1,1,1) instead of (0,0,0)
@@ -57,7 +57,7 @@
 //				2, parameterize # of force evaluation units in it
 //
 // Created by:
-//				Chen Yang 10/30/18
+//				Chen Yang 10/30/2018
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module RL_LJ_Top
