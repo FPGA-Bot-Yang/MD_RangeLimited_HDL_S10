@@ -20,7 +20,6 @@ module FP_SUB (
     input  wire [31:0]                   ax,
     input  wire [31:0]                   ay,
     output wire [31:0]                   result
-
 	);
     wire [1-1:0] clk_vec;
     wire [1-1:0] ena_vec;

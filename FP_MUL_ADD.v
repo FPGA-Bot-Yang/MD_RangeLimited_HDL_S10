@@ -19,7 +19,6 @@ module FP_MUL_ADD  (
     input  wire [31:0]                   ay,
     input  wire [31:0]                   az,
     output wire [31:0]                   result
-
 	);
     wire [1-1:0] clk_vec;
     wire [1-1:0] ena_vec;

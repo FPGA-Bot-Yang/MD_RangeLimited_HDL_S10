@@ -19,7 +19,7 @@ module FP_ADD
     input  wire [DATA_WIDTH-1:0]                   ax,
     input  wire [DATA_WIDTH-1:0]                   ay,
     output wire [DATA_WIDTH-1:0]                   result
-	);
+);
     wire [1-1:0] clk_vec;
     wire [1-1:0] ena_vec;
     wire [1:0]                   clr_vec;
