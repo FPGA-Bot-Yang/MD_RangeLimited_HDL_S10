@@ -46,14 +46,16 @@ START_TIME = cputime;
 %% Simulation Control Parameter
 ENABLE_VERIFICATION = 0;                            % Enable verification for a certain reference particle
 ENERGY_EVALUATION_STEPS = 10;                       % Every few iterations, evaluate energy once
+CONSIDER_MOTION_UPDATE_TIME = 0;                    % Consider the motion update delay
 %% Dataset Parameters
 SIMULATION_TIME_STEP = 2E-15;                       % 2 femtosecond
 CUTOFF_RADIUS = single(7.65);                       % Unit Angstrom, Cutoff Radius
 CELL_COUNT_X = 7;
-CELL_COUNT_Y = 6;
-CELL_COUNT_Z = 6;
+CELL_COUNT_Y = 7;
+CELL_COUNT_Z = 7;
 TOTAL_CELL_COUNT = CELL_COUNT_X * CELL_COUNT_Y * CELL_COUNT_Z;
-TOTAL_PARTICLE = 20000;                             % particle count in benchmark
+%TOTAL_CELL_COUNT = 125;
+TOTAL_PARTICLE = 23588;                             % particle count in benchmark
 COMMON_PATH = '';
 %INPUT_FILE_NAME = 'input_positions_ljargon.txt';
 AVG_PARTICLE_PER_CELL = ceil(TOTAL_PARTICLE / TOTAL_CELL_COUNT);
@@ -79,9 +81,9 @@ particles_within_cutoff = ceil(0.5 * AVG_PARTICLE_PER_CELL * (4/3*pi));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% MEM1 + Distribute1: All pipelines working on same reference particle, with Global Memory
+%% Design 1: MEM1 + Distribute1: All pipelines working on same reference particle, with Global Memory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-NUM_PIPELINES = 90;
+NUM_PIPELINES = 52
 NUM_MOTION_UPDATE = 10;                              % Units for motion update
 FREQUENCY = 352;                                    % Unit MHz
 %% Short range time per iteration
@@ -104,7 +106,11 @@ motion_update_cycles = TOTAL_PARTICLE / NUM_MOTION_UPDATE + MOTION_UPDATE_LATENC
 motion_update_time = motion_update_cycles /MOTION_UPDATE_FREQUENCY;       % Unit: us
 %% Total time per iteration
 % Walltime per iteration (unit us)
-iteration_time = short_range_iteration_time + motion_update_time;
+if CONSIDER_MOTION_UPDATE_TIME
+    iteration_time = short_range_iteration_time + motion_update_time;
+else
+    iteration_time = short_range_iteration_time;
+end
 %% Simulation time per day
 day_time = 24*60*60*10^6;               % Unit: us
 iterations_per_day = day_time / iteration_time;
@@ -114,9 +120,9 @@ fprintf('MEM1 + Distribute1: Iteration time is %fus, Simulation time per day is 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% MEM2 + Distribute1: All pipelines working on same reference particle, with distributed Memory
+%% Design 2: MEM2 + Distribute1: All pipelines working on same reference particle, with distributed Memory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-NUM_PIPELINES = 60;
+NUM_PIPELINES = 35;
 NUM_MOTION_UPDATE = 10;                              % Units for motion update
 FREQUENCY = 338;                                    % Unit MHz
 %% Short range time per iteration
@@ -139,7 +145,11 @@ motion_update_cycles = TOTAL_PARTICLE / NUM_MOTION_UPDATE + MOTION_UPDATE_LATENC
 motion_update_time = motion_update_cycles /MOTION_UPDATE_FREQUENCY;       % Unit: us
 %% Total time per iteration
 % Walltime per iteration (unit us)
-iteration_time = short_range_iteration_time + motion_update_time;
+if CONSIDER_MOTION_UPDATE_TIME
+    iteration_time = short_range_iteration_time + motion_update_time;
+else
+    iteration_time = short_range_iteration_time;
+end
 %% Simulation time per day
 day_time = 24*60*60*10^6;               % Unit: us
 iterations_per_day = day_time / iteration_time;
@@ -148,9 +158,9 @@ Simulation_Period_Per_Day = iterations_per_day * SIMULATION_TIME_STEP * 10^6;
 fprintf('MEM2 + Distribute1: Iteration time is %fus, Simulation time per day is %f us\n',iteration_time,Simulation_Period_Per_Day);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% MEM1 + Distribute2: All pipelines working on same cell, different reference particle, with global Memory
+%% Design 3: MEM1 + Distribute2: All pipelines working on same cell, different reference particle, with global Memory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-NUM_PIPELINES = 95;
+NUM_PIPELINES = 51;
 NUM_MOTION_UPDATE = 10;                              % Units for motion update
 FREQUENCY = 343;                                    % Unit MHz
 %% Short range time per iteration
@@ -175,7 +185,11 @@ motion_update_cycles = TOTAL_PARTICLE / NUM_MOTION_UPDATE + MOTION_UPDATE_LATENC
 motion_update_time = motion_update_cycles /MOTION_UPDATE_FREQUENCY;       % Unit: us
 %% Total time per iteration
 % Walltime per iteration (unit us)
-iteration_time = short_range_iteration_time + motion_update_time;
+if CONSIDER_MOTION_UPDATE_TIME
+    iteration_time = short_range_iteration_time + motion_update_time;
+else
+    iteration_time = short_range_iteration_time;
+end
 %% Simulation time per day
 day_time = 24*60*60*10^6;               % Unit: us
 iterations_per_day = day_time / iteration_time;
@@ -185,9 +199,9 @@ fprintf('MEM1 + Distribute2: Iteration time is %fus, Simulation time per day is 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% MEM2 + Distribute2: All pipelines working on same cell, different reference particle, with distributed Memory
+%% Design 4: MEM2 + Distribute2: All pipelines working on same cell, different reference particle, with distributed Memory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-NUM_PIPELINES = 60;
+NUM_PIPELINES = 35;
 NUM_MOTION_UPDATE = 10;                             % Units for motion update
 FREQUENCY = 340;                                    % Unit MHz
 %% Short range time per iteration
@@ -212,7 +226,11 @@ motion_update_cycles = TOTAL_PARTICLE / NUM_MOTION_UPDATE + MOTION_UPDATE_LATENC
 motion_update_time = motion_update_cycles /MOTION_UPDATE_FREQUENCY;       % Unit: us
 %% Total time per iteration
 % Walltime per iteration (unit us)
-iteration_time = short_range_iteration_time + motion_update_time;
+if CONSIDER_MOTION_UPDATE_TIME
+    iteration_time = short_range_iteration_time + motion_update_time;
+else
+    iteration_time = short_range_iteration_time;
+end
 %% Simulation time per day
 day_time = 24*60*60*10^6;               % Unit: us
 iterations_per_day = day_time / iteration_time;
@@ -222,9 +240,9 @@ fprintf('MEM2 + Distribute2: Iteration time is %fus, Simulation time per day is 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% MEM1 + Distribute3: Each pipeline working on different home cells, with global memory
+%% Design 5: MEM1 + Distribute3: Each pipeline working on different home cells, with global memory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-NUM_PIPELINES = 120;
+NUM_PIPELINES = 51;
 NUM_MOTION_UPDATE = 10;                             % Units for motion update
 FREQUENCY = 346;                                    % Unit MHz
 %% Short range time per iteration
@@ -243,7 +261,11 @@ motion_update_cycles = TOTAL_PARTICLE / NUM_MOTION_UPDATE + MOTION_UPDATE_LATENC
 motion_update_time = motion_update_cycles /MOTION_UPDATE_FREQUENCY;       % Unit: us
 %% Total time per iteration
 % Walltime per iteration (unit us)
-iteration_time = short_range_iteration_time + motion_update_time;
+if CONSIDER_MOTION_UPDATE_TIME
+    iteration_time = short_range_iteration_time + motion_update_time;
+else
+    iteration_time = short_range_iteration_time;
+end
 %% Simulation time per day
 day_time = 24*60*60*10^6;               % Unit: us
 iterations_per_day = day_time / iteration_time;
@@ -253,9 +275,9 @@ fprintf('MEM1 + Distribute3: Iteration time is %fus, Simulation time per day is 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% MEM2 + Distribute3: Each pipeline working on different home cells, with distributed memory
+%% Design 6: MEM2 + Distribute3: Each pipeline working on different home cells, with distributed memory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-NUM_PIPELINES = 120;
+NUM_PIPELINES = 41;
 NUM_MOTION_UPDATE = 10;                             % Units for motion update
 FREQUENCY = 346;                                    % Unit MHz
 %% Short range time per iteration
@@ -272,7 +294,11 @@ motion_update_cycles = TOTAL_PARTICLE / NUM_MOTION_UPDATE + MOTION_UPDATE_LATENC
 motion_update_time = motion_update_cycles /MOTION_UPDATE_FREQUENCY;       % Unit: us
 %% Total time per iteration
 % Walltime per iteration (unit us)
-iteration_time = short_range_iteration_time + motion_update_time;
+if CONSIDER_MOTION_UPDATE_TIME
+    iteration_time = short_range_iteration_time + motion_update_time;
+else
+    iteration_time = short_range_iteration_time;
+end
 %% Simulation time per day
 day_time = 24*60*60*10^6;               % Unit: us
 iterations_per_day = day_time / iteration_time;

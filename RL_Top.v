@@ -72,6 +72,12 @@ module RL_Top
 	// High level parameters
 	parameter NUM_EVAL_UNIT					= 1,											// # of evaluation units in the design
 	// Dataset defined parameters
+	parameter TOTAL_PARTICLE_NUM 			= 20000,
+	parameter PARTICLE_GLOBAL_ID_WIDTH 	= 15,											// log(TOTAL_PARTICLE_NUM)/log(2)
+	parameter NUM_CELL_X 					= 5,
+	parameter NUM_CELL_Y 					= 5,
+	parameter NUM_CELL_Z 					= 5,
+	parameter NUM_TOTAL_CELL 				= NUM_CELL_X * NUM_CELL_Y * NUM_CELL_Z,
 	parameter MAX_CELL_COUNT_PER_DIM 	= 7,//9,										// Maximum cell count among the 3 dimensions
 	parameter NUM_NEIGHBOR_CELLS			= 13,											// # of neighbor cells per home cell, for Half-shell method, is 13
 	parameter CELL_ID_WIDTH					= 3,//4,										// log(NUM_NEIGHBOR_CELLS)

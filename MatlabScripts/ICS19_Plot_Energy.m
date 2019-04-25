@@ -128,16 +128,16 @@ hold on;
 %set(hl,'LineWidth',1.5);
 %ht = findobj(lgd,'type','text');
 %set(ht,'FontSize',20);
-ylim([-3.2E5 -3E5]);
+ylim([-3.18E5 -3E5]);
 %ylim([-3.35E5 -2.9E5]);
 lgd = legend(legend_array{1},legend_array{2},legend_array{3});
 set(lgd,'FontSize',30);
 hl=findobj(lgd,'type','line');
 set(hl,'LineWidth',1.5);
-set(gca,'FontSize',20);
+set(gca,'FontSize',40);
 xlabel('Simulation Iterations','FontSize', 40);
 ylabel('System Energy (kJ)','FontSize', 40);
-title('System Energy', 'FontSize', 50);
+%title('System Energy', 'FontSize', 50);
 
 %% Profile variance
 diff_rate = zeros(TOTAL_ITERATION,1);
